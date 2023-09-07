@@ -2,7 +2,7 @@ import helper as h
 
 class QNEAT:
     def __init__(self):
-        self.innovation_number = h.InnovationNumber()
+        self.global_innovation_number = h.GlobalInnovationNumber()
 
     def run(self):
 
