@@ -29,7 +29,28 @@ class GlobalInnovationNumber(object):
     #         cls.instance = super(InnovationNumber, cls).__new__(cls)
     #     return cls.instance
 
+class GlobalLayerNumber(object):
+    '''
+    Class for keeping a global layer number.
+    
+    Layer number starts at 0.
+    '''
+    def __init__(self):
+        self._layer_number:int = 0
 
+    def next(self):
+        '''
+        Get the next layer number.
+
+        Increments the layer number.
+        '''
+        self._layer_number += 1
+        return self._layer_number
+    
+    def current(self):
+        return self._layer_number
+
+# Unused atm
 def gate_string_to_gate(circuit:QuantumCircuit, gate_string:str, n_qubits:int, qubit_seed:str, n_parameters:int = 0):
     '''
     Takes an encoded gate string and adds the corresponding gate to the given circuit.
