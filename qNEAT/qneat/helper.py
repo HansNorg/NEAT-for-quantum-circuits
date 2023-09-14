@@ -1,6 +1,8 @@
 import numpy as np
 from qiskit.circuit import Parameter
 from qiskit import QuantumCircuit
+from qiskit import transpile
+from qiskit_aer import AerSimulator
 
 #Inspired by QMS-Xenakis.
 class GlobalInnovationNumber(object):
@@ -49,6 +51,67 @@ class GlobalLayerNumber(object):
     
     def current(self):
         return self._layer_number
+
+def ising_1d_instance(qubits, seed = None):
+    def rand1d(qubits):
+        np.random.seed(seed)
+        return [np.random.choice([+1, -1]) for _ in range(qubits)]
+
+    # transverse field terms
+    h = rand1d(qubits)
+    # links between lines
+    j = rand1d(qubits-1)
+    return h, j
+
+def compute_expected_energy(counts,h,j):
+    '''
+    returns the expected energy of a circuit given the counts, the 1d-ising parameters h and j
+    '''
+    def bool_to_state(integer):
+        # Convert the 1/0 of a bit to +1/-1
+        return 2*int(integer)-1
+    # Get total energy of each count
+    r1=list(counts.keys())
+    r2=list(counts.values())
+    total_energy = 0
+    for k in range(0,len(r1)):
+        # r2[k] is the number of shots that have this result
+        # r1[k] is the result as qubits (like 0001)
+        # Energy of h
+        total_energy += sum([bool_to_state(r1[k][bit_value])*h[bit_value] for bit_value in range(0,len(r1[k]))])*r2[k]
+        # Energy of j
+        total_energy += sum([bool_to_state(r1[k][bit_value])*bool_to_state(r1[k][bit_value+1])*j[bit_value] for bit_value in range(0,len(j))])*r2[k]
+    # Divide over the total count(shots)
+    expectation_value = total_energy/sum(r2)
+    # print(total_energy, expectation_value)
+    return expectation_value
+
+def energy_from_circuit(circuit:QuantumCircuit, parameters, shots, backend_simulator="local_qasm_simulator"):
+    bound_circuit = circuit.bind_parameters(parameters)
+    measurement_circuit = add_measurement(bound_circuit)
+    try:
+        backend_sim = AerSimulator.from_backend(backend_simulator)
+    except:
+        backend_sim = AerSimulator()
+    counts = backend_sim.run(transpile(measurement_circuit, backend_sim), shots=shots).result().get_counts()
+    h, j = ising_1d_instance(circuit.num_qubits, 0) # TODO Move, change seed
+    # print(counts)
+    return compute_expected_energy(counts, h, j)
+
+def add_measurement(circuit: QuantumCircuit) -> QuantumCircuit:
+    '''Mostly copied from Richard Middelkoop'''
+    n_qubits = circuit.num_qubits
+    # Create a Quantum Circuit
+    measurement_part = QuantumCircuit(n_qubits, n_qubits)
+    measurement_part.barrier(range(n_qubits))
+    # map the quantum measurement to the classical bits
+    measurement_part.measure(range(n_qubits), range(n_qubits))
+
+    # The Qiskit circuit object supports composition using
+    # the compose method.
+    circuit.add_register(measurement_part.cregs[0])
+    measurement_circuit = circuit.compose(measurement_part)
+    return measurement_circuit
 
 # Unused atm
 def gate_string_to_gate(circuit:QuantumCircuit, gate_string:str, n_qubits:int, qubit_seed:str, n_parameters:int = 0):
