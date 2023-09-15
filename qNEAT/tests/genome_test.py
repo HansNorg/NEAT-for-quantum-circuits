@@ -167,9 +167,9 @@ class TestGenome(unittest.TestCase):
         global_layer_number = h.GlobalInnovationNumber()
         global_layer_number._layer_number = 3
 
-        n_different = 4
-        n_reps = 3
-        n_amounts = 2
+        n_different = 10
+        n_reps = 10
+        n_amounts = 100
         gradients = pd.DataFrame()
         print()
         for k in range(n_different):
@@ -193,12 +193,12 @@ class TestGenome(unittest.TestCase):
             gradients = pd.concat((gradients, inner_gradients), axis=1)
             # print(gradients[:])
         sns.lineplot(data=gradients)
-        plt.show()
-        #     plt.plot(np.arange(1,n_amounts+1)*1024, gradients)
-        # plt.xlabel("Amount of shots")
-        # plt.ylabel("Estimated energy")
-        # plt.savefig("../figures/energy_v_shots.png")
         # plt.show()
+        #     plt.plot(np.arange(1,n_amounts+1)*1024, gradients)
+        plt.xlabel("Amount of shots")
+        plt.ylabel("Estimated energy")
+        plt.savefig("../figures/energy_v_shots_sns.png")
+        plt.show()
 
 if __name__ == '__main__':
     unittest.main()
