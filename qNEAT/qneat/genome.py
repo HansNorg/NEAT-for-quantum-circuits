@@ -25,16 +25,19 @@ class Genome(object):
             self.layers[ind] = new_layer
         return self.layers[ind].add_gate(gate)
 
-    def get_circuit(self, n_qubits, n_parameters = 0) -> QuantumCircuit:
+    def get_circuit(self, n_qubits, n_parameters = 0) -> (QuantumCircuit, int):
         circuit = QuantumCircuit(QuantumRegister(n_qubits))
         for layer_ind in self.layers:
             circuit, n_parameters = self.layers[layer_ind].add_to_circuit(circuit, n_parameters)
         return circuit, n_parameters
     
-    def get_fitness(self, n_qubits):
+    def get_fitness(self, n_qubits, backend = "ibm_perth"):
         circuit, n_parameters = self.get_circuit(n_qubits)
         gradient, energy = self.compute_gradient(circuit, n_parameters)
-        ...
+        configured_circuit, backend = h.configure_circuit_to_backend(circuit, backend)
+        # if not type(backend) == str: # Don't know why
+        #     CHIP_BACKEND = backend
+
 
     def compute_gradient(self, circuit, n_parameters, shots = 1024, epsilon = 10**-5):
         if n_parameters == 0:

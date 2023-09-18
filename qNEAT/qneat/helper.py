@@ -3,6 +3,8 @@ from qiskit.circuit import Parameter
 from qiskit import QuantumCircuit
 from qiskit import transpile
 from qiskit_aer import AerSimulator
+from qiskit_ibm_provider import IBMProvider, IBMBackend
+from qiskit.providers.fake_provider import FakeProviderForBackendV2
 
 #Inspired by QMS-Xenakis.
 class GlobalInnovationNumber(object):
@@ -112,6 +114,46 @@ def add_measurement(circuit: QuantumCircuit) -> QuantumCircuit:
     circuit.add_register(measurement_part.cregs[0])
     measurement_circuit = circuit.compose(measurement_part)
     return measurement_circuit
+
+def find_backend(backend = "ibm_perth"):
+    if type(backend) == str:
+        provider = IBMProvider()
+        available_cloud_backends = provider.backends()
+        # print(available_cloud_backends)
+        for i in available_cloud_backends: 
+            if i.name == backend:
+                backend = i
+        if type(backend) == str:
+            provider = FakeProviderForBackendV2()
+            available_cloud_backends = provider.backends()
+            # print(available_cloud_backends)
+            for i in available_cloud_backends: 
+                if i.name == backend:
+                    backend = i
+            if type(backend) == str:
+                exit("the given backend is not available, exiting the system")
+    return backend
+
+def configure_circuit_to_backend(circuit, backend):
+    ibm_backend = find_backend(backend)
+    circuit_basis = transpile(circuit, backend=ibm_backend)
+    return circuit_basis, ibm_backend
+
+def get_circuit_properties(circuit, ibm_backend:IBMBackend):
+    complexity = 0
+    circuit_error = 0
+    # IBMbackend = find_backend(backend)
+    if "fake" in ibm_backend.name:
+        ibm_backend = AerSimulator.from_backend(ibm_backend)
+    for gate in circuit.data:
+        if "c" in gate.operation.name:
+            cx_bits = [int(gate.qubits[0]._index), int(gate.qubits[1]._index)]
+            circuit_error += ibm_backend.properties().gate_error(gate.operation.name,cx_bits)
+            complexity += 0.02
+    # If a simulator is used the manual complexity value is used, otherwise the actual 2-bit circuit error is used
+    if circuit_error == 0:
+        circuit_error = complexity
+    return circuit_error
 
 # Unused atm
 def gate_string_to_gate(circuit:QuantumCircuit, gate_string:str, n_qubits:int, qubit_seed:str, n_parameters:int = 0):
