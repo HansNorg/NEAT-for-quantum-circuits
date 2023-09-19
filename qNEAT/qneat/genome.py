@@ -9,6 +9,8 @@ class Genome(object):
     def __init__(self, global_layer_number) -> None:
         self.layers = {}
         self.global_layer_number = global_layer_number
+        self._fitness = None
+        self._update_fitness = True
 
     @classmethod
     def from_layers(cls, global_layer_numer, layers):
@@ -23,7 +25,10 @@ class Genome(object):
         if ind not in self.layers:
             new_layer = l.Layer(ind)
             self.layers[ind] = new_layer
-        return self.layers[ind].add_gate(gate)
+        gate_added = self.layers[ind].add_gate(gate)
+        if gate_added:
+            self._update_fitness = True
+        return gate_added
 
     def get_circuit(self, n_qubits, n_parameters = 0) -> (QuantumCircuit, int):
         circuit = QuantumCircuit(QuantumRegister(n_qubits))
@@ -32,12 +37,19 @@ class Genome(object):
         return circuit, n_parameters
     
     def get_fitness(self, n_qubits, backend = "ibm_perth"):
+        if not self._update_fitness: 
+            # If the genome hasn't changed, return the already calculated fitness
+            return self._fitness
+        
         circuit, n_parameters = self.get_circuit(n_qubits)
-        gradient, energy = self.compute_gradient(circuit, n_parameters)
+        gradient = self.compute_gradient(circuit, n_parameters)
         configured_circuit, backend = h.configure_circuit_to_backend(circuit, backend)
         # if not type(backend) == str: # Don't know why
         #     CHIP_BACKEND = backend
-
+        circuit_error = h.get_circuit_properties(configured_circuit, backend)
+        self._fitness = 1/(1+circuit_error)*gradient
+        self._update_fitness = False
+        return self._fitness
 
     def compute_gradient(self, circuit, n_parameters, shots = 1024, epsilon = 10**-5):
         if n_parameters == 0:

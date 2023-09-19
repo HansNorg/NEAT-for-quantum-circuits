@@ -16,6 +16,8 @@ class TestHelper(unittest.TestCase):
             print(h.ising_1d_instance(5))
 
     def test_get_circuit_properties(self):
+        if __name__ != '__main__':
+            return
         global_layer_number = h.GlobalLayerNumber()
         layers = {0: l.Layer(0), 1:l.Layer(1)}
         global_layer_number._layer_number = 2
@@ -28,7 +30,10 @@ class TestHelper(unittest.TestCase):
         genome = gen.Genome.from_layers(global_layer_number, layers)
         circuit, n_parameters = genome.get_circuit(3)
         configured_circuit, ibm_backend = h.configure_circuit_to_backend(circuit, "ibm_perth")
-        # print(ibm_backend.properties(refresh=True))
+        print(h.get_circuit_properties(configured_circuit, ibm_backend))
+        configured_circuit, ibm_backend = h.configure_circuit_to_backend(circuit, "fake_perth")
+        print(h.get_circuit_properties(configured_circuit, ibm_backend))
+        configured_circuit, ibm_backend = h.configure_circuit_to_backend(circuit, "ibmq_qasm_simulator")
         print(h.get_circuit_properties(configured_circuit, ibm_backend))
 
 

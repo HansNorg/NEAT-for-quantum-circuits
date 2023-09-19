@@ -11,10 +11,10 @@ class GlobalInnovationNumber(object):
     '''
     Class for keeping a global innovation number.
     
-    Innovation number starts at 0.
+    Innovation number starts at -1, such that the first one obtained from next() is 0.
     '''
     def __init__(self):
-        self._innovation_number:int = 0
+        self._innovation_number:int = -1
 
     def next(self):
         '''
@@ -136,6 +136,7 @@ def find_backend(backend = "ibm_perth"):
 
 def configure_circuit_to_backend(circuit, backend):
     ibm_backend = find_backend(backend)
+    # ibm_backend = backend
     circuit_basis = transpile(circuit, backend=ibm_backend)
     return circuit_basis, ibm_backend
 
@@ -146,13 +147,15 @@ def get_circuit_properties(circuit, ibm_backend:IBMBackend):
     if "fake" in ibm_backend.name:
         ibm_backend = AerSimulator.from_backend(ibm_backend)
     for gate in circuit.data:
+        bits = [int(qubit._index) for qubit in gate.qubits]
+        circuit_error += ibm_backend.properties().gate_error(gate.operation.name,bits)
         if "c" in gate.operation.name:
-            cx_bits = [int(gate.qubits[0]._index), int(gate.qubits[1]._index)]
-            circuit_error += ibm_backend.properties().gate_error(gate.operation.name,cx_bits)
+        #     cx_bits = [int(gate.qubits[0]._index), int(gate.qubits[1]._index)]
+        #     circuit_error += ibm_backend.properties().gate_error(gate.operation.name,cx_bits)
             complexity += 0.02
     # If a simulator is used the manual complexity value is used, otherwise the actual 2-bit circuit error is used
     if circuit_error == 0:
-        circuit_error = complexity
+        return complexity
     return circuit_error
 
 # Unused atm
