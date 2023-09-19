@@ -180,5 +180,37 @@ class TestGenome(unittest.TestCase):
         plt.savefig("../figures/energy_v_shots_sns.png")
         plt.show()
 
+    def test_crossover(self):
+        n_qubits = 3
+        backend = 'ibm_perth'
+        self.layers1[0].add_gate(self.gate1)
+        self.layers1[0].add_gate(self.gate3)
+        self.layers2[0].add_gate(self.gate2)
+        self.layers2[0].add_gate(self.gate4)
+        child = gen.Genome.crossover(self.genome1, self.genome2, n_qubits, backend)
+        print()
+        print(self.genome1.get_circuit(n_qubits)[0])
+        print(self.genome2.get_circuit(n_qubits)[0])
+        print(child.get_circuit(n_qubits)[0])
+        
+        self.layers2[0].add_gate(self.gate1)
+        self.layers2[0].add_gate(self.gate3)
+        self.layers1[0].add_gate(self.gate2)
+        self.layers1[0].add_gate(self.gate4)
+        child = gen.Genome.crossover(self.genome1, self.genome2, n_qubits, backend)
+        print()
+        print(self.genome1.get_circuit(n_qubits)[0])
+        print(self.genome2.get_circuit(n_qubits)[0])
+        print(child.get_circuit(n_qubits)[0])
+        
+        self.layers1[1].add_gate(self.gate1)
+        self.layers1[1].add_gate(self.gate3)
+        self.layers2[2].add_gate(self.gate3)
+        child = gen.Genome.crossover(self.genome1, self.genome2, n_qubits, backend)
+        print()
+        print(self.genome1.get_circuit(n_qubits)[0])
+        print(self.genome2.get_circuit(n_qubits)[0])
+        print(child.get_circuit(n_qubits)[0])
+
 if __name__ == '__main__':
     unittest.main()

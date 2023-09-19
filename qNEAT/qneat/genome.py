@@ -129,3 +129,61 @@ class Genome(object):
         n_genes = np.maximum(get_n_genes(genome1), get_n_genes(genome2))
         matching, disjoint, excess, avg_distance = Genome.line_up(genome1, genome2)
         return c1*excess/n_genes + c2*disjoint/n_genes + c3*avg_distance
+    
+    @classmethod
+    def crossover(cls, genome1, genome2, n_qubits, backend):
+        #TODO Check and rework (strongest parent when disjoint, look at excess, etc.)
+        #TODO Add copy methods!
+        global_layer_number = genome1.global_layer_number
+        n_layers = global_layer_number.current()
+
+        childlayers = {}
+        for layer_ind in range(n_layers):
+            in_layer1 = layer_ind in genome1.layers
+            in_layer2 = layer_ind in genome2.layers
+            if (not in_layer1) and (not in_layer2):
+                continue
+            elif not in_layer1:
+                childlayers[layer_ind] = genome2.layers[layer_ind]
+                continue
+            elif not in_layer2:
+                childlayers[layer_ind] = genome1.layers[layer_ind]
+                continue
+            new_layer = l.Layer(layer_ind)
+            for type in g.GateType:
+                type_in_layer1 = type.name in genome1.layers[layer_ind].gates
+                type_in_layer2 = type.name in genome2.layers[layer_ind].gates
+                if (not type_in_layer1) and (not type_in_layer2):
+                    continue
+                elif not type_in_layer1:
+                    for gate in genome2.layers[layer_ind].gates[type.name]:
+                        new_layer.add_gate(gate)
+                    continue
+                elif not type_in_layer2:
+                    for gate in genome1.layers[layer_ind].gates[type.name]:
+                        new_layer.add_gate(gate)
+                    continue
+                gates2 = genome2.layers[layer_ind].gates[type.name].copy()
+                for gate1 in genome1.layers[layer_ind].gates[type.name]:
+                    found = False
+                    for gate2 in gates2:
+                        if gate1.qubit != gate2.qubit:
+                            continue
+                        fitness1 = genome1.get_fitness(n_qubits, backend)
+                        fitness2 = genome2.get_fitness(n_qubits, backend)
+                        if fitness1 > fitness2:
+                            new_layer.add_gate(gate1)
+                        elif fitness1 < fitness2:
+                            new_layer.add_gate(gate2)
+                        else:
+                            gate = np.random.choice([gate1, gates2])
+                            new_layer.add_gate(gate)
+                        gates2.remove(gate2)
+                        found = True
+                        break
+                    if not found:
+                        new_layer.add_gate(gate1)
+                for gate2 in gates2:
+                    new_layer.add_gate(gate2)
+            childlayers[layer_ind] = new_layer
+        return cls.from_layers(global_layer_number, childlayers)
