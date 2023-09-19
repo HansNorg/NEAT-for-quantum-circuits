@@ -5,6 +5,9 @@ class Species:
         self.last_improved = generation
         self.genomes = []
         self.representative = None
-        self.fitness = None
-        self.adjusted_fitness = None
-        self.record_fitness = None
+
+    def update(self, representative, genomes):
+        self.representative = representative
+        self.genomes = genomes
+
+    

@@ -10,9 +10,11 @@ class TestQNEAT(unittest.TestCase):
 
     def test_init(self):
         self.assertEqual(len(self.qneat.population), 20)
+        self.qneat.species[0].genomes.pop()
+        self.assertEqual(len(self.qneat.population), 20)
 
     def test_run(self):
-        self.qneat.run()
+        self.qneat.run(0)
         
 
 if __name__ == '__main__':

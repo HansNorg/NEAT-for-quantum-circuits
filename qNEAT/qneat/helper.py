@@ -53,6 +53,24 @@ class GlobalLayerNumber(object):
     
     def current(self):
         return self._layer_number
+    
+class GlobalSpeciesNumber(object):
+    '''
+    Class for keeping a global species number.
+    
+    Species number starts at -1, such that the first one obtained from next() is 0.
+    '''
+    def __init__(self):
+        self._layer_number:int = -1
+
+    def next(self):
+        '''
+        Get the next layer number.
+
+        Increments the layer number.
+        '''
+        self._layer_number += 1
+        return self._layer_number
 
 def ising_1d_instance(qubits, seed = None):
     def rand1d(qubits):
