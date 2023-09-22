@@ -1,3 +1,4 @@
+import copy
 from typing import Union
 import helper as h
 import gate as g
@@ -173,10 +174,10 @@ class Genome(object):
             if (not in_layer1) and (not in_layer2):
                 continue
             elif not in_layer1:
-                childlayers[layer_ind] = genome2.layers[layer_ind]
+                childlayers[layer_ind] = copy.deepcopy(genome2.layers[layer_ind])
                 continue
             elif not in_layer2:
-                childlayers[layer_ind] = genome1.layers[layer_ind]
+                childlayers[layer_ind] = copy.deepcopy(genome1.layers[layer_ind])
                 continue
             new_layer = l.Layer(layer_ind)
             for type in g.GateType:
@@ -186,33 +187,33 @@ class Genome(object):
                     continue
                 elif not type_in_layer1:
                     for gate in genome2.layers[layer_ind].gates[type.name]:
-                        new_layer.add_gate(gate)
+                        new_layer.add_gate(copy.deepcopy(gate))
                     continue
                 elif not type_in_layer2:
                     for gate in genome1.layers[layer_ind].gates[type.name]:
-                        new_layer.add_gate(gate)
+                        new_layer.add_gate(copy.deepcopy(gate))
                     continue
                 gates2 = genome2.layers[layer_ind].gates[type.name].copy()
                 for gate1 in genome1.layers[layer_ind].gates[type.name]:
                     found = False
-                    for gate2 in gates2:
+                    for ind, gate2 in enumerate(gates2):
                         if gate1.qubit != gate2.qubit:
                             continue
                         fitness1 = genome1.get_fitness(n_qubits, backend)
                         fitness2 = genome2.get_fitness(n_qubits, backend)
                         if fitness1 > fitness2:
-                            new_layer.add_gate(gate1)
+                            new_layer.add_gate(copy.deepcopy(gate1))
                         elif fitness1 < fitness2:
-                            new_layer.add_gate(gate2)
+                            new_layer.add_gate(copy.deepcopy(gate2))
                         else:
                             gate = np.random.choice([gate1, gate2])
-                            new_layer.add_gate(gate)
-                        gates2.remove(gate2)
+                            new_layer.add_gate(copy.deepcopy(gate))
+                        gates2.pop(ind)
                         found = True
                         break
                     if not found:
-                        new_layer.add_gate(gate1)
+                        new_layer.add_gate(copy.deepcopy(gate1))
                 for gate2 in gates2:
-                    new_layer.add_gate(gate2)
+                    new_layer.add_gate(copy.deepcopy(gate2))
             childlayers[layer_ind] = new_layer
         return cls.from_layers(global_layer_number, childlayers)

@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import helper as h
 import genome as gen
@@ -15,7 +16,9 @@ class QNEAT:
         self.compatibility_threshold = 3
         self.prob_mutation_without_crossover = 0.25
         self.specie_champion_size = 5
-        self.percentage_survivors = 0.2
+        self.percentage_survivors = 0.8
+        self.generation = 0
+        self.best_fitness = None
 
         self.population_size = population_size
         self.population = []
@@ -44,18 +47,17 @@ class QNEAT:
             sorted_genomes = sorted_genomes[:cutoff]
 
             if len(specie.genomes) >= self.specie_champion_size:
-                new_population.append(sorted_genomes[0])
+                new_population.append(copy.deepcopy(sorted_genomes[0]))
                 n_offspring -= 1
             for _ in range(n_offspring):
                 if len(specie.genomes) > 1 and random.random() > self.prob_mutation_without_crossover:
                     parent1, parent2 = random.sample(sorted_genomes, 2)
                     new_population.append(gen.Genome.crossover(parent1, parent2, self.n_qubits, backend))
                 else:
-                    new_population.append(random.choice(sorted_genomes)) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness(self.n_qubits, backend)))
+                    new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness(self.n_qubits, backend)))
                 new_population[-1].mutate(self.global_innovation_number, self.n_qubits)
             specie.empty()
-        self.population = new_population
-        print(len(new_population), len(self.species))
+        self.population = new_population  
 
     def speciate(self, generation):
         for genome in self.population:
@@ -76,13 +78,20 @@ class QNEAT:
                 self.species.pop(ind) # Empty species
 
     def run(self, max_generations = 10, backend = "ibm_perth_fake"):
-        for generation in range(max_generations):
+        print()
+        if self.best_fitness == None:
+            # Probably not best fitness, but need to configure a value before the first run
+            self.best_fitness = self.population[0].get_fitness(self.n_qubits, backend)
+
+        while self.generation < max_generations:
+            print(f"Generation {self.generation}, population size: {len(self.population)}, number of species: {len(self.species)}, best fitness: {self.best_fitness}", end="\r")
             self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
+            self.best_fitness = max(self.best_fitness, self.population[0].get_fitness(self.n_qubits, backend))
             #TODO check stopping criterion
             self.generate_new_population(backend)
-            self.speciate(generation)
-        for genome in self.population:
-            print(genome.get_circuit(self.n_qubits)[0])
+            self.speciate(self.generation)
+            self.generation += 1
+        print(f"Generation {self.generation}, population size: {len(self.population)}, number of species: {len(self.species)}, best fitness: {self.best_fitness}")
 
 def main():
     qneat = QNEAT()
