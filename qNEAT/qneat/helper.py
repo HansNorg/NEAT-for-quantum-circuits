@@ -5,6 +5,7 @@ from qiskit import transpile
 from qiskit_aer import AerSimulator
 from qiskit_ibm_provider import IBMProvider, IBMBackend
 from qiskit.providers.fake_provider import FakeProviderForBackendV2
+from qiskit_aer import Aer
 
 #Inspired by QMS-Xenakis.
 class GlobalInnovationNumber(object):
@@ -134,6 +135,7 @@ def add_measurement(circuit: QuantumCircuit) -> QuantumCircuit:
     return measurement_circuit
 
 def find_backend(backend = "ibm_perth"):
+    return Aer.get_backend('aer_simulator')
     if type(backend) == str:
         provider = IBMProvider()
         available_cloud_backends = provider.backends()
@@ -162,11 +164,11 @@ def get_circuit_properties(circuit, ibm_backend:IBMBackend):
     complexity = 0
     circuit_error = 0
     # IBMbackend = find_backend(backend)
-    if "fake" in ibm_backend.name:
-        ibm_backend = AerSimulator.from_backend(ibm_backend)
+    # if "fake" in ibm_backend.name:
+    #     ibm_backend = AerSimulator.from_backend(ibm_backend)
     for gate in circuit.data:
-        bits = [int(qubit._index) for qubit in gate.qubits]
-        circuit_error += ibm_backend.properties().gate_error(gate.operation.name,bits)
+        # bits = [int(qubit._index) for qubit in gate.qubits]
+        # circuit_error += ibm_backend.properties().gate_error(gate.operation.name,bits)
         if "c" in gate.operation.name:
         #     cx_bits = [int(gate.qubits[0]._index), int(gate.qubits[1]._index)]
         #     circuit_error += ibm_backend.properties().gate_error(gate.operation.name,cx_bits)

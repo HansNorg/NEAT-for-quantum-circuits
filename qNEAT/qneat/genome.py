@@ -1,3 +1,4 @@
+from typing import Union
 import helper as h
 import gate as g
 import layer as l
@@ -11,6 +12,12 @@ class Genome(object):
         self.global_layer_number = global_layer_number
         self._fitness = None
         self._update_fitness = True
+
+        self.prob_weight_mutation = 0.8
+        self.prob_weight_perturbation = 0.9
+        self.perturbation_amplitude = 1
+        self.prob_add_gate_mutation = 0.1
+        self.max_add_gate_tries = 10
 
     @classmethod
     def from_layers(cls, global_layer_numer, layers):
@@ -29,8 +36,28 @@ class Genome(object):
         if gate_added:
             self._update_fitness = True
         return gate_added
+    
+    def mutate(self, innovation_number_generator, n_qubits):
+        if np.random.random() < self.prob_add_gate_mutation:
+            tries = 0
+            while tries < self.max_add_gate_tries:
+                random_gate = g.GateGene(innovation_number_generator.next(), np.random.choice(g.GateType), np.random.randint(n_qubits))
+                if self.add_gate(random_gate):
+                    break
+                tries += 1
+        if np.random.random() < self.prob_weight_mutation:
+            self.mutate_weights()
 
-    def get_circuit(self, n_qubits, n_parameters = 0) -> (QuantumCircuit, int):
+    def mutate_weights(self):
+        for layer in self.layers.values():
+            for gate in layer.get_gates_generator():
+                for parameter in gate.parameters:
+                    if np.random.random() < self.prob_weight_perturbation:
+                        parameter += (np.random.uniform(-1.0, 1.0))*self.perturbation_amplitude
+                    else:
+                        parameter = np.random.random()*gate.parameter_amplitude
+
+    def get_circuit(self, n_qubits, n_parameters = 0) -> Union[QuantumCircuit, int]:
         circuit = QuantumCircuit(QuantumRegister(n_qubits))
         for layer_ind in self.layers:
             circuit, n_parameters = self.layers[layer_ind].add_to_circuit(circuit, n_parameters)
@@ -57,7 +84,7 @@ class Genome(object):
         total_gradient = 0
         parameters = np.array([])
         for layer in self.layers.values():
-            for gate in np.ravel([layer.gates[key] for key in layer.gates.keys()]):
+            for gate in layer.get_gates_generator():
                 parameters = np.append(parameters, gate.parameters)
         
         for ind in range(n_parameters):
@@ -85,8 +112,10 @@ class Genome(object):
                 continue
             elif not in_layer1:
                 disjoint += len(genome2.layers[layer_ind].gates)
+                continue
             elif not in_layer2:
                 disjoint += len(genome1.layers[layer_ind].gates)
+                continue
             for type in g.GateType:
                 type_in_layer1 = type.name in genome1.layers[layer_ind].gates
                 type_in_layer2 = type.name in genome2.layers[layer_ind].gates
@@ -119,7 +148,7 @@ class Genome(object):
         return matching, disjoint, excess, np.average(distances)
 
     @staticmethod
-    def compatibility_distance(genome1, genome2, c1=1, c2=1, c3=1):
+    def compatibility_distance(genome1, genome2, c1=1, c2=1, c3=0.4):
         def get_n_genes(genome):
             n_genes = 0
             for layer_ind in genome.layers:
@@ -176,7 +205,7 @@ class Genome(object):
                         elif fitness1 < fitness2:
                             new_layer.add_gate(gate2)
                         else:
-                            gate = np.random.choice([gate1, gates2])
+                            gate = np.random.choice([gate1, gate2])
                             new_layer.add_gate(gate)
                         gates2.remove(gate2)
                         found = True

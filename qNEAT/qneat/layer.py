@@ -24,3 +24,8 @@ class Layer(object):
                 for gate in self.gates[gatetype.name]:
                     circuit, n_parameters = gate.add_to_circuit(circuit, n_parameters)
         return circuit, n_parameters
+    
+    def get_gates_generator(self):
+        for key in self.gates.keys():
+            for gate in self.gates[key]:
+                yield gate

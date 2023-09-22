@@ -138,6 +138,19 @@ class TestGenome(unittest.TestCase):
         #TODO add/update tests to account for difference between excess and disjoint
 
     def test_compute_gradient(self):
+        self.assertEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],0),0)
+        self.layers1[0].add_gate(self.gate3)
+        self.assertEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],0),0)
+        self.layers1[0].add_gate(self.gate1)
+        self.assertNotEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],3), 0)
+        self.layers1[0].add_gate(self.gate2)
+        self.assertNotEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],6), 0)
+        self.layers1[0].add_gate(self.gate4)
+        self.assertNotEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],6), 0)
+        self.layers1[2].add_gate(self.gate1)
+        self.assertNotEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],9), 0)
+
+        return
         if __name__ != "__main__":
             return
         
@@ -181,6 +194,9 @@ class TestGenome(unittest.TestCase):
         plt.show()
 
     def test_crossover(self):
+        if __name__ != "__main__":
+            return
+        
         n_qubits = 3
         backend = 'ibm_perth'
         self.layers1[0].add_gate(self.gate1)

@@ -10,4 +10,14 @@ class Species:
         self.representative = representative
         self.genomes = genomes
 
-    
+    def empty(self):
+        self.genomes = []
+
+    def add(self, genome):
+        self.genomes.append(genome)
+
+    def update_representative(self) -> bool:
+        if len(self.genomes) == 0:
+            return False
+        self.representative = self.genomes[0]
+        return True

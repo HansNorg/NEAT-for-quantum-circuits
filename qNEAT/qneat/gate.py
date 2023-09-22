@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 from enum import Enum
 from qiskit import QuantumCircuit
@@ -11,7 +12,7 @@ class GateType(Enum):
     CNOT = 0
 
     @classmethod
-    def add_to_circuit(cls, circuit: QuantumCircuit, gate, qubit:int, n_parameters:int) -> (QuantumCircuit, int):
+    def add_to_circuit(cls, circuit: QuantumCircuit, gate, qubit:int, n_parameters:int) -> Union[QuantumCircuit, int]:
         n_qubits = circuit.num_qubits
         if qubit >= n_qubits:
             raise ValueError("Given qubit exceeds number of qubits in the circuit.")
@@ -43,10 +44,11 @@ class GateGene(object):
     def __init__(self, innovation_number: int, gatetype: GateType, qubit:int, parameter_amplitude = 1, **kwargs) -> None:
         self.innovation_number = innovation_number # Probaby unnecessary
         self.gatetype = gatetype
+        self.parameter_amplitude = parameter_amplitude
         self.parameters = parameter_amplitude*np.random.random(gatetype.value)
         self.qubit = qubit
 
-    def add_to_circuit(self, circuit:QuantumCircuit, n_parameters:int) -> (QuantumCircuit, int):
+    def add_to_circuit(self, circuit:QuantumCircuit, n_parameters:int) -> Union[QuantumCircuit, int]:
         '''
         Adds the gate to the given circuit.
 
