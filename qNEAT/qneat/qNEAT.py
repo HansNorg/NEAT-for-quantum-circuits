@@ -16,7 +16,7 @@ class QNEAT:
         self.compatibility_threshold = 3
         self.prob_mutation_without_crossover = 0.25
         self.specie_champion_size = 5
-        self.percentage_survivors = 0.8
+        self.percentage_survivors = 0.5
         self.generation = 0
         self.best_fitness = None
 
@@ -50,7 +50,7 @@ class QNEAT:
                 new_population.append(copy.deepcopy(sorted_genomes[0]))
                 n_offspring -= 1
             for _ in range(n_offspring):
-                if len(specie.genomes) > 1 and random.random() > self.prob_mutation_without_crossover:
+                if len(sorted_genomes) > 1 and random.random() > self.prob_mutation_without_crossover:
                     parent1, parent2 = random.sample(sorted_genomes, 2)
                     new_population.append(gen.Genome.crossover(parent1, parent2, self.n_qubits, backend))
                 else:

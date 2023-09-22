@@ -163,7 +163,6 @@ class Genome(object):
     @classmethod
     def crossover(cls, genome1, genome2, n_qubits, backend):
         #TODO Check and rework (strongest parent when disjoint, look at excess, etc.)
-        #TODO Add copy methods!
         global_layer_number = genome1.global_layer_number
         n_layers = global_layer_number.current()
 
