@@ -8,8 +8,8 @@ import numpy as np
 
 class TestQNEAT(unittest.TestCase):
     def setUp(self) -> None:
-        self.population_size = 10
-        self.qneat = q.QNEAT(self.population_size, 3)
+        self.population_size = 100
+        self.qneat = q.QNEAT(self.population_size, 5)
 
     def test_init(self):
         self.assertEqual(len(self.qneat.population), self.population_size)
@@ -31,19 +31,19 @@ class TestQNEAT(unittest.TestCase):
         
         print(f"Compatibility distance. Mean: {np.mean(compatibility_distances)}, std: {np.std(compatibility_distances)}")
 
-        self.qneat.run(100)
-        compatibility_distances = []
-        for ind, genome1 in enumerate(self.qneat.population):
-            for genome2 in self.qneat.population[ind+1:]:
-                compatibility_distances.append(gen.Genome.compatibility_distance(genome1, genome2))
+        # self.qneat.run(100)
+        # compatibility_distances = []
+        # for ind, genome1 in enumerate(self.qneat.population):
+        #     for genome2 in self.qneat.population[ind+1:]:
+        #         compatibility_distances.append(gen.Genome.compatibility_distance(genome1, genome2))
         
-        if self.population_size <= 20:
-            for genome in self.qneat.population:
-                print(genome.get_circuit(self.qneat.n_qubits)[0])
-            print(len(compatibility_distances))
-            print(compatibility_distances)
+        # if self.population_size <= 20:
+        #     for genome in self.qneat.population:
+        #         print(genome.get_circuit(self.qneat.n_qubits)[0])
+        #     print(len(compatibility_distances))
+        #     print(compatibility_distances)
         
-        print(f"Compatibility distance. Mean: {np.mean(compatibility_distances)}, std: {np.std(compatibility_distances)}")
+        # print(f"Compatibility distance. Mean: {np.mean(compatibility_distances)}, std: {np.std(compatibility_distances)}")
         
     def test_generate_new_population(self):
         self.qneat.generate_new_population("")

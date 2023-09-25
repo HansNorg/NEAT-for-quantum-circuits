@@ -13,7 +13,7 @@ class QNEAT:
         self.global_layer_number = h.GlobalLayerNumber()
         self.global_species_number = h.GlobalSpeciesNumber()
         self.n_qubits = n_qubits
-        self.compatibility_threshold = 3
+        self.compatibility_threshold = 2
         self.prob_mutation_without_crossover = 0.25
         self.specie_champion_size = 5
         self.percentage_survivors = 0.5
@@ -40,7 +40,6 @@ class QNEAT:
         for specie in self.species:
             total_specie_fitness = np.sum([genome.get_fitness(self.n_qubits, backend) for genome in specie.genomes])
             n_offspring = round(total_specie_fitness/average_fitness)
-            new_population = []
             cutoff = int(np.ceil(self.percentage_survivors * len(specie.genomes)))
 
             sorted_genomes = sorted(specie.genomes, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
@@ -84,7 +83,7 @@ class QNEAT:
             self.best_fitness = self.population[0].get_fitness(self.n_qubits, backend)
 
         while self.generation < max_generations:
-            print(f"Generation {self.generation}, population size: {len(self.population)}, number of species: {len(self.species)}, best fitness: {self.best_fitness}", end="\r")
+            print(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")#, end="\r")
             self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
             self.best_fitness = max(self.best_fitness, self.population[0].get_fitness(self.n_qubits, backend))
             #TODO check stopping criterion
