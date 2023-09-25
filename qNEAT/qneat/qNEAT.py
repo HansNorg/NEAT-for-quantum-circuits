@@ -6,14 +6,19 @@ import gate as g
 import layer as l
 import species as s
 import random
+import logging
+import logger as log
 
 class QNEAT:
     def __init__(self, population_size:int, n_qubits:int):
+        self.logger = logging.getLogger("qNEAT")
+        self.logger.info("QNEAT Started")
+
         self.global_innovation_number = h.GlobalInnovationNumber()
         self.global_layer_number = h.GlobalLayerNumber()
         self.global_species_number = h.GlobalSpeciesNumber()
         self.n_qubits = n_qubits
-        self.compatibility_threshold = 2
+        self.compatibility_threshold = 1.5
         self.prob_mutation_without_crossover = 0.25
         self.specie_champion_size = 5
         self.percentage_survivors = 0.5
@@ -67,7 +72,6 @@ class QNEAT:
                     specie.add(genome)
                     found = True
                     break
-
             if not found:
                 new_species = s.Species(generation, self.global_species_number.next())
                 new_species.update(genome, [genome])
@@ -77,24 +81,29 @@ class QNEAT:
                 self.species.pop(ind) # Empty species
 
     def run(self, max_generations = 10, backend = "ibm_perth_fake"):
-        print()
+        self.logger.info(f"Started running for {max_generations-self.generation} generations.")
         if self.best_fitness == None:
             # Probably not best fitness, but need to configure a value before the first run
             self.best_fitness = self.population[0].get_fitness(self.n_qubits, backend)
 
         while self.generation < max_generations:
-            print(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")#, end="\r")
+            self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
             self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
             self.best_fitness = max(self.best_fitness, self.population[0].get_fitness(self.n_qubits, backend))
             #TODO check stopping criterion
             self.generate_new_population(backend)
             self.speciate(self.generation)
             self.generation += 1
-        print(f"Generation {self.generation}, population size: {len(self.population)}, number of species: {len(self.species)}, best fitness: {self.best_fitness}")
+        self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
+        self.logger.info(f"Finished running.")
+    
+    def get_best_circuit(self, backend = "ibm_perth_fake"):
+        return sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)[0].get_circuit(self.n_qubits)[0]
 
 def main():
-    qneat = QNEAT()
-    pass
+    log.QNEATLogger("qNEAT_main")
+    qneat = QNEAT(10,3)
+    qneat.run()
 
 if __name__ == "__main__":
     main()

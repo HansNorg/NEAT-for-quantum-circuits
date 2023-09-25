@@ -5,6 +5,7 @@ import qneat.genome as gen
 import qneat.gate as g
 import qneat.layer as l
 import qneat.helper as h
+import qneat.logger as log
 import unittest
 from qiskit import QuantumCircuit, QuantumRegister
 import matplotlib.pyplot as plt
@@ -13,9 +14,12 @@ import pandas as pd
 import seaborn as sns
 # import warnings filter
 from warnings import simplefilter
+import logging
 
 class TestGenome(unittest.TestCase):
     def setUp(self):
+        self.logger = logging.getLogger("qNEAT.test")
+        self.logger.info("TestGenome.setUp")
         global_layer_number = h.GlobalLayerNumber()
         self.genome = gen.Genome(global_layer_number)
         self.gate1 = g.GateGene(0, g.GateType.ROT, 0)
@@ -33,7 +37,8 @@ class TestGenome(unittest.TestCase):
         self.genome1 = gen.Genome.from_layers(global_layer_number, self.layers1)
         self.genome2 = gen.Genome.from_layers(global_layer_number, self.layers2)
 
-    def test_genome(self):    
+    def test_genome(self):
+        self.logger.info("TestGenome.test_genome")
         self.assertTrue(self.genome.add_gate(self.gate1))
         self.assertTrue(self.genome.add_gate(self.gate2))
         self.assertTrue(self.genome.add_gate(self.gate3))
@@ -61,6 +66,7 @@ class TestGenome(unittest.TestCase):
             print(f"tries: {tries}")
 
     def test_line_up(self):
+        self.logger.info("TestGenome.test_line_up")
         self.layers1[0].add_gate(self.gate1)
         self.assertEqual(gen.Genome.line_up(self.genome1, self.genome2), (0, 1, 0, 0))
         self.layers2[0].add_gate(self.gate1)
@@ -92,6 +98,7 @@ class TestGenome(unittest.TestCase):
         self.assertEqual(gen.Genome.line_up(self.genome1, self.genome2), (6, 2, 0, distance))
 
     def test_compatibility_distance(self):
+        self.logger.info("TestGenome.test_compatibility_distance")
         self.layers1[0].add_gate(self.gate1)
         self.assertEqual(gen.Genome.compatibility_distance(self.genome1, self.genome2, 1, 1, 1), 1)
         self.assertEqual(gen.Genome.compatibility_distance(self.genome1, self.genome2, 3, 3, 4), 3)
@@ -138,6 +145,7 @@ class TestGenome(unittest.TestCase):
         #TODO add/update tests to account for difference between excess and disjoint
 
     def test_compute_gradient(self):
+        self.logger.info("TestGenome.test_compute_gradient")
         self.assertEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],0),0)
         self.layers1[0].add_gate(self.gate3)
         self.assertEqual(self.genome1.compute_gradient(self.genome1.get_circuit(3)[0],0),0)
@@ -194,8 +202,7 @@ class TestGenome(unittest.TestCase):
         plt.show()
 
     def test_crossover(self):
-        if __name__ != "__main__":
-            return
+        self.logger.info("TestGenome.test_crossover")
         
         n_qubits = 3
         backend = 'ibm_perth'
@@ -204,29 +211,27 @@ class TestGenome(unittest.TestCase):
         self.layers2[0].add_gate(self.gate2)
         self.layers2[0].add_gate(self.gate4)
         child = gen.Genome.crossover(self.genome1, self.genome2, n_qubits, backend)
-        print()
-        print(self.genome1.get_circuit(n_qubits)[0])
-        print(self.genome2.get_circuit(n_qubits)[0])
-        print(child.get_circuit(n_qubits)[0])
+        self.logger.debug(f"Parent 1: \n{self.genome1.get_circuit(n_qubits)[0]}")
+        self.logger.debug(f"Parent 2: \n{self.genome2.get_circuit(n_qubits)[0]}")
+        self.logger.debug(f"Child: \n{child.get_circuit(n_qubits)[0]}")
         
         self.layers2[0].add_gate(self.gate1)
         self.layers2[0].add_gate(self.gate3)
         self.layers1[0].add_gate(self.gate2)
         self.layers1[0].add_gate(self.gate4)
         child = gen.Genome.crossover(self.genome1, self.genome2, n_qubits, backend)
-        print()
-        print(self.genome1.get_circuit(n_qubits)[0])
-        print(self.genome2.get_circuit(n_qubits)[0])
-        print(child.get_circuit(n_qubits)[0])
+        self.logger.debug(f"Parent 1: \n{self.genome1.get_circuit(n_qubits)[0]}")
+        self.logger.debug(f"Parent 2: \n{self.genome2.get_circuit(n_qubits)[0]}")
+        self.logger.debug(f"Child: \n{child.get_circuit(n_qubits)[0]}")
         
         self.layers1[1].add_gate(self.gate1)
         self.layers1[1].add_gate(self.gate3)
         self.layers2[2].add_gate(self.gate3)
         child = gen.Genome.crossover(self.genome1, self.genome2, n_qubits, backend)
-        print()
-        print(self.genome1.get_circuit(n_qubits)[0])
-        print(self.genome2.get_circuit(n_qubits)[0])
-        print(child.get_circuit(n_qubits)[0])
+        self.logger.debug(f"Parent 1: \n{self.genome1.get_circuit(n_qubits)[0]}")
+        self.logger.debug(f"Parent 2: \n{self.genome2.get_circuit(n_qubits)[0]}")
+        self.logger.debug(f"Child: \n{child.get_circuit(n_qubits)[0]}")
 
 if __name__ == '__main__':
+    log.QNEATLogger("test", mode="w")
     unittest.main()

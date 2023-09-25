@@ -4,11 +4,17 @@ sys.path.append(sys.path[0]+"\\..\qneat")
 import unittest
 import qneat.layer as l
 import qneat.gate as g
+import qneat.logger as log
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Parameter
+import logging
 
 class TestLayer(unittest.TestCase):
+    def setUp(self):
+        self.logger = logging.getLogger("qNEAT.test")
+
     def test_layer(self):
+        self.logger.info("TestLayer.test_layer")
         register = QuantumRegister(3)
         layer = l.Layer(0)
 
@@ -59,4 +65,5 @@ class TestLayer(unittest.TestCase):
         # print(test_circuit)
 
 if __name__ == '__main__':
+    log.QNEATLogger("test", mode="w")
     unittest.main()

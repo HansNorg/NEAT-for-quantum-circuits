@@ -2,10 +2,12 @@ import sys
 sys.path.append(sys.path[0]+"\\..")
 sys.path.append(sys.path[0]+"\\..\qneat")
 import unittest
+import qneat.logger as log
 
 class Test(unittest.TestCase):
     def test_something(self):
         pass
 
 if __name__ == '__main__':
+    log.QNEATLogger("test", mode="w")
     unittest.main()

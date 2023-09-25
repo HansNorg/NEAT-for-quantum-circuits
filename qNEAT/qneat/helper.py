@@ -104,7 +104,6 @@ def compute_expected_energy(counts,h,j):
         total_energy += sum([bool_to_state(r1[k][bit_value])*bool_to_state(r1[k][bit_value+1])*j[bit_value] for bit_value in range(0,len(j))])*r2[k]
     # Divide over the total count(shots)
     expectation_value = total_energy/sum(r2)
-    # print(total_energy, expectation_value)
     return expectation_value
 
 def energy_from_circuit(circuit:QuantumCircuit, parameters, shots, backend_simulator="local_qasm_simulator"):
@@ -116,7 +115,6 @@ def energy_from_circuit(circuit:QuantumCircuit, parameters, shots, backend_simul
         backend_sim = AerSimulator()
     counts = backend_sim.run(transpile(measurement_circuit, backend_sim), shots=shots).result().get_counts()
     h, j = ising_1d_instance(circuit.num_qubits, 0) # TODO Move, change seed
-    # print(counts)
     return compute_expected_energy(counts, h, j)
 
 def add_measurement(circuit: QuantumCircuit) -> QuantumCircuit:
@@ -139,14 +137,12 @@ def find_backend(backend = "ibm_perth"):
     if type(backend) == str:
         provider = IBMProvider()
         available_cloud_backends = provider.backends()
-        # print(available_cloud_backends)
         for i in available_cloud_backends: 
             if i.name == backend:
                 backend = i
         if type(backend) == str:
             provider = FakeProviderForBackendV2()
             available_cloud_backends = provider.backends()
-            # print(available_cloud_backends)
             for i in available_cloud_backends: 
                 if i.name == backend:
                     backend = i
