@@ -3,6 +3,7 @@ import sys
 sys.path.append(sys.path[0]+"\\..")
 sys.path.append(sys.path[0]+"\\..\qneat")
 sys.path.append("/home/s3727599/NEAT-for-quantum-circuits/qNEAT/")
+sys.path.append("/home/s3727599/NEAT-for-quantum-circuits/qNEAT/qneat")
 from qneat.qNEAT import QNEAT
 import qneat.logger as log
 import logging
