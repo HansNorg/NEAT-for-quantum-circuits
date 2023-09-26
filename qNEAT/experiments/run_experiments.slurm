@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=test_helloworld
+#SBATCH --job-name=1st_experiments_qneat
 #SBATCH --output=slurm_out/%x_%j.out
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"
 
 #SBATCH --partition="testing"
-#SBATCH --time=00:10:00
+#SBATCH --time=00:00:10
 #SBATCH --ntasks=1
 #SBATCH --mem=100M
 
