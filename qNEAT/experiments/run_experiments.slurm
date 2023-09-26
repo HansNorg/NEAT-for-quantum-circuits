@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=test_helloworld
-#SBATCH --output=%x_%j.out
+#SBATCH --output=slurm_out/%x_%j.out
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"
 
