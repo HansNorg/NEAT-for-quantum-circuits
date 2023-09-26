@@ -13,5 +13,5 @@ module load Python/3.10.8-GCCcore-12.2.0
 source "/home/s3727599/.cache/pypoetry/virtualenvs/qneat-6v_DPKM0-py3.10/bin/activate"
 
 echo "#### Starting Python test"
-python experiments/random_experiment.py
+python ./experiments/random_experiment.py
 echo "#### Finished Test."
