@@ -86,6 +86,7 @@ class QNEAT:
             # Probably not best fitness, but need to configure a value before the first run
             self.best_fitness = self.population[0].get_fitness(self.n_qubits, backend)
 
+        fitness_record, population_size, number_of_species = [], [], []
         while self.generation < max_generations:
             self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
             self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
@@ -94,8 +95,13 @@ class QNEAT:
             self.generate_new_population(backend)
             self.speciate(self.generation)
             self.generation += 1
+
+            fitness_record.append(self.best_fitness)
+            population_size.append(len(self.population))
+            number_of_species.append(len(self.species))
         self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
         self.logger.info(f"Finished running.")
+        return fitness_record, population_size, number_of_species
     
     def get_best_circuit(self, backend = "ibm_perth_fake"):
         return sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)[0].get_circuit(self.n_qubits)[0]
