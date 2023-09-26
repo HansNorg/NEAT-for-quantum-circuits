@@ -9,7 +9,7 @@ import qneat.logger as log
 import logging
 import numpy as np
 
-def main(population_size = 1000, n_runs = 1000, n_qubits = 5):
+def main(population_size = 1000, n_runs = 100, n_qubits = 5):
     logger = logging.getLogger("qNEAT.experimenter")
     logger.info("Random experiment started")
     qneat = QNEAT(population_size, n_qubits)

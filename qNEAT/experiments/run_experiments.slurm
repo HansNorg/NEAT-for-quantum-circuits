@@ -5,7 +5,7 @@
 #SBATCH --mail-type="ALL"
 
 #SBATCH --partition="cpu-short"
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem=200M
 
