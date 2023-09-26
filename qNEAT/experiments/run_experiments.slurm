@@ -14,5 +14,5 @@ poetry shell
 
 
 echo "#### Starting Python test"
-python random_experiment.py
+python experiments/random_experiment.py
 echo "#### Finished Test."
