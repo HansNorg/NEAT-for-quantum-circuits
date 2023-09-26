@@ -5,7 +5,7 @@
 #SBATCH --mail-type="ALL"
 
 #SBATCH --partition="testing"
-#SBATCH --time=00:00:10
+#SBATCH --time=00:10:00
 #SBATCH --ntasks=1
 #SBATCH --mem=100M
 

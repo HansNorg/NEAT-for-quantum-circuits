@@ -18,7 +18,7 @@ class QNEAT:
         self.global_layer_number = h.GlobalLayerNumber()
         self.global_species_number = h.GlobalSpeciesNumber()
         self.n_qubits = n_qubits
-        self.compatibility_threshold = 1.5
+        self.compatibility_threshold = 3
         self.prob_mutation_without_crossover = 0.25
         self.specie_champion_size = 5
         self.percentage_survivors = 0.5
