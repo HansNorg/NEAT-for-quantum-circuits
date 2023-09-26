@@ -4,7 +4,7 @@
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"
 
-#SBATCH --partition="cpu-short"
+#SBATCH --partition="cpu-medium"
 #SBATCH --time=10:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem=200M
