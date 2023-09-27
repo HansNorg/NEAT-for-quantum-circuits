@@ -21,6 +21,6 @@ def main(population_size = 1000, n_runs = 100, n_qubits = 5):
     logger.info("Random experiment finished\n\n\n\n")
 
 if __name__ == "__main__":
-    log.QNEATLogger("experiments_random", file_level=logging.DEBUG)
+    log.QNEATLogger("experiments_random_2", file_level=logging.DEBUG)
     main(500, 20, 5)
     # main()
