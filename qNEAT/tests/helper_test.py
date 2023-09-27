@@ -41,5 +41,5 @@ class TestHelper(unittest.TestCase):
         self.logger.debug(str(h.get_circuit_properties(configured_circuit, ibm_backend)))
 
 if __name__ == '__main__':
-    log.QNEATLogger("test", mode="w")
+    log.QNEATLogger("test", file_level=logging.DEBUG, mode="w")
     unittest.main()

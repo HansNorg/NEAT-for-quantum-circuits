@@ -14,5 +14,5 @@ def load_tests(loader, tests, pattern):
     return suite
 
 if __name__ == '__main__':
-    log.QNEATLogger("test", mode="w", file_level=logging.DEBUG)
+    log.QNEATLogger("test", mode="w")
     unittest.main()

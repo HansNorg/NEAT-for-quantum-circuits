@@ -233,5 +233,5 @@ class TestGenome(unittest.TestCase):
         self.logger.debug(f"Child: \n{child.get_circuit(n_qubits)[0].draw(fold=-1)}")
 
 if __name__ == '__main__':
-    log.QNEATLogger("test", mode="w")
+    log.QNEATLogger("test", file_level=logging.DEBUG, mode="w")
     unittest.main()

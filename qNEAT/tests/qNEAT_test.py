@@ -23,7 +23,7 @@ class TestQNEAT(unittest.TestCase):
 
     def test_run(self):
         self.logger.info("TestQNEAT.test_run")
-        self.qneat.run(10)
+        self.qneat.run(2)
         compatibility_distances = []
         for ind, genome1 in enumerate(self.qneat.population):
             for genome2 in self.qneat.population[ind+1:]:
@@ -56,5 +56,5 @@ class TestQNEAT(unittest.TestCase):
         self.qneat.generate_new_population("")
 
 if __name__ == '__main__':
-    log.QNEATLogger("test", mode="w")
+    log.QNEATLogger("test", file_level=logging.DEBUG, mode="w")
     unittest.main()

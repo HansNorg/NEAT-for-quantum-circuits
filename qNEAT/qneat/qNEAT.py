@@ -35,9 +35,11 @@ class QNEAT:
             genome.add_gate(gate)
             self.population.append(genome)
 
-        species = s.Species(0, self.global_species_number.next())
-        species.update(self.population[0], self.population.copy())
-        self.species = [species]
+        # species = s.Species(0, self.global_species_number.next())
+        # species.update(self.population[0], self.population.copy())
+        # self.species = [species]
+        self.species = []
+        self.speciate(0)
 
     def generate_new_population(self, backend):
         average_fitness = np.mean([genome.get_fitness(self.n_qubits, backend) for genome in self.population])

@@ -118,5 +118,5 @@ class TestGate(unittest.TestCase):
         self.assertRaises(ValueError, g.GateGene.get_distance, gate1, gate2)
 
 if __name__ == '__main__':
-    log.QNEATLogger("test", mode="w")
+    log.QNEATLogger("test", file_level=logging.DEBUG, mode="w")
     unittest.main()
