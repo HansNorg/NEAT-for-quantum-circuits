@@ -6,7 +6,7 @@
 
 #SBATCH --partition="cpu-medium"
 #SBATCH --time=10:00:00
-#SBATCH --ntasks=1
+#SBATCH --ntasks=2
 #SBATCH --mem=200M
 
 module load Python/3.10.8-GCCcore-12.2.0
