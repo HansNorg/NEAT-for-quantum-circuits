@@ -23,6 +23,7 @@ class Layer(object):
             if gatetype.name in self.gates:
                 for gate in self.gates[gatetype.name]:
                     circuit, n_parameters = gate.add_to_circuit(circuit, n_parameters)
+        circuit.barrier()
         return circuit, n_parameters
     
     def get_gates_generator(self):

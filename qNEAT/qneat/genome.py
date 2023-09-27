@@ -79,7 +79,7 @@ class Genome(object):
         self._update_fitness = False
         return self._fitness
 
-    def compute_gradient(self, circuit, n_parameters, shots = 1024, epsilon = 10**-5):
+    def compute_gradient(self, circuit, n_parameters, shots = 10240, epsilon = 10**-5):
         if n_parameters == 0:
             return 0 # Prevent division by 0
         total_gradient = 0

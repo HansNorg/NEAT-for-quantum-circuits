@@ -90,7 +90,7 @@ class QNEAT:
         while self.generation < max_generations:
             self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
             self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
-            self.logger.debug(f"Best circuit: \n{self.population[0].get_circuit(self.n_qubits)[0]}")
+            self.logger.debug(f"Best circuit: \n{self.population[0].get_circuit(self.n_qubits)[0].draw(fold=-1)}")
             self.best_fitness = max(self.best_fitness, self.population[0].get_fitness(self.n_qubits, backend))
             #TODO check stopping criterion
             self.generate_new_population(backend)

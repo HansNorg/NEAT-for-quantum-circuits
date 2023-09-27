@@ -31,7 +31,7 @@ class TestQNEAT(unittest.TestCase):
         
         if self.logger.isEnabledFor(logging.DEBUG): 
             for genome in self.qneat.population:
-                self.logger.debug(f"\n{genome.get_circuit(self.qneat.n_qubits)[0]}")
+                self.logger.debug(f"\n{genome.get_circuit(self.qneat.n_qubits)[0].draw(fold=-1)}")
             self.logger.debug(f"{len(compatibility_distances) =}")
             self.logger.debug(f"{compatibility_distances =}")
         

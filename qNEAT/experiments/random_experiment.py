@@ -17,10 +17,10 @@ def main(population_size = 1000, n_runs = 100, n_qubits = 5):
     np.save("results/fitness_record", fitness_record, allow_pickle=True)
     np.save("results/population_sizes", population_sizes, allow_pickle=True)
     np.save("results/number_of_species", number_of_species, allow_pickle=True)
-    logger.info(f"Final circuit: \n{qneat.get_best_circuit()}")
+    logger.info(f"Final circuit: \n{qneat.get_best_circuit().draw(fold=-1)}")
     logger.info("Random experiment finished\n\n\n\n")
 
 if __name__ == "__main__":
     log.QNEATLogger("experiments_random", file_level=logging.DEBUG)
-    main(1000, 10, 5)
+    main(10, 50, 5)
     # main()
