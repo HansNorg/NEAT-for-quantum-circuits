@@ -13,10 +13,11 @@ def main(population_size = 1000, n_runs = 100, n_qubits = 5):
     logger = logging.getLogger("qNEAT.experimenter")
     logger.info("Random experiment started")
     qneat = QNEAT(population_size, n_qubits)
-    fitness_record, population_sizes, number_of_species = qneat.run(n_runs)
+    fitness_record, population_sizes, number_of_species, average_fitnesses = qneat.run(n_runs)
     np.save("results/fitness_record", fitness_record, allow_pickle=True)
     np.save("results/population_sizes", population_sizes, allow_pickle=True)
     np.save("results/number_of_species", number_of_species, allow_pickle=True)
+    np.save("results/average_fitnesses", average_fitnesses, allow_pickle=True)
     logger.info(f"Final circuit: \n{qneat.get_best_circuit().draw(fold=-1)}")
     logger.info("Random experiment finished\n\n\n\n")
 

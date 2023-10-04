@@ -41,8 +41,13 @@ class QNEAT:
         self.species = []
         self.speciate(0)
 
+        # For experimenting only
+        self.average_fitnesses = []
+
     def generate_new_population(self, backend):
         average_fitness = np.mean([genome.get_fitness(self.n_qubits, backend) for genome in self.population])
+        self.logger.debug(f"{average_fitness =}")
+        self.average_fitnesses.append(average_fitness)
         new_population = []
         for specie in self.species:
             total_specie_fitness = np.sum([genome.get_fitness(self.n_qubits, backend) for genome in specie.genomes])
@@ -104,7 +109,7 @@ class QNEAT:
             number_of_species.append(len(self.species))
         self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
         self.logger.info(f"Finished running.")
-        return fitness_record, population_size, number_of_species
+        return fitness_record, population_size, number_of_species, self.average_fitnesses
     
     def get_best_circuit(self, backend = "ibm_perth_fake"):
         return sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)[0].get_circuit(self.n_qubits)[0]
