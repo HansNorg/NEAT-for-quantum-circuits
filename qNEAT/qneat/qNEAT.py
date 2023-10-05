@@ -87,6 +87,15 @@ class QNEAT:
             if not specie.update_representative():
                 self.species.pop(ind) # Empty species
 
+    def run_generation(self, backend):
+        self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
+        self.logger.debug(f"Best circuit: \n{self.population[0].get_circuit(self.n_qubits)[0].draw(fold=-1)}")
+        self.best_fitness = max(self.best_fitness, self.population[0].get_fitness(self.n_qubits, backend))
+        #TODO check stopping criterion
+        self.generate_new_population(backend)
+        self.speciate(self.generation)
+        self.generation += 1
+        
     def run(self, max_generations = 10, backend = "ibm_perth_fake"):
         self.logger.info(f"Started running for {max_generations-self.generation} generations.")
         if self.best_fitness == None:
@@ -96,13 +105,7 @@ class QNEAT:
         fitness_record, population_size, number_of_species = [], [], []
         while self.generation < max_generations:
             self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, number of species: {len(self.species):4}, best fitness: {self.best_fitness:8.3f}")
-            self.population = sorted(self.population, key=lambda genome: genome.get_fitness(self.n_qubits, backend), reverse=True)
-            self.logger.debug(f"Best circuit: \n{self.population[0].get_circuit(self.n_qubits)[0].draw(fold=-1)}")
-            self.best_fitness = max(self.best_fitness, self.population[0].get_fitness(self.n_qubits, backend))
-            #TODO check stopping criterion
-            self.generate_new_population(backend)
-            self.speciate(self.generation)
-            self.generation += 1
+            self.run_generation(backend)    
 
             fitness_record.append(self.best_fitness)
             population_size.append(len(self.population))
