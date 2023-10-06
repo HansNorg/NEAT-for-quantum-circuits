@@ -3,7 +3,7 @@ from qiskit.circuit import Parameter
 from qiskit import QuantumCircuit
 from qiskit import transpile
 from qiskit_aer import AerSimulator
-from qiskit_ibm_provider import IBMProvider, IBMBackend
+# from qiskit_ibm_provider import IBMProvider, IBMBackend
 from qiskit.providers.fake_provider import FakeProviderForBackendV2
 from qiskit_aer import Aer
 
@@ -156,7 +156,7 @@ def configure_circuit_to_backend(circuit, backend):
     circuit_basis = transpile(circuit, backend=ibm_backend)
     return circuit_basis, ibm_backend
 
-def get_circuit_properties(circuit, ibm_backend:IBMBackend):
+def get_circuit_properties(circuit, ibm_backend):#:IBMBackend):
     complexity = 0
     circuit_error = 0
     # IBMbackend = find_backend(backend)

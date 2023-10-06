@@ -1,6 +1,3 @@
-import sys
-sys.path.append(sys.path[0]+"\\..")
-sys.path.append(sys.path[0]+"\\..\qneat")
 import unittest
 import qneat.helper as h
 from qiskit import QuantumCircuit, QuantumRegister
@@ -8,7 +5,7 @@ import qneat.gate as g
 import qneat.layer as l
 import qneat.genome as gen
 import qneat.logger as log
-from qiskit_ibm_runtime import QiskitRuntimeService
+# from qiskit_ibm_runtime import QiskitRuntimeService
 import logging
 
 class TestHelper(unittest.TestCase):

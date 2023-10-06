@@ -1,4 +1,4 @@
-import gate as g
+from . import gate as g
 
 class Layer(object):
     #TODO Look at only adding gates in qubit order

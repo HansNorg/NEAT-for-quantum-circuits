@@ -1,8 +1,8 @@
 import copy
 from typing import Union
-import helper as h
-import gate as g
-import layer as l
+from . import helper as h
+from . import gate as g
+from . import layer as l
 from qiskit import QuantumCircuit, QuantumRegister
 import numpy as np
 

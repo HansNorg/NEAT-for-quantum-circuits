@@ -1,6 +1,3 @@
-import sys
-sys.path.append(sys.path[0]+"\\..")
-sys.path.append(sys.path[0]+"\\..\qneat")
 import qneat.genome as gen
 import qneat.gate as g
 import qneat.layer as l

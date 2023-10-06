@@ -1,13 +1,13 @@
 import copy
 import numpy as np
-import helper as h
-import genome as gen
-import gate as g
-import layer as l
-import species as s
+from . import helper as h
+from . import genome as gen
+from . import gate as g
+from . import layer as l
+from . import species as s
 import random
 import logging
-import logger as log
+from . import logger as log
 
 class QNEAT:
     def __init__(self, population_size:int, n_qubits:int):
