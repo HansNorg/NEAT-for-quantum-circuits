@@ -4,7 +4,7 @@ from enum import Enum
 from abc import ABC, abstractmethod
 import qiskit
 import qiskit.circuit
-import qulacs
+# import qulacs
     
 class GateGene(ABC):
     '''
