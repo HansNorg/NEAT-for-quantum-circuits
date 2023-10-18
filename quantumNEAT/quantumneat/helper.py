@@ -2,8 +2,15 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit_aer import Aer, AerSimulator
 
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+    
 #Inspired by QMS-Xenakis.
-class GlobalInnovationNumber(object):
+class GlobalInnovationNumber(metaclass=Singleton):
     '''
     Class for keeping a global innovation number.
     
@@ -21,7 +28,7 @@ class GlobalInnovationNumber(object):
         self._innovation_number += 1
         return self._innovation_number
 
-class GlobalLayerNumber(object):
+class GlobalLayerNumber(metaclass=Singleton):
     '''
     Class for keeping a global layer number.
     
@@ -42,7 +49,7 @@ class GlobalLayerNumber(object):
     def current(self):
         return self._layer_number
     
-class GlobalSpeciesNumber(object):
+class GlobalSpeciesNumber:
     '''
     Class for keeping a global species number.
     

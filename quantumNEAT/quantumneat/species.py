@@ -1,9 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
+
 class Species:
     def __init__(self, generation, key = None):
         self.original_generation = generation
         self.key = key
         self.last_improved = generation
-        self.genomes = []
+        self.genomes:list[C.Genome] = []
         self.representative = None
 
     def update(self, representative, genomes):

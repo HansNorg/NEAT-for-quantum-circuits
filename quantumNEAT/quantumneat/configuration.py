@@ -2,10 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import logging
 
-from . import genome as gen
-from . import gate as g
-from . import helper as h
-from . import species as s
+from quantumNEAT.quantumneat import genome, gate, helper, species, population
 
 @dataclass
 class QuantumNEATConfig:
@@ -15,20 +12,23 @@ class QuantumNEATConfig:
     # Global settings
     n_qubits: int
     population_size: int
-    global_innovation_number = h.GlobalInnovationNumber()
-    global_species_number = h.GlobalSpeciesNumber()
+    global_innovation_number = helper.GlobalInnovationNumber()
+    global_species_number = helper.GlobalSpeciesNumber()
 
     # Main QNEAT settings
+
+    # Population settings
+    Population = population.Population
     compatibility_threshold: float = 3
     prob_mutation_without_crossover: float = 0.25
     specie_champion_size: int = 5
     percentage_survivors: float = 0.5
 
     # Species settings
-    Species = s.Species
+    Species = species.Species
     
     # Genome settings
-    Genome = gen.Genome
+    Genome = genome.Genome
     prob_weight_mutation: float = 0.8
     prob_weight_perturbation: float = 0.9
     perturbation_amplitude: float = 1
@@ -36,12 +36,14 @@ class QuantumNEATConfig:
     max_add_gate_tries: int = 10
 
     # Gate settings
-    GateGene = g.GateGene
+    GateGene = gate.GateGene
     parameter_amplitude: float = 2*np.pi
     simulator = 'qulacs' # 'qiskit'
 
     # GateType settings
-    GateType = g.GateTypes
+    GateType = gate.GateTypes
+
+    backend = "To implement"
 
 class QuantumNEATExperimenterConfig(QuantumNEATConfig):
     # Logger settings
