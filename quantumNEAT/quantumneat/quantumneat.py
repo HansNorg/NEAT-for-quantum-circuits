@@ -11,8 +11,8 @@ class QuantumNEAT:
         self.logger.info("QuantumNEAT Started")
 
         self.generation = 0
-        self.best_fitness = None
         self.population = self.config.Population()
+        self.best_fitness = self.population.get_best_genome().get_fitness()
 
         # For experimenting only
         self.average_fitnesses = []
@@ -25,9 +25,6 @@ class QuantumNEAT:
         
     def run(self, max_generations = 10):
         self.logger.info(f"Started running for {max_generations-self.generation} generations.")
-        if self.best_fitness == None:
-            # Probably not best fitness, but need to configure a value before the first run
-            self.best_fitness = self.population.get_best_genome().get_fitness()
 
         fitness_record, population_size, number_of_species = [], [], []
         while self.generation < max_generations:
