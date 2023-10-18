@@ -20,7 +20,7 @@ class Population():
         ----------
         config: class with all the configuration settings of the algorithm.
         """
-        self.logger = logging.getLogger("QuantumNEAT_Population")
+        self.logger = logging.getLogger("QuantumNEAT.Population")
         self.generation:int = 0
         self.population = self.generate_initial_population()
         self.species: list[C.Species] = []
