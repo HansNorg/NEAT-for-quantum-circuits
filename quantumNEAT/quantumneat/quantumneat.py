@@ -15,15 +15,18 @@ class QuantumNEAT:
         self.best_fitness = self.population.get_best_genome().get_fitness()
 
         # For experimenting only
-        self.average_fitnesses = []
+        self.best_fitnesses = [self.best_fitness]
+        self.average_fitnesses = [self.population.average_fitness]
 
     def run_generation(self):
         self.logger.debug(f"Best circuit: \n{self.population.get_best_genome().get_circuit()[0].draw(fold=-1)}")
-        self.best_fitness = max(self.best_fitness, self.population.get_best_genome().get_fitness())
         #TODO check stopping criterion
         self.population.next_generation()
+        self.best_fitness = max(self.best_fitness, self.population.get_best_genome().get_fitness())
+        self.best_fitnesses.append(self.best_fitness)
+        self.average_fitnesses.append(self.population.average_fitness)
         
-    def run(self, max_generations = 10):
+    def run(self, max_generations:int = 10):
         self.logger.info(f"Started running for {max_generations-self.generation} generations.")
 
         fitness_record, population_size, number_of_species = [], [], []

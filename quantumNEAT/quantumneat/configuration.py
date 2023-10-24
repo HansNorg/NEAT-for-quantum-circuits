@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import logging
 
-from quantumNEAT.quantumneat import genome, gate, helper, species, population
+from quantumNEAT.quantumneat import genome, gene, helper, species, population
 
 @dataclass
 class QuantumNEATConfig:
@@ -36,14 +36,12 @@ class QuantumNEATConfig:
     max_add_gate_tries: int = 10
 
     # Gate settings
-    GateGene = gate.GateGene
+    Gene = gene.Gene
     parameter_amplitude: float = 2*np.pi
     simulator = 'qulacs' # 'qiskit'
 
     # GateType settings
-    GateType = gate.GateTypes
-
-    backend = "To implement"
+    GateType = gene.GeneTypes
 
 class QuantumNEATExperimenterConfig(QuantumNEATConfig):
     # Logger settings

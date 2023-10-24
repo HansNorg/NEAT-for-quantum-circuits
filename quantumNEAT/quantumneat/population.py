@@ -23,6 +23,7 @@ class Population():
         self.logger = logging.getLogger("QuantumNEAT.Population")
         self.generation:int = 0
         self.population = self.generate_initial_population()
+        self.update_avg_fitness()
         self.species: list[C.Species] = []
         self.speciate()
         self.config = config
@@ -42,16 +43,17 @@ class Population():
     def sort_genomes(genomes:list[C.Genome]) -> list[C.Genome]:
         """Sort the given genomes by fitness."""
         return sorted(genomes, key=lambda genome: genome.get_fitness(), reverse=True)
+    
+    def update_avg_fitness(self):
+        self.average_fitness = np.mean([genome.get_fitness() for genome in self.population])
 
-    def generate_new_population(self):
+    def generate_new_population(self) -> list[C.Genome]:
         """Generate the next generation of the population by mutation and crossover."""
-        average_fitness = np.mean([genome.get_fitness(self.config.n_qubits, self.config.backend) for genome in self.population])
-        self.logger.debug(f"{average_fitness =}")
-        self.average_fitnesses.append(average_fitness)
+        self.logger.debug(f"{self.average_fitness =}")
         new_population:list[C.Genome] = []
         for specie in self.species:
-            total_specie_fitness = np.sum([genome.get_fitness(self.config.n_qubits, self.config.backend) for genome in specie.genomes])
-            n_offspring = round(total_specie_fitness/average_fitness)
+            total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
+            n_offspring = round(total_specie_fitness/self.average_fitness)
             cutoff = int(np.ceil(self.config.percentage_survivors * len(specie.genomes)))
         
             sorted_genomes = self.sort_genomes(specie.genomes)[:cutoff]
@@ -62,13 +64,12 @@ class Population():
             for _ in range(n_offspring):
                 if len(sorted_genomes) > 1 and random.random() > self.config.prob_mutation_without_crossover:
                     parent1, parent2 = random.sample(sorted_genomes, 2)
-                    new_population.append(self.config.Genome.crossover(parent1, parent2, self.config.n_qubits, self.config.backend))
+                    new_population.append(self.config.Genome.crossover(parent1, parent2))
                 else:
-                    new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness(self.n_qubits, backend)))
+                    new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness()))
                 new_population[-1].mutate(self.config.global_innovation_number, self.config.n_qubits)
             specie.empty()
-        self.population = self.sort_genomes(new_population)
-        self.speciate()
+        return self.sort_genomes(new_population)
 
     def speciate(self):
         """Devide the population in species by similarity"""
@@ -89,7 +90,8 @@ class Population():
                 self.species.pop(ind) # Empty species
 
     def next_generation(self):
-        self.generate_new_population()
+        self.population = self.generate_new_population()
+        self.update_avg_fitness()
         self.speciate()
         self.generation += 1
 

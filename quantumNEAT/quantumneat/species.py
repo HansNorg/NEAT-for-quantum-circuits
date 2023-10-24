@@ -4,7 +4,8 @@ if TYPE_CHECKING:
     from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
 
 class Species:
-    def __init__(self, generation, key = None):
+    def __init__(self, generation, config:C, key = None):
+        self.config = config
         self.original_generation = generation
         self.key = key
         self.last_improved = generation

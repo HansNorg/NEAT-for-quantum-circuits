@@ -27,27 +27,6 @@ class GlobalInnovationNumber(metaclass=Singleton):
         '''
         self._innovation_number += 1
         return self._innovation_number
-
-class GlobalLayerNumber(metaclass=Singleton):
-    '''
-    Class for keeping a global layer number.
-    
-    Layer number starts at 0.
-    '''
-    def __init__(self):
-        self._layer_number:int = 0
-
-    def next(self):
-        '''
-        Get the next layer number.
-
-        Increments the layer number.
-        '''
-        self._layer_number += 1
-        return self._layer_number
-    
-    def current(self):
-        return self._layer_number
     
 class GlobalSpeciesNumber:
     '''
@@ -126,31 +105,7 @@ def add_measurement(circuit: QuantumCircuit) -> QuantumCircuit:
     measurement_circuit = circuit.compose(measurement_part)
     return measurement_circuit
 
-def find_backend(backend = "ibm_perth"):
-    return Aer.get_backend('aer_simulator')
-    if type(backend) == str:
-        provider = IBMProvider()
-        available_cloud_backends = provider.backends()
-        for i in available_cloud_backends: 
-            if i.name == backend:
-                backend = i
-        if type(backend) == str:
-            provider = FakeProviderForBackendV2()
-            available_cloud_backends = provider.backends()
-            for i in available_cloud_backends: 
-                if i.name == backend:
-                    backend = i
-            if type(backend) == str:
-                exit("the given backend is not available, exiting the system")
-    return backend
-
-def configure_circuit_to_backend(circuit, backend):
-    ibm_backend = find_backend(backend)
-    # ibm_backend = backend
-    circuit_basis = transpile(circuit, backend=ibm_backend)
-    return circuit_basis, ibm_backend
-
-def get_circuit_properties(circuit, ibm_backend):
+def get_circuit_properties(circuit, ibm_backend=""):
     complexity = 0
     circuit_error = 0
     # IBMbackend = find_backend(backend)
