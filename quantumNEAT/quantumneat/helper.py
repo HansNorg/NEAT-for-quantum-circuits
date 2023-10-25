@@ -1,6 +1,10 @@
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit_aer import Aer, AerSimulator
+from qulacs import DensityMatrix, QuantumState
+from qulacs import ParametricQuantumCircuit
+
+from quantumNEAT.quantumneat.quant_lib_np import Z, ZZ
 
 class Singleton(type):
     _instances = {}
@@ -122,3 +126,81 @@ def get_circuit_properties(circuit, ibm_backend=""):
     if circuit_error == 0:
         return complexity
     return circuit_error
+
+def get_exp_val(n_qubits,circuit:ParametricQuantumCircuit,op, phys_noise = False, err_mitig = 0):
+    
+    expval = 0
+    if phys_noise == False:
+        state = QuantumState(n_qubits)
+        circuit.update_quantum_state(state)
+        psi = state.get_vector()
+        expval += (np.conj(psi).T @ op @ psi).real
+    else:
+        dm = DensityMatrix(n_qubits)
+        circuit.update_quantum_state(dm)
+        rho = dm.get_matrix()
+        if err_mitig == 0:
+            expval += np.real( np.trace(op @ rho) )
+        else:
+            expval += np.real( np.trace(op @ rho @ rho) / np.trace(rho @ rho))
+        
+    return expval
+
+def get_energy_qulacs(angles, observable, 
+                      weights,circuit:ParametricQuantumCircuit, n_qubits, 
+                      energy_shift, n_shots,
+                      phys_noise = False 
+                      ):
+    """"
+    Function for Qiskit energy minimization using Qulacs
+    
+    Input:
+    angles                [array]      : list of trial angles for ansatz
+    observable            [Observable] : Qulacs observable (Hamiltonian)
+    circuit               [circuit]    : ansatz circuit
+    n_qubits              [int]        : number of qubits
+    energy_shift          [float]      : energy shift for Qiskit Hamiltonian after freezing+removing orbitals
+    n_shots               [int]        : Statistical noise, number of samples taken from QC
+    phys_noise            [bool]       : Whether quantum error channels are available (DM simulation) 
+    
+    Output:
+    expval [float] : expectation value 
+    
+    """
+        
+    parameter_count_qulacs = circuit.get_parameter_count()
+    # param_qulacs = [circuit.get_parameter(ind) for ind in range(parameter_count_qulacs)]    
+
+    
+    for i, j in enumerate(np.arange(parameter_count_qulacs)):
+        circuit.set_parameter(j, angles[i])
+          
+
+    expval = get_exp_val(n_qubits,circuit,observable, phys_noise)
+    
+    shot_noise = get_shot_noise(weights, n_shots) 
+
+    return expval + shot_noise + energy_shift
+
+def get_shot_noise(weights, n_shots):
+    
+    shot_noise = 0
+    
+    if n_shots > 0:
+
+        mu,sigma =0, (n_shots)**(-0.5)
+        
+        shot_noise +=(np.array(weights).real).T@np.random.normal(mu,sigma,len(weights))
+        
+    return shot_noise
+
+def get_Ising(h_vec, J_vec):
+    n_qubits = len(h_vec)
+    H = 0
+
+    for iq in range(n_qubits -1):
+        H += h_vec[iq]*Z(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
+
+    H += h_vec[n_qubits-1] * Z(n_qubits-1, n_qubits)
+
+    return H
