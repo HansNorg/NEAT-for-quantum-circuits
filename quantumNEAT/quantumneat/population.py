@@ -32,10 +32,10 @@ class Population():
         population = []
         for _ in range(self.config.population_size):
             genome = self.config.Genome(self.config)
-            gate_type = np.random.choice(self.config.GateType)
+            gate_type = np.random.choice(self.config.GeneTypes)
             qubit = np.random.randint(self.config.n_qubits)
-            gate = self.config.GateGene(self.config.global_innovation_number.next(),gate_type,qubit, self.config)
-            genome.add_gate(gate)
+            gate = self.config.GateGene(self.config.global_innovation_number.next(),gate_type,qubit, self.config)#TODO update
+            genome.add_gene(gate)
             population.append(genome)
         return self.sort_genomes(population)
 

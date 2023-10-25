@@ -32,16 +32,14 @@ class QuantumNEATConfig:
     prob_weight_mutation: float = 0.8
     prob_weight_perturbation: float = 0.9
     perturbation_amplitude: float = 1
-    prob_add_gate_mutation: float = 0.1
-    max_add_gate_tries: int = 10
+    prob_add_gene_mutation: float = 0.1
+    max_add_gene_tries: int = 10
 
-    # Gate settings
-    Gene = gene.Gene
+    # Gene settings
+    # Gene = gene.Gene
+    GeneTypes = gene.GeneTypes
     parameter_amplitude: float = 2*np.pi
     simulator = 'qulacs' # 'qiskit'
-
-    # GateType settings
-    GateType = gene.GeneTypes
 
 class QuantumNEATExperimenterConfig(QuantumNEATConfig):
     # Logger settings
