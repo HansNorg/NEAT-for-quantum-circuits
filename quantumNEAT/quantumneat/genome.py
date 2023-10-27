@@ -85,12 +85,17 @@ class CircuitGenome(Genome):
     def get_circuit_error(self, circuit:Circuit) -> float:
         return len(self.genes)*0.2 #TODO
 
-    def update_fitness(self) -> float:
+    def update_fitness(self, fitness_function = "Default") -> float:
         super().update_fitness()
-        circuit, n_parameters = self.get_circuit(self.config.n_qubits)
-        gradient = self.compute_gradient(circuit, n_parameters)
-        circuit_error = self.get_circuit_error(circuit)
-        self._fitness = 1/(1+circuit_error)*gradient #TODO Update
+        def default():
+            circuit, n_parameters = self.get_circuit(self.config.n_qubits)
+            gradient = self.compute_gradient(circuit, n_parameters)
+            circuit_error = self.get_circuit_error(circuit)
+            return 1/(1+circuit_error)*gradient #TODO Update
+        if fitness_function == "Default":
+            self._fitness = default()
+        else:
+            self._fitness = fitness_function(self)
         return self._fitness
 
     def compute_gradient(self, circuit:Circuit, n_parameters, shots = 10240, epsilon = 10**-5):

@@ -15,6 +15,7 @@ seaborn = "^0.12.2"
 qiskit = "^0.44.2"
 qiskit-aer = "^0.12.2"
 qulacs = "^0.6.2"
+pyzx = "^0.7.3"
 
 [build-system]
 requires = ["poetry-core"]
