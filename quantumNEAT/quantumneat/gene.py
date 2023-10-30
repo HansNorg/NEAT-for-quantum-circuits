@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from enum import Enum
 
 import numpy as np
-from quantumneat.configuration import QuantumNEATConfig as C
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit

@@ -1,7 +1,7 @@
 import logging
 
-from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
-from quantumNEAT.quantumneat import logger
+from quantumneat.configuration import QuantumNEATConfig as C
+from quantumneat.logger import QuantumNEATLogger
 
 class QuantumNEAT:
     def __init__(self, config:C):
@@ -31,20 +31,20 @@ class QuantumNEAT:
 
         fitness_record, population_size, number_of_species = [], [], []
         while self.generation < max_generations:
-            self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, 
+            self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, \
                              number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
             self.run_generation()    
 
             fitness_record.append(self.best_fitness)
             population_size.append(len(self.population.population))
             number_of_species.append(len(self.population.species))
-        self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, 
+        self.logger.info(f"Generation {self.generation:8}, population size: {len(self.population):8}, \
                          number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
         self.logger.info(f"Finished running.")
         return fitness_record, population_size, number_of_species, self.average_fitnesses
 
 def main():
-    logger.QuantumNEATLogger("QuantumNEAT_main")
+    QuantumNEATLogger("QuantumNEAT_main")
     settings = C(3, 10)
     quantum_neat = QuantumNEAT(settings)
     quantum_neat.run()

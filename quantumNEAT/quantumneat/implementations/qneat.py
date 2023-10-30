@@ -1,16 +1,17 @@
-# from __future__ import annotations
+from __future__ import annotations
 
 import numpy as np
-# from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING
 from qiskit.circuit import Parameter
 
-from quantumNEAT.quantumneat.gene import GateGene, GeneTypes, Circuit
-from quantumNEAT.quantumneat.helper import Singleton
-from quantumNEAT.quantumneat.genome import CircuitGenome
-from quantumNEAT.quantumneat.configuration import QuantumNEATConfig
-# if TYPE_CHECKING:
+from quantumneat.gene import GateGene, GeneTypes
+from quantumneat.helper import Singleton
+from quantumneat.genome import CircuitGenome
+from quantumneat.configuration import QuantumNEATConfig
+if TYPE_CHECKING:
+    from quantumneat.gene import Circuit
 
-class GlobalLayerNumber(Singleton):
+class GlobalLayerNumber(metaclass=Singleton):
     '''
     Class for keeping a global layer number.
     
@@ -72,8 +73,8 @@ class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
 
     def __init__(self, config:QuantumNEATConfig, ind:int) -> None:
-        super().__init__(self, config)#TODO HIER BEZIG
-        self.genes:dict[GateGene] = {}
+        super().__init__(ind, config, range(config.n_qubits))#TODO HIER BEZIG
+        self.genes:dict[object, list] = {GateROT:[], GateCNOT:[]}
         self.ind = ind
 
     def add_gate(self, gate:GateGene) -> bool:
@@ -95,7 +96,7 @@ class LayerGene(GateGene):
         circuit.barrier()
         return circuit, n_parameters
     
-    def get_gates_generator(self):
+    def gates(self):
         for key in self.genes.keys():
             for gate in self.genes[key]:
                 yield gate

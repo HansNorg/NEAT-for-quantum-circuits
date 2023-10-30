@@ -6,14 +6,13 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from quantumneat.configuration import QuantumNEATConfig as C
 from qulacs import ParametricQuantumCircuit
 
-from quantumNEAT.quantumneat import helper as h
+from quantumneat import helper as h
 
 if TYPE_CHECKING:
-    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
-    from quantumNEAT.quantumneat.gene import Gene, GateGene, Circuit
+    from quantumneat.configuration import QuantumNEATConfig as C
+    from quantumneat.gene import Gene, GateGene, Circuit
 
 class Genome(ABC):
     def __init__(self, config:C) -> None:
@@ -44,13 +43,13 @@ class Genome(ABC):
     def update_fitness(self):
         self._update_fitness = False
 
-    @abstractmethod
     @staticmethod
-    def compatibility_distance(self, genome1:Genome, genome2:Genome, config:C) -> float:
+    @abstractmethod
+    def compatibility_distance(genome1:Genome, genome2:Genome, config:C) -> float:
         return None
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def crossover(genome1:Genome, genome2:Genome) -> C.Genome:
         return None
 

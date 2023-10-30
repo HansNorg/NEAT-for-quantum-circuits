@@ -4,7 +4,7 @@ from qiskit_aer import Aer, AerSimulator
 from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
-from quantumNEAT.quantumneat.quant_lib_np import Z, ZZ
+from quantumneat.quant_lib_np import Z, ZZ
 
 class Singleton(type):
     _instances = {}

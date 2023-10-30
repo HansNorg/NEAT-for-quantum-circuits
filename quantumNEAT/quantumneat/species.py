@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
+    from quantumneat.configuration import QuantumNEATConfig as C
 
 class Species:
     """

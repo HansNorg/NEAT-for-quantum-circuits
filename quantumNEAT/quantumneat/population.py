@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
+    from quantumneat.configuration import QuantumNEATConfig as C
 
 class Population():
     """Keep and update a population of genomes."""

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import logging
 
-from quantumNEAT.quantumneat import genome, gene, helper, species, population
+from quantumneat import genome, gene, helper, species, population
 
 @dataclass
 class QuantumNEATConfig:

@@ -1,9 +1,9 @@
 import logging
-from quantumNEAT.quantumneat.helper import Singleton
+from quantumneat.helper import Singleton
     
 class QuantumNEATLogger(metaclass=Singleton):
     
-    def __init__(self, filename, file_level = logging.INFO, console_level = logging.ERROR, name = "QuantumNEAT", mode ="a"):
+    def __init__(self, filename, file_level = logging.INFO, console_level = logging.ERROR, name = "quantumNEAT", mode ="a"):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(min(file_level, console_level))
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
