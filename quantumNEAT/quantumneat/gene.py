@@ -25,7 +25,10 @@ class Gene(ABC):
 
     def mutate_parameters(self) -> bool:
         """Mutate the parameters of the Gene, return a bool indicating if the mutation was succesfull."""
-        return False
+        if self.n_parameters == 0:
+            return False
+        self.parameters += self.config.perturbation_amplitude*np.random.random(self.n_parameters)
+        return True
     
     @staticmethod
     def get_distance(gene1:Gene, gene2:Gene) -> tuple[bool, float]:
@@ -60,10 +63,4 @@ class GateGene(Gene):
         Parameters:
             circuit: circuit the gate is added to.
         """
-        return circuit, n_parameters
-
-    def mutate_parameters(self) -> bool:
-        if self.n_parameters == 0:
-            return False
-        self.parameters += self.config.perturbation_amplitude*np.random.random(self.n_parameters)
-        return True
+        return circuit, n_parameters        
