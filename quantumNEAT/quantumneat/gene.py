@@ -10,15 +10,23 @@ if TYPE_CHECKING:
     
 class Gene(ABC):
     """
-    Parameters:
-        innovation_number (int): Chronological historical marking
-        gate_string (str): Sequence of bits representing the gate
-        n_qubits (int): Amount of qubits in the circuit
-        qubit_seed (): Seed for the permutation of the qubits, representing the qubits the gate acts on.
+    Abstract base class for genes.
+
+    Variables
+    ---------
+    - n_parameters (int): The amount of parameters this gene has. (default = 0)
     """
-    n_parameters = 0
+    n_parameters:int = 0
 
     def __init__(self, innovation_number: int, config:QuantumNEATConfig, **kwargs) -> None:
+        """
+        Initialise the Gene.
+
+        Parameters
+        ----------
+        - innovation_number: Chronological historical marking
+        - config: class with all the configuration settings of the algorithm.
+        """
         self.innovation_number = innovation_number
         self.config = config
         self.parameters = config.parameter_amplitude*np.random.random(self.n_parameters)
@@ -33,10 +41,16 @@ class Gene(ABC):
     @staticmethod
     def get_distance(gene1:Gene, gene2:Gene) -> tuple[bool, float]:
         """
-        Returns:
-        --------
-            bool: Whether this gene should be included in distance calculation (whether it has parameters)
-            float: Distance between the genes.
+        Calculate the distance between two genes.
+
+        Returns
+        -------
+        - bool: Whether this gene should be included in distance calculation (whether it has parameters)
+        - float: Distance between the genes.
+
+        Raises
+        ------
+        - ValueError: if the genes are of different types.
         """
         if type(gene1) != type(gene2):
             raise ValueError("Genes need to be the same")
@@ -48,9 +62,26 @@ class Gene(ABC):
         return True, np.sqrt(dist)    
 
 class GateGene(Gene):
-    n_qubits = 0
+    """
+    Abstract base class for genes.
+
+    Variables
+    ---------
+    - n_parameters (int): The amount of parameters this gene has. (default = 0)
+    - n_qubits (int): The amount of qubits this gene acts on. (None)
+    """
+    n_qubits:int
     
     def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits:list[int], **kwargs) -> None:
+        """
+        Initialise the Gene.
+
+        Parameters
+        ----------
+        - innovation_number: Chronological historical marking.
+        - config: class with all the configuration settings of the algorithm.
+        - qubits: list of qubits the gene acts on. (should have length n_qubits)
+        """
         super().__init__(innovation_number, config, **kwargs)
         self.qubits = qubits
         # self.qubits = qubits%self.config.n_qubits
@@ -60,7 +91,9 @@ class GateGene(Gene):
         """
         Add the gene to the given circuit.
 
-        Parameters:
-            circuit: circuit the gate is added to.
+        Parameters
+        ----------
+        - circuit: circuit the gate is added to.
+        - n_parameters: amount of parameters in the circuit.
         """
         return circuit, n_parameters        
