@@ -35,7 +35,7 @@ class TestGene(unittest.TestCase):
         self.logger.info("test_get_distance passed")
 
     def test_mutate_parameters(self):
-        self.logger.debug("test_mutate_parameters_started")
+        self.logger.debug("test_mutate_parameters started")
         gene = Gene(0, self.config)
 
         self.assertEqual(gene.mutate_parameters(), False)
@@ -58,6 +58,8 @@ class TestGene(unittest.TestCase):
         for i in range(n_parameters):
             self.assertNotEqual(gene.parameters[i], parameters[i], 
                             "Parameters should have changed after mutation")
-        
+        self.logger.info("test_mutate_parameters passed")
+
+
 if __name__ == '__main__':
     unittest.main()
