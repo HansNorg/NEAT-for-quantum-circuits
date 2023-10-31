@@ -43,7 +43,7 @@ class TestGene(unittest.TestCase):
         n_parameters = 3
         gene.n_parameters = n_parameters
         parameters = [0, 0, 0]
-        gene.parameters = [0, 0, 0]
+        gene.parameters = parameters.copy()
         self.assertEqual(gene.mutate_parameters(), True,
                             "Parameters should have changed after mutation")
         for i in range(n_parameters):
@@ -53,6 +53,7 @@ class TestGene(unittest.TestCase):
         n_parameters = np.random.randint(1, 10)
         gene.n_parameters = n_parameters
         parameters = self.config.parameter_amplitude*np.random.random(n_parameters)
+        gene.parameters = parameters.copy()
         self.assertEqual(gene.mutate_parameters(), True,
                             "Parameters should have changed after mutation")
         for i in range(n_parameters):
