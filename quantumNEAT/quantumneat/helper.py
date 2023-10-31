@@ -23,7 +23,7 @@ class GlobalInnovationNumber(metaclass=Singleton):
     def __init__(self):
         self._innovation_number:int = -1
 
-    def next(self):
+    def next(self) -> int:
         '''
         Get the next innovation number.
 
@@ -31,6 +31,18 @@ class GlobalInnovationNumber(metaclass=Singleton):
         '''
         self._innovation_number += 1
         return self._innovation_number
+    
+    def current(self) -> int:
+        """Get the current innovation number."""
+        return self._innovation_number
+    
+    def previous(self):
+        '''
+        Decrements the innovation number.
+
+        Should only be used in case of failed innovations.
+        '''
+        self._innovation_number -= 1
     
 class GlobalSpeciesNumber:
     '''
@@ -204,3 +216,28 @@ def get_Ising(h_vec, J_vec):
     H += h_vec[n_qubits-1] * Z(n_qubits-1, n_qubits)
 
     return H
+
+def get_gradient(circuit, n_parameters, parameters, config):
+    if n_parameters == 0:
+        return 0 # Prevent division by 0
+    total_gradient = 0
+    
+    if config.simulator == 'qulacs':
+        for ind in range(n_parameters):
+            temp = parameters[ind]
+            parameters[ind] += config.epsilon/2
+            partial_gradient = get_energy_qulacs(parameters, Z, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+            parameters[ind] -= config.epsilon
+            partial_gradient -= get_energy_qulacs(parameters, Z, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+            parameters[ind] = temp # Return the parameter to original value
+            total_gradient += partial_gradient**2
+    elif config.simulator == 'qiskit':
+        for ind in range(n_parameters):
+            temp = parameters[ind]
+            parameters[ind] += config.epsilon/2
+            partial_gradient = energy_from_circuit(circuit, parameters, config.n_shots)
+            parameters[ind] -= config.epsilon
+            partial_gradient -= energy_from_circuit(circuit, parameters, config.n_shots)
+            parameters[ind] = temp # Return the parameter to original value
+            total_gradient += partial_gradient**2
+    return total_gradient/n_parameters

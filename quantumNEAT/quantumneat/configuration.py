@@ -8,7 +8,7 @@ from quantumneat.population import Population
 from quantumneat.species import Species
 from quantumneat.genome import Genome
 from quantumneat.gene import Gene
-from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber
+from quantumneat.helper import Singleton, GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
 
 @dataclass
-class QuantumNEATConfig:
+class QuantumNEATConfig(metaclass = Singleton):
     """
     Class for keeping the configuration settings of the QNEAT algorithm
     """
@@ -45,15 +45,19 @@ class QuantumNEATConfig:
     perturbation_amplitude: float = 1
     prob_add_gene_mutation: float = 0.1
     max_add_gene_tries: int = 10
+    simulator = 'qulacs' # 'qiskit'
+    gradient_function = get_gradient
 
     # Gene settings
     gene_types:list[Gene] = field(default_factory=list)
     parameter_amplitude: float = 2*np.pi
-    simulator = 'qulacs' # 'qiskit'
 
-class QuantumNEATExperimenterConfig(QuantumNEATConfig):
-    # Logger settings
-    filename: str = "experiment"
-    file_level = logging.INFO
-    console_level = logging.ERROR
-    mode = "a"
+    # Helper settings
+    epsilon = 10**-5
+    n_shots = 1024
+    phys_noise = False
+
+    # Distance settings
+    c1:float = 1
+    c2:float = 1
+    c3:float = 0.4
