@@ -32,7 +32,13 @@ class Gene(ABC):
         self.parameters = config.parameter_amplitude*np.random.random(self.n_parameters)
 
     def mutate_parameters(self) -> bool:
-        """Mutate the parameters of the Gene, return a bool indicating if the mutation was succesfull."""
+        """
+        Mutate the parameters of the Gene.
+        
+        Returns
+        -------
+        - bool: Whether the mutation was succesfull.
+        """
         if self.n_parameters == 0:
             return False
         self.parameters += self.config.perturbation_amplitude*np.random.random(self.n_parameters)
@@ -46,7 +52,7 @@ class Gene(ABC):
         Parameters
         ----------
         - gene1, gene2: Genes between which the distance is calculated.
-        
+
         Returns
         -------
         - bool: Whether this gene should be included in distance calculation (whether it has parameters)
@@ -99,5 +105,10 @@ class GateGene(Gene):
         ----------
         - circuit: circuit the gate is added to.
         - n_parameters: amount of parameters in the circuit.
+
+        Returns
+        -------
+        - Circuit: circuit the gate is added to.
+        - int: amount of parameters in the circuit.
         """
         return circuit, n_parameters        
