@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from quantumneat.configuration import QuantumNEATConfig as C
+    from quantumneat.configuration import QuantumNEATConfig
 
 class Population():
     """Keep and update a population of genomes."""
-    def __init__(self, config:C) -> None:
+    def __init__(self, config:QuantumNEATConfig) -> None:
         """
         Initialise a population.
 
@@ -24,33 +24,33 @@ class Population():
         self.generation:int = 0
         self.population = self.generate_initial_population()
         self.update_avg_fitness()
-        self.species: list[C.Species] = []
+        self.species: list[QuantumNEATConfig.Species] = []
         self.speciate()
         self.config = config
 
-    def generate_initial_population(self) -> list[C.Genome]:
+    def generate_initial_population(self) -> list[QuantumNEATConfig.Genome]:
         population = []
         for _ in range(self.config.population_size):
             genome = self.config.Genome(self.config)
-            gene_type = np.random.choice(self.config.GeneTypes)
+            gene_type = np.random.choice(self.config.gene_types)
             qubit = np.random.randint(self.config.n_qubits)
-            gate = gene_type(self.config.global_innovation_number.next(), self.config, [qubit])
+            gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, [qubit])
             genome.add_gene(gate)
             population.append(genome)
         return self.sort_genomes(population)
 
     @staticmethod
-    def sort_genomes(genomes:list[C.Genome]) -> list[C.Genome]:
+    def sort_genomes(genomes:list[QuantumNEATConfig.Genome]) -> list[QuantumNEATConfig.Genome]:
         """Sort the given genomes by fitness."""
         return sorted(genomes, key=lambda genome: genome.get_fitness(), reverse=True)
     
     def update_avg_fitness(self):
         self.average_fitness = np.mean([genome.get_fitness() for genome in self.population])
 
-    def generate_new_population(self) -> list[C.Genome]:
+    def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
         """Generate the next generation of the population by mutation and crossover."""
         self.logger.debug(f"{self.average_fitness =}")
-        new_population:list[C.Genome] = []
+        new_population:list[QuantumNEATConfig.Genome] = []
         for specie in self.species:
             total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
             n_offspring = round(total_specie_fitness/self.average_fitness)
@@ -67,7 +67,7 @@ class Population():
                     new_population.append(self.config.Genome.crossover(parent1, parent2))
                 else:
                     new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness()))
-                new_population[-1].mutate(self.config.global_innovation_number, self.config.n_qubits)
+                new_population[-1].mutate(self.config.GlobalInnovationNumber, self.config.n_qubits)
             specie.empty()
         return self.sort_genomes(new_population)
 
@@ -82,7 +82,7 @@ class Population():
                     found = True
                     break
             if not found:
-                new_species = self.config.Species(self.generation, self.config.global_species_number.next())
+                new_species = self.config.Species(self.generation, self.config.GlobalSpeciesNumber.next())
                 new_species.update(genome, [genome])
                 self.species.append(new_species)
         for ind, specie in enumerate(self.species):
@@ -95,5 +95,5 @@ class Population():
         self.speciate()
         self.generation += 1
 
-    def get_best_genome(self) -> C.Genome:
+    def get_best_genome(self) -> QuantumNEATConfig.Genome:
         return self.population[0]

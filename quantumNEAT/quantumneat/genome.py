@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -11,11 +11,11 @@ from qulacs import ParametricQuantumCircuit
 from quantumneat import helper as h
 
 if TYPE_CHECKING:
-    from quantumneat.configuration import QuantumNEATConfig as C
-    from quantumneat.gene import Gene, GateGene, Circuit
+    from quantumneat.configuration import QuantumNEATConfig, Circuit
+    from quantumneat.gene import Gene, GateGene
 
 class Genome(ABC):
-    def __init__(self, config:C) -> None:
+    def __init__(self, config:QuantumNEATConfig) -> None:
         super().__init__()
         self.config = config
         self._fitness = None
@@ -43,18 +43,22 @@ class Genome(ABC):
     def update_fitness(self):
         self._update_fitness = False
 
+    @abstractmethod
+    def get_circuit(self, n_parameters:int = 0) -> tuple[Circuit, int]:
+        return None, n_parameters
+
     @staticmethod
     @abstractmethod
-    def compatibility_distance(genome1:Genome, genome2:Genome, config:C) -> float:
+    def compatibility_distance(genome1:Genome, genome2:Genome, config:QuantumNEATConfig) -> float:
         return None
 
     @staticmethod
     @abstractmethod
-    def crossover(genome1:Genome, genome2:Genome) -> C.Genome:
+    def crossover(genome1:Genome, genome2:Genome) -> QuantumNEATConfig.Genome:
         return None
 
 class CircuitGenome(Genome):
-    def __init__(self, config: C) -> None:
+    def __init__(self, config: QuantumNEATConfig) -> None:
         super().__init__(config)
         self.genes:list[GateGene] = []
     
@@ -62,9 +66,9 @@ class CircuitGenome(Genome):
         super().mutate()
         if np.random.random() < self.config.prob_add_gene_mutation:
             for _ in range(self.config.max_add_gene_tries):
-                new_gene:GateGene = np.random.choice(self.config.GeneTypes)
+                new_gene:GateGene = np.random.choice(self.config.gene_types)
                 qubits = np.random.choice(range(self.config.n_qubits), size = new_gene.n_qubits)
-                new_gene = new_gene(self.config.global_innovation_number.next(), config = self.config, qubits = qubits)
+                new_gene = new_gene(self.config.GlobalInnovationNumber.next(), config = self.config, qubits = qubits)
                 if self.add_gene(new_gene):
                     break
         if np.random.random() < self.config.prob_weight_mutation:
@@ -117,7 +121,7 @@ class CircuitGenome(Genome):
         return total_gradient/n_parameters
 
     @staticmethod
-    def compatibility_distance(genome1:Genome, genome2:Genome, config:C):
+    def compatibility_distance(genome1:Genome, genome2:Genome, config:QuantumNEATConfig):
         def line_up(genome1:Genome, genome2:Genome):
             matching = 0
             disjoint = 0

@@ -4,12 +4,12 @@ import numpy as np
 from typing import TYPE_CHECKING
 from qiskit.circuit import Parameter
 
-from quantumneat.gene import GateGene, GeneTypes
+from quantumneat.gene import GateGene
 from quantumneat.helper import Singleton
 from quantumneat.genome import CircuitGenome
 from quantumneat.configuration import QuantumNEATConfig
 if TYPE_CHECKING:
-    from quantumneat.gene import Circuit
+    from quantumneat.configuration import Circuit
 
 class GlobalLayerNumber(metaclass=Singleton):
     '''
@@ -64,16 +64,12 @@ class GateROT(GateGene):
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
         return circuit, n_parameters
-    
-class QNEAT_GeneTypes(GeneTypes):
-    ROT = GateROT
-    CNOT = GateCNOT
 
 class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
 
     def __init__(self, config:QuantumNEATConfig, ind:int) -> None:
-        super().__init__(ind, config, range(config.n_qubits))#TODO HIER BEZIG
+        super().__init__(ind, config, range(config.n_qubits))
         self.genes:dict[object, list] = {GateROT:[], GateCNOT:[]}
         self.ind = ind
 
@@ -88,28 +84,29 @@ class LayerGene(GateGene):
             self.genes[gate.gatetype.name] = [gate]
         return True
 
-    def add_to_circuit(self, circuit, n_parameters):
-        for genetype in GeneTypes:
+    def add_to_circuit(self, circuit:Circuit, n_parameters):
+        for genetype in self.config.gene_types:
             if genetype.name in self.genes:
                 for gate in self.genes[genetype.name]:
                     circuit, n_parameters = gate.add_to_circuit(circuit, n_parameters)
-        circuit.barrier()
+        circuit.barrier(self.qubits)
         return circuit, n_parameters
     
     def gates(self):
         for key in self.genes.keys():
-            for gate in self.genes[key]:
+            for gate in self.genes[key]: 
                 yield gate
 
 class QNEAT_Genome(CircuitGenome):
-    def __init__(self, config:QuantumNEATConfig) -> None:
+    def __init__(self, config:QNEAT_Config) -> None:
         super().__init__(config)
+        self.config:QNEAT_Config
         self.genes:dict[int,LayerGene] = {}
 
     def add_gene(self, gene) -> bool:
         ind = np.random.randint(self.config.global_layer_number.current() + 1)
-        if ind == self.global_layer_number.current():
-            self.global_layer_number.next()
+        if ind == self.config.global_layer_number.current():
+            self.config.global_layer_number.next()
         if ind not in self.genes.keys():
             new_layer = LayerGene(self.config, ind)
             self.genes[ind] = new_layer
@@ -120,5 +117,5 @@ class QNEAT_Genome(CircuitGenome):
 
 class QNEAT_Config(QuantumNEATConfig):
     Genome = QNEAT_Genome
-    GeneTypes = QNEAT_GeneTypes
+    GeneTypes:list[GateGene] = [GateROT, GateCNOT]
     global_layer_number = GlobalLayerNumber()

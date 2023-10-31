@@ -1,8 +1,19 @@
-from dataclasses import dataclass
-import numpy as np
+from typing import TYPE_CHECKING, TypeVar
+from dataclasses import dataclass, field
 import logging
 
-from quantumneat import genome, gene, helper, species, population
+import numpy as np
+
+from quantumneat.population import Population
+from quantumneat.species import Species
+from quantumneat.genome import Genome
+from quantumneat.gene import Gene
+from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber
+
+if TYPE_CHECKING:
+    from qiskit import QuantumCircuit
+    from qulacs import ParametricQuantumCircuit
+    Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
 
 @dataclass
 class QuantumNEATConfig:
@@ -12,23 +23,23 @@ class QuantumNEATConfig:
     # Global settings
     n_qubits: int
     population_size: int
-    global_innovation_number = helper.GlobalInnovationNumber()
-    global_species_number = helper.GlobalSpeciesNumber()
+    GlobalInnovationNumber = GlobalInnovationNumber()
+    GlobalSpeciesNumber = GlobalSpeciesNumber()
 
     # Main QNEAT settings
 
     # Population settings
-    Population = population.Population
+    Population = Population
     compatibility_threshold: float = 3
     prob_mutation_without_crossover: float = 0.25
     specie_champion_size: int = 5
     percentage_survivors: float = 0.5
 
     # Species settings
-    Species = species.Species
+    Species = Species
     
     # Genome settings
-    Genome = genome.Genome
+    Genome = Genome
     prob_weight_mutation: float = 0.8
     prob_weight_perturbation: float = 0.9
     perturbation_amplitude: float = 1
@@ -36,8 +47,7 @@ class QuantumNEATConfig:
     max_add_gene_tries: int = 10
 
     # Gene settings
-    # Gene = gene.Gene
-    GeneTypes = gene.GeneTypes
+    gene_types:list[Gene] = field(default_factory=list)
     parameter_amplitude: float = 2*np.pi
     simulator = 'qulacs' # 'qiskit'
 

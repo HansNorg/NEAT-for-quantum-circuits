@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
-from enum import Enum
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from qiskit import QuantumCircuit
-    from qulacs import ParametricQuantumCircuit
-    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig as C
-    Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
+    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig, Circuit
     
 class Gene(ABC):
     """
@@ -22,7 +18,7 @@ class Gene(ABC):
     """
     n_parameters = 0
 
-    def __init__(self, innovation_number: int, config:C, **kwargs) -> None:
+    def __init__(self, innovation_number: int, config:QuantumNEATConfig, **kwargs) -> None:
         self.innovation_number = innovation_number
         self.config = config
         self.parameters = config.parameter_amplitude*np.random.random(self.n_parameters)
@@ -51,7 +47,7 @@ class Gene(ABC):
 class GateGene(Gene):
     n_qubits = 0
     
-    def __init__(self, innovation_number: int, config: C, qubits:list[int], **kwargs) -> None:
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits:list[int], **kwargs) -> None:
         super().__init__(innovation_number, config, **kwargs)
         self.qubits = qubits
         # self.qubits = qubits%self.config.n_qubits
@@ -71,6 +67,3 @@ class GateGene(Gene):
             return False
         self.parameters += self.config.perturbation_amplitude*np.random.random(self.n_parameters)
         return True
-
-class GeneTypes(Enum):
-    """Define the possible gene types."""

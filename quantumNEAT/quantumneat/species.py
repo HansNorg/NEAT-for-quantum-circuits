@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from quantumneat.configuration import QuantumNEATConfig as C
+    from quantumneat.configuration import QuantumNEATConfig
 
 class Species:
     """
@@ -16,7 +16,7 @@ class Species:
     - last_improved (int): Last generation the species improved its (average/max) fitness. #TODO
     """
     
-    def __init__(self, generation:int, config:C, key = None):
+    def __init__(self, generation:int, config:QuantumNEATConfig, key = None):
         """
         Initialise a new species. 
         
@@ -30,10 +30,10 @@ class Species:
         self.original_generation = generation
         self.key = key
         self.last_improved = generation
-        self.genomes:list[C.Genome] = []
+        self.genomes:list[QuantumNEATConfig.Genome] = []
         self.representative = None
 
-    def update(self, representative:C.Genome, genomes:list[C.Genome]):
+    def update(self, representative:QuantumNEATConfig.Genome, genomes:list[QuantumNEATConfig.Genome]):
         """
         Replace the representative and genomes of the species by the given ones.
 
@@ -49,7 +49,7 @@ class Species:
         """Remove all member genomes from the species."""
         self.genomes = []
 
-    def add(self, genome:C.Genome):
+    def add(self, genome:QuantumNEATConfig.Genome):
         """
         Add the given genome to the species.
         

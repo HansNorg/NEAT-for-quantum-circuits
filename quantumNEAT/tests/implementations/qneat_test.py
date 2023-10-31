@@ -2,12 +2,11 @@ import unittest
 import logging
 # import sys
 # print(sys.path)
-from quantumneat.logger import QuantumNEATLogger
 from quantumneat.implementations import qneat
 
 class TestGate(unittest.TestCase):
     def setUp(self):
-        self.logger = logging.getLogger("quantumNEAT.implementations.test")
+        self.logger = logging.getLogger("test_quantumNEAT.implementations.qneat")
         self.logger.info("setUp")
     
     def test_Layer_Gene(self):
@@ -23,5 +22,4 @@ class TestGate(unittest.TestCase):
         self.assertEqual(len([gate for gate in layer.gates()]), 2)
 
 if __name__ == '__main__':
-    QuantumNEATLogger("test", file_level=logging.DEBUG, mode="w")
     unittest.main()

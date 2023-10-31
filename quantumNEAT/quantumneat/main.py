@@ -1,13 +1,12 @@
 import logging
 
-from quantumneat.configuration import QuantumNEATConfig as C
-from quantumneat.logger import QuantumNEATLogger
+from quantumneat.configuration import QuantumNEATConfig
 
 class QuantumNEAT:
-    def __init__(self, config:C):
+    def __init__(self, config:QuantumNEATConfig):
         self.config = config
 
-        self.logger = logging.getLogger("QuantumNEAT")
+        self.logger = logging.getLogger("quantumNEAT")
         self.logger.info("QuantumNEAT Started")
 
         self.generation = 0
@@ -44,8 +43,7 @@ class QuantumNEAT:
         return fitness_record, population_size, number_of_species, self.average_fitnesses
 
 def main():
-    QuantumNEATLogger("QuantumNEAT_main")
-    settings = C(3, 10)
+    settings = QuantumNEATConfig(3, 10)
     quantum_neat = QuantumNEAT(settings)
     quantum_neat.run()
 
