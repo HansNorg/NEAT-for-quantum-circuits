@@ -43,6 +43,10 @@ class Gene(ABC):
         """
         Calculate the distance between two genes.
 
+        Parameters
+        ----------
+        - gene1, gene2: Genes between which the distance is calculated.
+        
         Returns
         -------
         - bool: Whether this gene should be included in distance calculation (whether it has parameters)
