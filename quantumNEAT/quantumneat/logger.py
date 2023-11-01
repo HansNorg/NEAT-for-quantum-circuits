@@ -7,7 +7,7 @@ def setup_logger(filename = "main", test_level = logging.DEBUG, file_level = log
     logger = logging.getLogger(name)
     logger.setLevel(min(file_level, console_level))
     test_logger = logging.getLogger(f"test_{name}")
-    test_logger.setLevel(test_level)
+    test_logger.setLevel(min(test_level, console_level))
     
     sh = logging.StreamHandler()
     sh.setLevel(console_level)
