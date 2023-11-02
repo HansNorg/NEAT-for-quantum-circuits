@@ -4,8 +4,12 @@ import logging
 from quantumneat.implementations import qneat
 
 class TestQNEAT(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger("test_quantumNEAT.implementations.qneat")
+        cls.logger.debug("setUpClass")
+
     def setUp(self):
-        self.logger = logging.getLogger("test_quantumNEAT.implementations.qneat")
         self.logger.debug("setUp")
     
     def test_Layer_Gene(self):

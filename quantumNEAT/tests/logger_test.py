@@ -2,7 +2,7 @@ import unittest
 import logging
 
 class TestLogger(unittest.TestCase):
-    @unittest.skip("Logging testing performed manually")
+    @unittest.skipUnless(__name__=='__main__',"Logging testing performed manually")
     def test_main_logger(self):
         logger = logging.getLogger("quantumNEAT")
         logger.debug("Main logger debug message")
@@ -11,7 +11,7 @@ class TestLogger(unittest.TestCase):
         logger.error("Main logger error message")
         logger.critical("Main logger critical message")
 
-    @unittest.skip("Logging testing performed manually")
+    @unittest.skipUnless(__name__=='__main__',"Logging testing performed manually")
     def test_test_logger(self):
         logger = logging.getLogger("test_quantumNEAT")
         logger.debug("Test logger debug message")

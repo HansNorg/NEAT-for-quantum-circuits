@@ -217,7 +217,7 @@ def get_Ising(h_vec, J_vec):
 
     return H
 
-def get_gradient(circuit, n_parameters, parameters, config):
+def get_gradient(self, circuit, n_parameters, parameters, config):
     if n_parameters == 0:
         return 0 # Prevent division by 0
     total_gradient = 0

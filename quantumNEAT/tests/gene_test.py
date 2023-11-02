@@ -7,8 +7,13 @@ from quantumneat.gene import Gene, GateGene
 from quantumneat.configuration import QuantumNEATConfig
 
 class TestGene(unittest.TestCase):
+    #TODO look at assert List (not) Equal
+    @classmethod
+    def setUpClass(cls):
+        cls.logger = logging.getLogger("test_quantumNEAT.TestGene")
+        cls.logger.debug("setUpClass")
+
     def setUp(self):
-        self.logger = logging.getLogger("test_quantumNEAT.TestGene")
         self.logger.debug("setUp")
         self.config = QuantumNEATConfig(3, 10)
 
