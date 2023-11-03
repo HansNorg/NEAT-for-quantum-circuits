@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
@@ -17,6 +18,7 @@ class Gene(ABC):
     - n_parameters (int): The amount of parameters this gene has. (default = 0)
     """
     n_parameters:int = 0
+    logger = logging.getLogger("quantumNEAT.Gene")
 
     def __init__(self, innovation_number: int, config:QuantumNEATConfig, **kwargs) -> None:
         """

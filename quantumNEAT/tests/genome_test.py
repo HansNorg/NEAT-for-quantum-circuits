@@ -10,25 +10,29 @@ from quantumneat.gene import GateGene
 class ImplGateGene(GateGene):
     """GateGene with implemented abstract class for testing"""
     def add_to_circuit(self, circuit, n_parameters: int):
+        self.logger.debug(f"{self.qubits[0]=}")
+        circuit.add_H_gate(self.qubits[0])
         return super().add_to_circuit(circuit, n_parameters)
     
 class TestCircuitGenome(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.logger = logging.getLogger("test_quantumNEAT.TestGenome")
-        cls.logger.debug("setUpClass")
+    # @classmethod
+    # def setUpClass(cls):
+    logger = logging.getLogger("test_quantumNEAT.TestGenome")
+    logger.debug("setUpClass")
 
     def setUp(self):
         self.logger.debug("setUp")
         self.config = QuantumNEATConfig(3, 10)
+        self.config.simulator = 'qulacs' #Tests are only based on qulacs circuits atm
         self.config.c1, self.config.c2, self.config.c3 = np.random.uniform(size = 3)
         self.genome1 = CircuitGenome(self.config)
         self.genome2 = CircuitGenome(self.config)
         self.n_genes = 10
         self.genes = []
         for _ in range(self.n_genes):
-            n_qubits = np.random.randint(0, self.config.n_qubits)
-            qubits = [np.random.randint(0, self.config.n_qubits, size=n_qubits)]
+            n_qubits = np.random.randint(0, self.config.n_qubits)+1
+            qubits = list(np.random.randint(0, self.config.n_qubits, size=n_qubits))
+            self.logger.debug(f"{qubits=}")
             new_gene = ImplGateGene(self.config.GlobalInnovationNumber.next(),self.config,qubits)
             new_gene.n_qubits = n_qubits
             self.genes.append(new_gene)
@@ -112,22 +116,32 @@ class TestCircuitGenome(unittest.TestCase):
         self.logger.debug("test_compatibility_distance_excess_disjoint_avg_distance started")
         self.logger.info("test_compatibility_distance_excess_disjoint_avg_distance passed")
 
+    @staticmethod
+    def custom_gradient_function(circuit, n_parameters, parameters, config):
+        """Gradient function for testing only."""
+        TestCircuitGenome.logger.debug("custom_gradient_function")
+        return circuit.get_gate_count()
+    
     def test_crossover(self):
         self.logger.debug("test_crossover started")
-        #TODO Gradient = 0 ==> fitness = 0 ==> Random better parent ==> no determined child
+        # Without parametrized gates all default gradients will equal 0, 
+        # so can't test correct child generation as the fittest parent is no defined.
+        # So instead a different gradient function is used for testing.
+        self.config.gradient_function = self.custom_gradient_function
+        
         correct_child = CircuitGenome(self.config)
         self.check_correct_child(correct_child, "empty genomes")
         
         self.genome1.add_gene(self.genes[0])
-        # correct_child.add_gene(self.genes[0])
+        correct_child.add_gene(self.genes[0])
         self.check_correct_child(correct_child, "one empty genome")
 
         self.genome1.add_gene(self.genes[2])
-        # correct_child.add_gene(self.genes[2])
+        correct_child.add_gene(self.genes[2])
         self.check_correct_child(correct_child, "one empty genome")
 
         self.genome2.add_gene(self.genes[1])
-        correct_child.add_gene(self.genes[1])
+        # correct_child.add_gene(self.genes[1])
         self.check_correct_child(correct_child, "non-empty genomes, disjoint")
 
     def check_correct_child(self, correct_child:CircuitGenome, message):
