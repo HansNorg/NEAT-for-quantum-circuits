@@ -291,7 +291,7 @@ class CircuitGenome(Genome):
         elif genome1.get_fitness() < genome2.get_fitness():
             better = "genome2"
         else:
-            better = np.random.choice(["genome1", "genome2"])
+            better = "equal"
         Genome.logger.debug(f"{genome1.get_fitness()=}, {genome2.get_fitness()=}, {better=}")
 
         n_genes1, n_genes2 = len(genome1.genes), len(genome2.genes)
@@ -300,43 +300,46 @@ class CircuitGenome(Genome):
             Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
             gene1 = genome1.genes[index1] if index1 < n_genes1 else None
             gene2 = genome2.genes[index2] if index2 < n_genes2 else None
-
+            chosen_gene = None
             if gene1 and gene2:
                 Genome.logger.debug("gene1 and gene2")
-                if gene1.innovation_number < gene2.innovation_number:
+                if gene1.innovation_number < gene2.innovation_number: # disjoint
                     if better == "genome1":
-                        if not child.add_gene(copy.deepcopy(gene1)):
-                            Genome.logger.error("Child did not add gene of parent.")
+                        chosen_gene = gene1
                     index1 += 1
-                elif gene1.innovation_number > gene2.innovation_number:
+                elif gene1.innovation_number > gene2.innovation_number: # disjoint
                     if better == "genome2":
-                        if not child.add_gene(copy.deepcopy(gene2)):
-                            Genome.logger.error("Child did not add gene of parent.")
+                        chosen_gene = gene2
                     index2 += 1
-                else:
-                    if better == "genome1":
-                        if not child.add_gene(copy.deepcopy(gene1)):
-                            Genome.logger.warning("Child did not add gene of parent.")
-                    elif better == "genome2":
-                        if not child.add_gene(copy.deepcopy(gene2)):
-                            Genome.logger.warning("Child did not add gene of parent.")
-                    else:
-                        Genome.logger.error(f"better should have value 'genome1' or 'genome2' not {better}.", exc_info=1)
-                        raise ValueError(f"better should have value 'genome1' or 'genome2' not {better}.")
+                else: # matching (gene1.innovation_number == gene2.innovation_number)
+                    # if better == "genome1":
+                    #     chosen_gene = gene1
+                    # elif better == "genome2":
+                    #     chosen_gene = gene2
+                    # else: # better == "equal"
+                    #     chosen_gene = "random"
+                    chosen_gene = "random"
                     index1 += 1
                     index2 += 1
-            elif gene1 and better == "genome1":
-                Genome.logger.debug("gene1 and (not gene2)")
-                if not child.add_gene(copy.deepcopy(gene1)):
-                    Genome.logger.warning("Child did not add gene of parent.")
+            elif gene1 and better == "genome1": # excess
+                Genome.logger.debug("gene1 and (not gene2) and better == 'genome1'")
+                chosen_gene = gene1
                 index1 += 1
-            elif gene2 and better == "genome2":
-                Genome.logger.debug("(not gene1) and gene2")
-                if not child.add_gene(copy.deepcopy(gene2)):
-                    Genome.logger.warning("Child did not add gene of parent.")
+            elif gene2 and better == "genome2": # excess
+                Genome.logger.debug("(not gene1) and gene2 and better == 'genome2'")
+                chosen_gene = gene2
                 index2 += 1
-            else:
-                Genome.logger.debug("(not gene1) and (not gene2)")
-                # Genome.logger.warning("Don't think this should ever occur.", exc_info=1)
+            elif better == "equal":
+                if np.random.random() < 0.5:
+                    if gene1: chosen_gene = gene1
+                    elif gene2: chosen_gene = gene2
+            else: # excess
+                Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
                 break
+            if chosen_gene: # not None
+                if chosen_gene == "random":
+                    chosen_gene = np.random.choice([gene1, gene2])
+                if not child.add_gene(copy.deepcopy(chosen_gene)):
+                    Genome.logger.error("Child did not add gene of parent.")
+
         return child
