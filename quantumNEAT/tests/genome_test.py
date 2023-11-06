@@ -122,10 +122,10 @@ class TestCircuitGenome(unittest.TestCase):
         TestCircuitGenome.logger.debug("custom_gradient_function")
         return circuit.get_gate_count()
     
-    def test_crossover(self):
-        self.logger.debug("test_crossover started")
+    def test_crossover_unequal_fitness(self):
+        self.logger.debug("test_crossover_unequal_fitness started")
         # Without parametrized gates all default gradients will equal 0, 
-        # so can't test correct child generation as the fittest parent is no defined.
+        # so can't test correct child generation as the fittest parent is not defined.
         # So instead a different gradient function is used for testing.
         self.config.gradient_function = self.custom_gradient_function
         
@@ -141,8 +141,24 @@ class TestCircuitGenome(unittest.TestCase):
         self.check_correct_child(correct_child, "one empty genome")
 
         self.genome2.add_gene(self.genes[1])
-        # correct_child.add_gene(self.genes[1])
-        self.check_correct_child(correct_child, "non-empty genomes, disjoint")
+        self.check_correct_child(correct_child, "non-empty genomes, disjoint/excess")
+
+        self.logger.info("test_crossover_unequal_fitness passed")
+        
+    def test_crossover_equal_fitness(self):
+        self.logger.debug("test_crossover_unequal_fitness started")
+        # Without parametrized gates all default gradients will equal 0, 
+        # so can't test correct child generation as the fittest parent is not defined.
+        # So instead a different gradient function is used for testing.
+        self.config.gradient_function = self.custom_gradient_function
+        
+        correct_child = CircuitGenome(self.config)
+        
+        self.genome1.add_gene(self.genes[1])
+        self.genome2.add_gene(self.genes[1])
+        self.genome1.add_gene(self.genes[2])
+        self.genome2.add_gene(self.genes[2])
+        self.check_correct_child(correct_child, "non-empty genomes, matching + disjoint/excess")
 
     def check_correct_child(self, correct_child:CircuitGenome, message):
         self.logger.debug("check_correct_child: "+message)
