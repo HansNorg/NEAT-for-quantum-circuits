@@ -156,8 +156,13 @@ class TestCircuitGenome(unittest.TestCase):
         
         self.genome1.add_gene(self.genes[1])
         self.genome2.add_gene(self.genes[1])
+        correct_child.add_gene(self.genes[1])
         self.genome1.add_gene(self.genes[2])
         self.genome2.add_gene(self.genes[2])
+        correct_child.add_gene(self.genes[2])
+        self.genome1.add_gene(self.genes[4])
+        self.genome2.add_gene(self.genes[4])
+        correct_child.add_gene(self.genes[4])
         self.check_correct_child(correct_child, "non-empty genomes, matching + disjoint/excess")
 
     def check_correct_child(self, correct_child:CircuitGenome, message):
