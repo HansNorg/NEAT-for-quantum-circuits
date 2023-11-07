@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 class Population():
     """Keep and update a population of genomes."""
+    logger = logging.getLogger(__name__)
+    
     def __init__(self, config:QuantumNEATConfig) -> None:
         """
         Initialise a population.

@@ -1,5 +1,8 @@
 from __future__ import annotations
+
+import logging
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
 
@@ -15,7 +18,8 @@ class Species:
     - original_generation (int): Initial generation the species was created in.
     - last_improved (int): Last generation the species improved its (average/max) fitness. #TODO
     """
-    
+    logger = logging.getLogger(__name__)
+
     def __init__(self, generation:int, config:QuantumNEATConfig, key = None):
         """
         Initialise a new species. 

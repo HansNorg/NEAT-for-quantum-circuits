@@ -3,10 +3,10 @@ import logging
 from quantumneat.configuration import QuantumNEATConfig
 
 class QuantumNEAT:
+    logger = logging.getLogger(__name__)
     def __init__(self, config:QuantumNEATConfig):
         self.config = config
 
-        self.logger = logging.getLogger("quantumNEAT")
         self.logger.info("QuantumNEAT Started")
 
         self.generation = 0

@@ -4,9 +4,7 @@ import logging
 from quantumneat.helper import *
 
 class TestHelper(unittest.TestCase):
-    def setUp(self):
-         self.logger = logging.getLogger("test_quantumNEAT.TestHelper")
-         self.logger.debug("setUp")
+    logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     unittest.main()

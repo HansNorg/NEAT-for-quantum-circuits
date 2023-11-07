@@ -4,14 +4,11 @@ import logging
 from quantumneat.configuration import QuantumNEATConfig
 
 class TestConfiguration(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.logger = logging.getLogger("test_quantumNEAT.configuration")
-        cls.logger.debug("setUpClass")
+    logger = logging.getLogger(__name__)
 
     def test_QuantumNEATConfig(self):
         self.logger.debug("test_QuantumNEATConfig started")
-        QuantumNEATConfig(0, 100)
+        config = QuantumNEATConfig(0, 0)
         self.logger.info("test_QuantumNEATConfig passed")
 
 if __name__ == '__main__':

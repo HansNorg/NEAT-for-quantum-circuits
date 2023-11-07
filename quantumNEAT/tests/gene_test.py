@@ -8,10 +8,7 @@ from quantumneat.configuration import QuantumNEATConfig
 
 class TestGene(unittest.TestCase):
     #TODO look at assert List (not) Equal
-    @classmethod
-    def setUpClass(cls):
-        cls.logger = logging.getLogger("test_quantumNEAT.TestGene")
-        cls.logger.debug("setUpClass")
+    logger = logging.getLogger(__name__)
 
     def setUp(self):
         self.logger.debug("setUp")

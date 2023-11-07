@@ -18,8 +18,8 @@ class Gene(ABC):
     - n_parameters (int): The amount of parameters this gene has. (default = 0)
     """
     n_parameters:int = 0
-    logger = logging.getLogger("quantumNEAT.Gene")
-
+    logger = logging.getLogger(__name__)
+    
     def __init__(self, innovation_number: int, config:QuantumNEATConfig, **kwargs) -> None:
         """
         Initialise the Gene.

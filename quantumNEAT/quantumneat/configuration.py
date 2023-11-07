@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, TypeVar
 from dataclasses import dataclass, field
-import logging
 
 import numpy as np
 
@@ -8,7 +7,7 @@ from quantumneat.population import Population
 from quantumneat.species import Species
 from quantumneat.genome import Genome
 from quantumneat.gene import Gene
-from quantumneat.helper import Singleton, GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient
+from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
     Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
 
 @dataclass
-class QuantumNEATConfig(metaclass = Singleton):
+class QuantumNEATConfig():
     """
     Class for keeping the configuration settings of the QNEAT algorithm
     """

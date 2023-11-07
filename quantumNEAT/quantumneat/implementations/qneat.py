@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-import numpy as np
+import copy
 from typing import TYPE_CHECKING
+
+import numpy as np
 from qiskit.circuit import Parameter
 
 from quantumneat.gene import GateGene
-from quantumneat.helper import Singleton
 from quantumneat.genome import CircuitGenome
 from quantumneat.configuration import QuantumNEATConfig
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
+    from quantumneat.implementations.qneat import QNEAT_Config
 
-class GlobalLayerNumber(metaclass=Singleton):
+class GlobalLayerNumber:
     '''
     Class for keeping a global layer number.
     
@@ -68,7 +70,7 @@ class GateROT(GateGene):
 class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
 
-    def __init__(self, config:QuantumNEATConfig, ind:int) -> None:
+    def __init__(self, config:QNEAT_Config, ind:int) -> None:
         super().__init__(ind, config, range(config.n_qubits))
         self.genes:dict[object, list] = {GateROT:[], GateCNOT:[]}
         self.ind = ind
@@ -114,6 +116,70 @@ class QNEAT_Genome(CircuitGenome):
         if gene_added:
             self._update_fitness = True
         return gene_added
+    
+    @staticmethod
+    def crossover(genome1: QNEAT_Genome, genome2: QNEAT_Genome) -> QNEAT_Genome:
+        # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
+        # and equal genes have equal innovation_number.
+        QNEAT_Genome.logger.debug("crossover")
+        child = CircuitGenome(genome1.config)
+        if genome1.get_fitness() > genome2.get_fitness():
+            better = "genome1"
+        elif genome1.get_fitness() < genome2.get_fitness():
+            better = "genome2"
+        else:
+            better = "equal"
+        QNEAT_Genome.logger.debug(f"{genome1.get_fitness()=}, {genome2.get_fitness()=}, {better=}")
+
+        n_genes1, n_genes2 = len(genome1.genes), len(genome2.genes)
+        index1, index2 = 0, 0
+        while index1 < n_genes1 or index2 < n_genes2:
+            QNEAT_Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
+            gene1 = genome1.genes[index1] if index1 < n_genes1 else None
+            gene2 = genome2.genes[index2] if index2 < n_genes2 else None
+            chosen_gene = None
+            if gene1 and gene2:
+                QNEAT_Genome.logger.debug("gene1 and gene2")
+                if gene1.innovation_number < gene2.innovation_number: # disjoint
+                    if better == "genome1":
+                        chosen_gene = gene1
+                    index1 += 1
+                elif gene1.innovation_number > gene2.innovation_number: # disjoint
+                    if better == "genome2":
+                        chosen_gene = gene2
+                    index2 += 1
+                else: # matching (gene1.innovation_number == gene2.innovation_number)
+                    # if better == "genome1":
+                    #     chosen_gene = gene1
+                    # elif better == "genome2":
+                    #     chosen_gene = gene2
+                    # else: # better == "equal"
+                    #     chosen_gene = "random"
+                    chosen_gene = "random"
+                    index1 += 1
+                    index2 += 1
+            elif gene1 and better == "genome1": # excess
+                QNEAT_Genome.logger.debug("gene1 and (not gene2) and better == 'genome1'")
+                chosen_gene = gene1
+                index1 += 1
+            elif gene2 and better == "genome2": # excess
+                QNEAT_Genome.logger.debug("(not gene1) and gene2 and better == 'genome2'")
+                chosen_gene = gene2
+                index2 += 1
+            elif better == "equal":
+                if np.random.random() < 0.5:
+                    if gene1: chosen_gene = gene1
+                    elif gene2: chosen_gene = gene2
+            else: # excess
+                QNEAT_Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
+                break
+            if chosen_gene: # not None
+                if chosen_gene == "random":
+                    chosen_gene = np.random.choice([gene1, gene2])
+                if not child.add_gene(copy.deepcopy(chosen_gene)):
+                    QNEAT_Genome.logger.error("Child did not add gene of parent.")
+
+        return child
 
 class QNEAT_Config(QuantumNEATConfig):
     Genome = QNEAT_Genome

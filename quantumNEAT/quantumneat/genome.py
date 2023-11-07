@@ -17,8 +17,8 @@ class Genome(ABC):
     """
     Abstract base class for genomes.
     """
-    logger = logging.getLogger(f"quantumNEAT.Genome")
-
+    logger = logging.getLogger(__name__)
+    
     def __init__(self, config:QuantumNEATConfig) -> None:
         """
         Initialise the Genome.

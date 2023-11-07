@@ -12,8 +12,17 @@ class TestLogger(unittest.TestCase):
         logger.critical("Main logger critical message")
 
     @unittest.skipUnless(__name__=='__main__',"Logging testing performed manually")
+    def test_quantumneat_logger(self):
+        logger = logging.getLogger("quantumNEAT.quantumneat")
+        logger.debug("quantumneat logger debug message")
+        logger.info("quantumneat logger info message")
+        logger.warning("quantumneat logger warning message")
+        logger.error("quantumneat logger error message")
+        logger.critical("quantumneat logger critical message")
+
+    @unittest.skipUnless(__name__=='__main__',"Logging testing performed manually")
     def test_test_logger(self):
-        logger = logging.getLogger("test_quantumNEAT")
+        logger = logging.getLogger("quantumNEAT.tests")
         logger.debug("Test logger debug message")
         logger.info("Test logger info message")
         logger.warning("Test logger warning message")

@@ -17,14 +17,15 @@ class ImplGateGene(GateGene):
 class TestCircuitGenome(unittest.TestCase):
     # @classmethod
     # def setUpClass(cls):
-    logger = logging.getLogger("test_quantumNEAT.TestGenome")
-    logger.debug("setUpClass")
+    logger = logging.getLogger(__name__)
 
     def setUp(self):
         self.logger.debug("setUp")
         self.config = QuantumNEATConfig(3, 10)
         self.config.simulator = 'qulacs' #Tests are only based on qulacs circuits atm
         self.config.c1, self.config.c2, self.config.c3 = np.random.uniform(size = 3)
+        self.logger.debug(f"{self.config=}")
+        self.logger.debug(f"{self.config.n_qubits=}")
         self.genome1 = CircuitGenome(self.config)
         self.genome2 = CircuitGenome(self.config)
         self.n_genes = 10
@@ -32,7 +33,7 @@ class TestCircuitGenome(unittest.TestCase):
         for _ in range(self.n_genes):
             n_qubits = np.random.randint(0, self.config.n_qubits)+1
             qubits = list(np.random.randint(0, self.config.n_qubits, size=n_qubits))
-            self.logger.debug(f"{qubits=}")
+            self.logger.debug(f"{_=}; {n_qubits=}; {qubits=}")
             new_gene = ImplGateGene(self.config.GlobalInnovationNumber.next(),self.config,qubits)
             new_gene.n_qubits = n_qubits
             self.genes.append(new_gene)
