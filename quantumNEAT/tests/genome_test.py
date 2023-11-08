@@ -23,7 +23,7 @@ class TestCircuitGenome(unittest.TestCase):
         self.logger.debug("setUp")
         self.config = QuantumNEATConfig(3, 10)
         self.config.simulator = 'qulacs' #Tests are only based on qulacs circuits atm
-        self.config.c1, self.config.c2, self.config.c3 = np.random.uniform(size = 3)
+        self.config.excess_coefficient, self.config.disjoint_coefficient, self.config.weight_coefficient = np.random.uniform(size = 3)
         self.logger.debug(f"{self.config=}")
         self.logger.debug(f"{self.config.n_qubits=}")
         self.genome1 = CircuitGenome(self.config)
@@ -196,9 +196,9 @@ class TestCircuitGenome(unittest.TestCase):
         if n_genes == 0:
             correct = 0
         else:
-            correct = self.config.c1*excess/n_genes \
-                + self.config.c2*disjoint/n_genes \
-                + self.config.c3*avg_dist
+            correct = self.config.excess_coefficient*excess/n_genes \
+                + self.config.disjoint_coefficient*disjoint/n_genes \
+                + self.config.weight_coefficient*avg_dist
         self.assertEqual(CircuitGenome.compatibility_distance(
             self.genome1, self.genome2, self.config), correct, message)
         self.assertEqual(CircuitGenome.compatibility_distance(

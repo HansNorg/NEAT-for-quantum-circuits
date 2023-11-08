@@ -57,6 +57,6 @@ class QuantumNEATConfig():
     phys_noise = False
 
     # Distance settings
-    c1:float = 1
-    c2:float = 1
-    c3:float = 0.4
+    excess_coefficient:float = 1
+    disjoint_coefficient:float = 1
+    weight_coefficient:float = 0.4

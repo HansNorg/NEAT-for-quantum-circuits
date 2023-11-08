@@ -39,7 +39,8 @@ class Gene(ABC):
         
         Returns
         -------
-        - bool: Whether the mutation was succesfull.
+        - bool: Whether the mutation was succesful.
+        #TODO Reset parameters with probability
         """
         if self.n_parameters == 0:
             return False

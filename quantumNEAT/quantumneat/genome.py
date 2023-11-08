@@ -278,7 +278,7 @@ class CircuitGenome(Genome):
             # If both genomes are empty, distance == 0, prevent division by 0.
             return 0
         matching, disjoint, excess, avg_distance = line_up(genome1, genome2)
-        return config.c1*excess/n_genes + config.c2*disjoint/n_genes + config.c3*avg_distance
+        return config.excess_coefficient*excess/n_genes + config.disjoint_coefficient*disjoint/n_genes + config.weight_coefficient*avg_distance
     
     @staticmethod
     def crossover(genome1: Genome, genome2: Genome) -> Genome:
