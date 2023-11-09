@@ -183,34 +183,38 @@ class CircuitGenome(Genome):
         self.genes:list[GateGene] = []
     
     def mutate(self):
-        super().mutate()
+        # super().mutate() # Don't change the parameters in case of unsuccesful mutation
         if np.random.random() < self.config.prob_add_gene_mutation:
-            innovation_number = self.config.GlobalInnovationNumber.next()
-            for _ in range(self.config.max_add_gene_tries):
-                new_gene:GateGene = np.random.choice(self.config.gene_types)
-                qubits = np.random.choice(range(self.config.n_qubits), 
-                                          size = new_gene.n_qubits)
-                new_gene = new_gene(innovation_number, config = self.config, 
-                                    qubits = qubits)
-                if self.add_gene(new_gene):
-                    break
-            else:
-                self.config.GlobalInnovationNumber.previous()
+            self.mutate_add_gene(self)
         if np.random.random() < self.config.prob_weight_mutation:
+            self._changed = True
             for gene in self.genes:
                 gene.mutate_parameters()
 
-    def update_circuit(self) -> tuple[Circuit, int]:
-        super().update_circuit()
-        n_parameters = 0
-        if self.config.simulator == "qiskit":
-            circuit = QuantumCircuit(QuantumRegister(self.config.n_qubits))
-        elif self.config.simulator == "qulacs":
-            circuit = ParametricQuantumCircuit(self.config.n_qubits)
-        for gene in self.genes:
-            circuit, n_parameters = gene.add_to_circuit(circuit, n_parameters)
-        self._circuit = circuit
-        self._n_circuit_parameters = n_parameters
+    def mutate_add_gene(self):
+        innovation_number = self.config.GlobalInnovationNumber.next()
+        for _ in range(self.config.max_add_gene_tries):
+            new_gene:GateGene = np.random.choice(self.config.gene_types)
+            qubits = np.random.choice(range(self.config.n_qubits), 
+                                        size = new_gene.n_qubits)
+            new_gene = new_gene(innovation_number, config = self.config, 
+                                qubits = qubits)
+            if self.add_gene(new_gene):
+                break
+        else:
+            self.config.GlobalInnovationNumber.previous()
+
+    # def update_circuit(self):
+    #     super().update_circuit()
+    #     n_parameters = 0
+    #     if self.config.simulator == "qiskit":
+    #         circuit = QuantumCircuit(QuantumRegister(self.config.n_qubits))
+    #     elif self.config.simulator == "qulacs":
+    #         circuit = ParametricQuantumCircuit(self.config.n_qubits)
+    #     for gene in self.genes:
+    #         circuit, n_parameters = gene.add_to_circuit(circuit, n_parameters)
+    #     self._circuit = circuit
+    #     self._n_circuit_parameters = n_parameters
 
     def update_fitness(self, fitness_function = "Default", **fitness_function_kwargs):
         super().update_fitness()
