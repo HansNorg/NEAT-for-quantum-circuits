@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Union
 
 import numpy as np
@@ -110,6 +111,12 @@ class LayerGene(GateGene):
             circuit.barrier()
         return circuit, n_parameters
     
+    def get_parameters(self):
+        parameters = []
+        for rotgate in self.genes[GateROT]:
+            parameters.append(rotgate.parameters)
+        return parameters
+    
     def gates(self):
         for key in self.genes.keys():
             for gate in self.genes[key]: 
@@ -177,6 +184,15 @@ class QNEAT_Genome(CircuitGenome):
         self._circuit = circuit
         self._n_circuit_parameters = n_parameters
     
+    def update_gradient(self) -> float:
+        super().update_gradient()
+        circuit, n_parameters = self.get_circuit()
+        parameters = np.array([])
+        for gene in self.genes.values():
+            parameters = np.append(parameters, gene.get_parameters())
+        self._gradient = self.config.gradient_function(circuit, n_parameters, 
+                                                       parameters, self.config)
+        
     @staticmethod
     def crossover(genome1: QNEAT_Genome, genome2: QNEAT_Genome) -> QNEAT_Genome:
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
@@ -261,22 +277,23 @@ class QNEAT_Population(Population):
             for _ in range(self.config.initial_layers):
                 layer_number = self.config.GlobalLayerNumber.next()
                 new_layer = LayerGene(self.config, layer_number)
-                for qubit in self.config.n_qubits:
+                for qubit in range(self.config.n_qubits):
                     innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'rot', self.config)
                     new_rot = GateROT(innovation_number, self.config, qubits=[qubit])
                     new_layer.add_gate(new_rot)
-                for qubit in self.config.n_qubits:
+                for qubit in range(self.config.n_qubits):
                     innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'cnot', self.config)
                     new_cnot = GateCNOT(innovation_number, self.config, qubits=[qubit, qubit+1])
                     new_layer.add_gate(new_cnot)
             population.append(genome)
         return self.sort_genomes(population)
     
+@dataclass
 class QNEAT_Config(QuantumNEATConfig):
     #                                                   # Name in original
     Population = QNEAT_Population
     Genome = QNEAT_Genome
-    gene_types:list[GateGene] = [GateROT, GateCNOT]  
+    gene_types:list[GateGene] = field(default_factory=lambda:[GateROT, GateCNOT])
     GlobalLayerNumber = GlobalLayerNumber()       
     initial_layers:int = 1                              # num_initial_layers
     disjoint_coefficient:float = 1                      # disjoint_coeff

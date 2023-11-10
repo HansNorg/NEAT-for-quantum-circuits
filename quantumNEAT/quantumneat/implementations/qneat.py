@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import copy
 from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
 
 import numpy as np
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Parameter
 
 from quantumneat.gene import GateGene
 from quantumneat.genome import CircuitGenome
 from quantumneat.configuration import QuantumNEATConfig
+from quantumneat.population import Population
+from qulacs import ParametricQuantumCircuit
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
     from quantumneat.implementations.qneat import QNEAT_Config
@@ -34,8 +38,22 @@ class GlobalLayerNumber:
     def current(self):
         return self._layer_number
     
+class InnovationTracker:            # Original: Gate/InnovTable
+    gate_history   = {'rot': {}, 'cnot': {}}
+
+    @staticmethod
+    def get_innovation(layer_number:int, qubit:int, type:str, config:QNEAT_Config):
+        if not InnovationTracker.gate_history[type].get((layer_number, qubit),False):
+            InnovationTracker.gate_history[type][layer_number, qubit] = config.GlobalInnovationNumber.next()
+        return InnovationTracker.gate_history[type][layer_number, qubit]
+    
 class GateCNOT(GateGene):
     n_qubits = 2
+
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits: list[int], **kwargs) -> None:
+        super().__init__(innovation_number, config, qubits, **kwargs)
+        self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
+        self.logger.debug(f"{self.qubits=}")
 
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -77,21 +95,27 @@ class LayerGene(GateGene):
 
     def add_gate(self, gate:GateGene) -> bool:
         if type(gate) in self.genes:
-            for existing_gate in self.genes[gate.gatetype.name]:
-                if gate.qubit == existing_gate.qubit:
+            for existing_gate in self.genes[type(gate)]:
+                if gate.qubits[0] == existing_gate.qubits[0]:
                     # Don't add the same gate multiple times
                     return False
-            self.genes[gate.gatetype.name].append(gate)
+            self.genes[type(gate)].append(gate)
         else:
-            self.genes[gate.gatetype.name] = [gate]
+            self.genes[type(gate)] = [gate]
         return True
+    
+    def get_parameters(self):
+        parameters = []
+        for rotgate in self.genes[GateROT]:
+            parameters.append(rotgate.parameters)
+        return parameters
 
     def add_to_circuit(self, circuit:Circuit, n_parameters):
-        for genetype in self.config.gene_types:
-            if genetype.name in self.genes:
-                for gate in self.genes[genetype.name]:
-                    circuit, n_parameters = gate.add_to_circuit(circuit, n_parameters)
-        circuit.barrier(self.qubits)
+        for genetype in self.genes.keys():
+            for gate in self.genes[genetype]:
+                circuit, n_parameters = gate.add_to_circuit(circuit, n_parameters)
+        if self.config.simulator == 'qiskit':
+            circuit.barrier(self.qubits)
         return circuit, n_parameters
     
     def gates(self):
@@ -106,9 +130,9 @@ class QNEAT_Genome(CircuitGenome):
         self.genes:dict[int,LayerGene] = {}
 
     def add_gene(self, gene) -> bool:
-        ind = np.random.randint(self.config.global_layer_number.current() + 1)
-        if ind == self.config.global_layer_number.current():
-            self.config.global_layer_number.next()
+        ind = np.random.randint(self.config.GlobalLayerNumber.current() + 1)
+        if ind == self.config.GlobalLayerNumber.current():
+            self.config.GlobalLayerNumber.next()
         if ind not in self.genes.keys():
             new_layer = LayerGene(self.config, ind)
             self.genes[ind] = new_layer
@@ -116,6 +140,33 @@ class QNEAT_Genome(CircuitGenome):
         if gene_added:
             self._update_fitness = True
         return gene_added
+    
+    def update_circuit(self):
+        super().update_circuit()
+        n_parameters = 0
+        if self.config.simulator == "qiskit":
+            circuit = QuantumCircuit(QuantumRegister(self.config.n_qubits))
+            for qubit in range(self.config.n_qubits):
+                circuit.h(qubit)
+        elif self.config.simulator == "qulacs":
+            circuit = ParametricQuantumCircuit(self.config.n_qubits)
+            for qubit in range(self.config.n_qubits):
+                circuit.add_H_gate(qubit)
+        genes = self.genes.values()
+        genes = sorted(genes, key=lambda gene: gene.ind)
+        for gene in genes:
+            circuit, n_parameters = gene.add_to_circuit(circuit, n_parameters)
+        self._circuit = circuit
+        self._n_circuit_parameters = n_parameters
+
+    def update_gradient(self) -> float:
+        super().update_gradient()
+        circuit, n_parameters = self.get_circuit()
+        parameters = np.array([])
+        for gene in self.genes.values():
+            parameters = np.append(parameters, gene.get_parameters())
+        self._gradient = self.config.gradient_function(circuit, n_parameters, 
+                                                       parameters, self.config)
     
     @staticmethod
     def crossover(genome1: QNEAT_Genome, genome2: QNEAT_Genome) -> QNEAT_Genome:
@@ -180,8 +231,48 @@ class QNEAT_Genome(CircuitGenome):
                     QNEAT_Genome.logger.error("Child did not add gene of parent.")
 
         return child
+    
+class QNEAT_Population(Population):
+    def __init__(self, config: QNEAT_Config) -> None:
+        super().__init__(config)
+        self.config:QNEAT_Config
 
+    def generate_initial_population(self) -> list[QNEAT_Genome]:
+        population = []
+        for _ in range(self.config.population_size):
+            genome = self.config.Genome(self.config)
+            # Add self.config.initial_layers amount of full layers initially
+            for _ in range(self.config.initial_layers):
+                layer_number = self.config.GlobalLayerNumber.next()
+                new_layer = LayerGene(self.config, layer_number)
+                for qubit in range(self.config.n_qubits):
+                    innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'rot', self.config)
+                    new_rot = GateROT(innovation_number, self.config, qubits=[qubit])
+                    new_layer.add_gate(new_rot)
+                for qubit in range(self.config.n_qubits):
+                    innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'cnot', self.config)
+                    new_cnot = GateCNOT(innovation_number, self.config, qubits=[qubit, qubit+1])
+                    new_layer.add_gate(new_cnot)
+            population.append(genome)
+        return self.sort_genomes(population)
+    
+@dataclass
 class QNEAT_Config(QuantumNEATConfig):
+    #                                                   # Name in original
+    Population = QNEAT_Population
     Genome = QNEAT_Genome
-    GeneTypes:list[GateGene] = [GateROT, GateCNOT]
-    global_layer_number = GlobalLayerNumber()
+    gene_types:list[GateGene] = field(default_factory=lambda:[GateROT, GateCNOT])
+    GlobalLayerNumber = GlobalLayerNumber()       
+    initial_layers:int = 1                              # num_initial_layers
+    disjoint_coefficient:float = 1                      # disjoint_coeff
+    excess_coefficient:float = disjoint_coefficient     # (Excess and disjoint are not distinguished in original)
+    weight_coefficient:float = 1                        # weight_coeff
+    prob_add_gene_mutation:float = 0.02                 # add_rot_prob, add_cnot_prob
+    prob_weight_mutation:float = 0.1                    # weight_mutate_prob
+    prob_weight_perturbation:float = 0.1                # new_weight_prob
+    parameter_amplitude:float = np.pi                   # weight_init_range
+    perturbation_amplitude:float = 0.5                  # weight_mutate_power
+    compatibility_threshold:float = 1                   # compatibility_threshold
+    dynamic_compatibility_threshold:bool = True         # dynamic_compatibility_threshold
+    percentage_survivors:float = 0.2                    # survival_rate
+    max_add_gene_tries:int = 3                          # tries_tournament_selection

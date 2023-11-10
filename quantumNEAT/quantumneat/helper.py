@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit_aer import Aer, AerSimulator
@@ -5,6 +7,8 @@ from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.quant_lib_np import Z, ZZ
+
+logger = logging.getLogger("quantumNEAT.quantumneat.helper")
 
 # class Singleton(type):
 #     _instances = {}
@@ -140,12 +144,21 @@ def get_circuit_properties(circuit, ibm_backend=""):
     return circuit_error
 
 def get_exp_val(n_qubits,circuit:ParametricQuantumCircuit,op, phys_noise = False, err_mitig = 0):
-    
+    # logger.debug(f"{n_qubits=}")
+    # logger.debug(f"{circuit=}")
+    # logger.debug(f"{op=}")
+    # logger.debug(f"{phys_noise=}")
+    # logger.debug(f"{err_mitig=}")
     expval = 0
     if phys_noise == False:
         state = QuantumState(n_qubits)
         circuit.update_quantum_state(state)
         psi = state.get_vector()
+        # logger.debug(f"{psi=}")
+        # logger.debug(f"{np.conj(psi)=}")
+        # logger.debug(f"{np.conj(psi).T=}")
+        # logger.debug(f"{np.conj(psi).T @ op=}")
+        # logger.debug(f"{np.conj(psi).T @ op @ psi=}")
         expval += (np.conj(psi).T @ op @ psi).real
     else:
         dm = DensityMatrix(n_qubits)
@@ -223,12 +236,13 @@ def get_gradient(self, circuit, n_parameters, parameters, config):
     total_gradient = 0
     
     if config.simulator == 'qulacs':
+        observable = Z(0, config.n_qubits)
         for ind in range(n_parameters):
             temp = parameters[ind]
             parameters[ind] += config.epsilon/2
-            partial_gradient = get_energy_qulacs(parameters, Z, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+            partial_gradient = get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
             parameters[ind] -= config.epsilon
-            partial_gradient -= get_energy_qulacs(parameters, Z, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+            partial_gradient -= get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
             parameters[ind] = temp # Return the parameter to original value
             total_gradient += partial_gradient**2
     elif config.simulator == 'qiskit':

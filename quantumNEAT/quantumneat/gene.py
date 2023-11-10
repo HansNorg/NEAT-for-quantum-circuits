@@ -18,7 +18,7 @@ class Gene(ABC):
     - n_parameters (int): The amount of parameters this gene has. (default = 0)
     """
     n_parameters:int = 0
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("quantumNEAT.quantumneat.Gene")
     
     def __init__(self, innovation_number: int, config:QuantumNEATConfig, **kwargs) -> None:
         """
@@ -46,6 +46,9 @@ class Gene(ABC):
             return False
         self.parameters += self.config.perturbation_amplitude*np.random.random(self.n_parameters)
         return True
+    
+    def get_parameters(self):
+        return self.parameters
     
     @staticmethod
     def get_distance(gene1:Gene, gene2:Gene) -> tuple[bool, float]:

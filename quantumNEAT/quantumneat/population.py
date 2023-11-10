@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class Population():
     """Keep and update a population of genomes."""
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("quantumNEAT.quantumneat.population")
     
     def __init__(self, config:QuantumNEATConfig) -> None:
         """
@@ -22,21 +22,20 @@ class Population():
         ----------
         config: class with all the configuration settings of the algorithm.
         """
-        self.logger = logging.getLogger("QuantumNEAT.Population")
+        self.config = config
         self.generation:int = 0
         self.population = self.generate_initial_population()
         self.update_avg_fitness()
         self.species: list[QuantumNEATConfig.Species] = []
         self.speciate()
-        self.config = config
 
     def generate_initial_population(self) -> list[QuantumNEATConfig.Genome]:
         population = []
         for _ in range(self.config.population_size):
             genome = self.config.Genome(self.config)
             gene_type = np.random.choice(self.config.gene_types)
-            qubit = np.random.randint(self.config.n_qubits)
-            gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, [qubit])
+            qubits = np.random.randint(self.config.n_qubits, size=gene_type.n_qubits).tolist()
+            gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, qubits)
             genome.add_gene(gate)
             population.append(genome)
         return self.sort_genomes(population)
@@ -78,7 +77,7 @@ class Population():
         for genome in self.population:
             found = False
             for specie in self.species:
-                distance = self.config.Genome.compatibility_distance(genome, specie.representative)
+                distance = self.config.Genome.compatibility_distance(genome, specie.representative, self.config)
                 if distance < self.config.compatibility_threshold:
                     specie.add(genome)
                     found = True

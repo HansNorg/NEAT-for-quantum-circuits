@@ -228,14 +228,14 @@ class CircuitGenome(Genome):
         else:
             self._fitness = fitness_function(self, **fitness_function_kwargs)
 
-    def update_gradient(self) -> float:
-        super().update_gradient()
-        circuit, n_parameters = self.get_circuit()
-        parameters = np.array([])
-        for gene in self.genes:
-            parameters = np.append(parameters, gene.parameters)
-        self._gradient = self.config.gradient_function(circuit, n_parameters, 
-                                                       parameters, self.config)
+    # def update_gradient(self) -> float:
+    #     super().update_gradient()
+    #     circuit, n_parameters = self.get_circuit()
+    #     parameters = np.array([])
+    #     for gene in self.genes:
+    #         parameters = np.append(parameters, gene.parameters)
+    #     self._gradient = self.config.gradient_function(circuit, n_parameters, 
+    #                                                    parameters, self.config)
 
     @staticmethod
     def compatibility_distance(genome1:Genome, genome2:Genome, config:QuantumNEATConfig):

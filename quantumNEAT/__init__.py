@@ -1,16 +1,15 @@
 import logging
-from quantumneat.logger import setup_logger
+from quantumneat.logger import default_logger
 
 debugging = True
 
-if debugging:
-    setup_logger(main_file_level=logging.DEBUG)
-else:
-    setup_logger(main_file_level=logging.INFO)
+default_logger(debugging)
 
 logger = logging.getLogger("quantumNEAT")
 quantumneat_logger = logging.getLogger("quantumNEAT.quantumneat")
 test_logger = logging.getLogger("quantumNEAT.tests")
+experiments_logger = logging.getLogger("quantumNEAT.experiments")
 logger.info("==================quantumneat.__init__==================")
 quantumneat_logger.info("==================quantumneat.__init__==================")
 test_logger.info("==================quantumneat.__init__==================")
+experiments_logger.info("==================quantumneat.__init__==================")

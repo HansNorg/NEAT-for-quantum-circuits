@@ -1,6 +1,6 @@
 import logging
     
-def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_file_level = logging.INFO, quantumneat_level = logging.DEBUG, test_level = logging.DEBUG, mode ="a"):
+def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_file_level = logging.INFO, quantumneat_level = logging.INFO, test_level = logging.DEBUG, experiments_level = logging.INFO, mode ="a"):
     print("setup_logger")
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -41,3 +41,20 @@ def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_fil
     fh.setLevel(test_level)
     fh.setFormatter(formatter)
     test_logger.addHandler(fh)
+
+    experiments_logger = logging.getLogger(f"{name}.experiments")
+    experiments_logger.setLevel(min(console_level, main_file_level, experiments_level))
+
+    try:
+        fh = logging.FileHandler("logs/experiments.log", mode=mode, encoding = "utf-8")    
+    except FileNotFoundError:
+        fh = logging.FileHandler("quantumneat/logs/experiments.log", mode=mode, encoding = "utf-8")
+    fh.setLevel(experiments_level)
+    fh.setFormatter(formatter)
+    experiments_logger.addHandler(fh)
+
+def default_logger(debugging = False):
+    if debugging:
+        setup_logger(main_file_level=logging.DEBUG, quantumneat_level=logging.DEBUG, experiments_level=logging.DEBUG)
+    else:
+        setup_logger
