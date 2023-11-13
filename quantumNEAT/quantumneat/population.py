@@ -47,6 +47,7 @@ class Population():
     
     def update_avg_fitness(self):
         self.average_fitness = np.mean([genome.get_fitness() for genome in self.population])
+        self.logger.debug(f"{self.average_fitness=}")
 
     def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
         """Generate the next generation of the population by mutation and crossover."""
@@ -64,11 +65,14 @@ class Population():
                 n_offspring -= 1
             for _ in range(n_offspring):
                 if len(sorted_genomes) > 1 and random.random() > self.config.prob_mutation_without_crossover:
+                    self.logger.debug("if")
                     parent1, parent2 = random.sample(sorted_genomes, 2)
                     new_population.append(self.config.Genome.crossover(parent1, parent2))
                 else:
+                    self.logger.debug("else")
                     new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness()))
-                new_population[-1].mutate(self.config.GlobalInnovationNumber, self.config.n_qubits)
+                self.logger.debug(f"{new_population[-1]=}")
+                new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)
             specie.empty()
         return self.sort_genomes(new_population)
 

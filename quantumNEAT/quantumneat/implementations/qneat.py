@@ -53,7 +53,7 @@ class GateCNOT(GateGene):
     def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits: list[int], **kwargs) -> None:
         super().__init__(innovation_number, config, qubits, **kwargs)
         self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
-        self.logger.debug(f"{self.qubits=}")
+        # self.logger.debug(f"{self.qubits=}")
 
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -94,6 +94,7 @@ class LayerGene(GateGene):
         self.ind = ind
 
     def add_gate(self, gate:GateGene) -> bool:
+        self.logger.debug(f"LayerGene.add_gate: {gate=}")
         if type(gate) in self.genes:
             for existing_gate in self.genes[type(gate)]:
                 if gate.qubits[0] == existing_gate.qubits[0]:
@@ -106,7 +107,10 @@ class LayerGene(GateGene):
     
     def get_parameters(self):
         parameters = []
+        self.logger.debug(f"{self.genes=}")
+        self.logger.debug(f"{self.genes[GateROT]=}")
         for rotgate in self.genes[GateROT]:
+            self.logger.debug(f"{rotgate.parameters=}")
             parameters.append(rotgate.parameters)
         return parameters
 
@@ -129,7 +133,34 @@ class QNEAT_Genome(CircuitGenome):
         self.config:QNEAT_Config
         self.genes:dict[int,LayerGene] = {}
 
+    def mutate(self):
+        # super().mutate() # Don't change the parameters in case of unsuccesful mutation
+        if np.random.random() < self.config.prob_add_gene_mutation:
+            self.mutate_add_gene()
+        if np.random.random() < self.config.prob_weight_mutation:
+            self._changed = True
+            for gene in self.genes.values():
+                gene.mutate_parameters()
+
+    def mutate_add_gene(self):
+        innovation_number = self.config.GlobalInnovationNumber.next()
+        for _ in range(self.config.max_add_gene_tries):
+            new_gene:GateGene = np.random.choice(self.config.gene_types)
+            qubits = np.random.choice(range(self.config.n_qubits), 
+                                        size = new_gene.n_qubits)
+            if len(qubits) == 2:
+                qubits[1] = qubits[0] + 1
+            new_gene = new_gene(innovation_number, config = self.config, 
+                                qubits = qubits)
+            if self.add_gene(new_gene):
+                break
+        else:
+            self.config.GlobalInnovationNumber.previous()
+
     def add_gene(self, gene) -> bool:
+        if type(gene) == LayerGene:
+            self.genes[gene.ind] = gene
+            return True
         ind = np.random.randint(self.config.GlobalLayerNumber.current() + 1)
         if ind == self.config.GlobalLayerNumber.current():
             self.config.GlobalLayerNumber.next()
@@ -141,7 +172,10 @@ class QNEAT_Genome(CircuitGenome):
             self._update_fitness = True
         return gene_added
     
-    def update_circuit(self):
+    def set_layers(self, layers:LayerGene):
+        self.genes = layers
+
+    def update_circuit(self): 
         super().update_circuit()
         n_parameters = 0
         if self.config.simulator == "qiskit":
@@ -163,34 +197,95 @@ class QNEAT_Genome(CircuitGenome):
         super().update_gradient()
         circuit, n_parameters = self.get_circuit()
         parameters = np.array([])
+        self.logger.debug(f"{self.genes.values()=}")
         for gene in self.genes.values():
+            self.logger.debug(f"{gene.get_parameters()=}")
             parameters = np.append(parameters, gene.get_parameters())
+        self.logger.debug(f"{n_parameters==len(parameters)=}; {parameters=}")
         self._gradient = self.config.gradient_function(circuit, n_parameters, 
                                                        parameters, self.config)
+        self._energy = self.config.energy_function(circuit, parameters, self.config)
+    
+    @staticmethod
+    def compatibility_distance(genome1:QNEAT_Genome, genome2:QNEAT_Genome, config:QuantumNEATConfig):
+        # QNEAT_Genome.logger.debug("compatibility_distance")
+        def line_up(genome1:QNEAT_Genome, genome2:QNEAT_Genome):
+            matching = 0
+            disjoint = 0
+            excess = 0
+            distances = []
+
+            genes1 = sorted(genome1.genes.values(), key=lambda gene: gene.ind)
+            genes2 = sorted(genome2.genes.values(), key=lambda gene: gene.ind)
+
+            # QNEAT_Genome.logger.debug(f"{genes1=}; {genes2=}")
+
+            n_genes1, n_genes2 = len(genes1), len(genes2)
+            index1, index2 = 0, 0
+            while index1 < n_genes1 or index2 < n_genes2:
+                # QNEAT_Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
+                gene1 = genes1[index1] if index1 < n_genes1 else None
+                gene2 = genes2[index2] if index2 < n_genes2 else None
+
+                if gene1 and gene2:
+                    if gene1.innovation_number < gene2.innovation_number:
+                        disjoint += 1
+                        index1 += 1
+                    elif gene1.innovation_number > gene2.innovation_number:
+                        disjoint += 1
+                        index2 += 1
+                    else:
+                        distances.append(gene1.get_distance(gene1, gene2))
+                        matching += 1
+                        index1 += 1
+                        index2 += 1
+                elif gene1:
+                    excess += n_genes1 - index1
+                    break
+                elif gene2:
+                    excess += n_genes2 - index2
+                    break
+                else:
+                    QNEAT_Genome.logger.warning("Don't think this should ever occur.", exc_info=1)
+                    break
+
+            if len(distances) == 0:
+                distances = [0]
+            return matching, disjoint, excess, np.mean(distances)
+        n_genes = max(len(genome1.genes), len(genome2.genes))
+        # QNEAT_Genome.logger.debug(f"compatibility_distance {n_genes=}")
+        if n_genes == 0:            
+            # If both genomes are empty, distance == 0, prevent division by 0.
+            return 0
+        matching, disjoint, excess, avg_distance = line_up(genome1, genome2)
+        return config.excess_coefficient*excess/n_genes + config.disjoint_coefficient*disjoint/n_genes + config.weight_coefficient*avg_distance
     
     @staticmethod
     def crossover(genome1: QNEAT_Genome, genome2: QNEAT_Genome) -> QNEAT_Genome:
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
-        QNEAT_Genome.logger.debug("crossover")
-        child = CircuitGenome(genome1.config)
+        # QNEAT_Genome.logger.debug("crossover")
+        child = QNEAT_Genome(genome1.config)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"
         elif genome1.get_fitness() < genome2.get_fitness():
             better = "genome2"
         else:
             better = "equal"
-        QNEAT_Genome.logger.debug(f"{genome1.get_fitness()=}, {genome2.get_fitness()=}, {better=}")
 
-        n_genes1, n_genes2 = len(genome1.genes), len(genome2.genes)
+        # QNEAT_Genome.logger.debug(f"{genome1.get_fitness()=}; {genome2.get_fitness()=}, {better=}")
+
+        genes1 = sorted(genome1.genes.values(), key=lambda gene: gene.ind)
+        genes2 = sorted(genome2.genes.values(), key=lambda gene: gene.ind)
+        n_genes1, n_genes2 = len(genes1), len(genes2)
         index1, index2 = 0, 0
         while index1 < n_genes1 or index2 < n_genes2:
-            QNEAT_Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
-            gene1 = genome1.genes[index1] if index1 < n_genes1 else None
-            gene2 = genome2.genes[index2] if index2 < n_genes2 else None
+            # QNEAT_Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
+            gene1 = genes1[index1] if index1 < n_genes1 else None
+            gene2 = genes2[index2] if index2 < n_genes2 else None
             chosen_gene = None
             if gene1 and gene2:
-                QNEAT_Genome.logger.debug("gene1 and gene2")
+                # QNEAT_Genome.logger.debug("gene1 and gene2")
                 if gene1.innovation_number < gene2.innovation_number: # disjoint
                     if better == "genome1":
                         chosen_gene = gene1
@@ -210,11 +305,11 @@ class QNEAT_Genome(CircuitGenome):
                     index1 += 1
                     index2 += 1
             elif gene1 and better == "genome1": # excess
-                QNEAT_Genome.logger.debug("gene1 and (not gene2) and better == 'genome1'")
+                # QNEAT_Genome.logger.debug("gene1 and (not gene2) and better == 'genome1'")
                 chosen_gene = gene1
                 index1 += 1
             elif gene2 and better == "genome2": # excess
-                QNEAT_Genome.logger.debug("(not gene1) and gene2 and better == 'genome2'")
+                # QNEAT_Genome.logger.debug("(not gene1) and gene2 and better == 'genome2'")
                 chosen_gene = gene2
                 index2 += 1
             elif better == "equal":
@@ -222,11 +317,12 @@ class QNEAT_Genome(CircuitGenome):
                     if gene1: chosen_gene = gene1
                     elif gene2: chosen_gene = gene2
             else: # excess
-                QNEAT_Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
+                # QNEAT_Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
                 break
             if chosen_gene: # not None
                 if chosen_gene == "random":
                     chosen_gene = np.random.choice([gene1, gene2])
+                QNEAT_Genome.logger.debug(f"crossover: {chosen_gene=}")
                 if not child.add_gene(copy.deepcopy(chosen_gene)):
                     QNEAT_Genome.logger.error("Child did not add gene of parent.")
 
@@ -239,20 +335,23 @@ class QNEAT_Population(Population):
 
     def generate_initial_population(self) -> list[QNEAT_Genome]:
         population = []
+        initial_layers = {}
+        for _ in range(self.config.initial_layers):
+            layer_number = self.config.GlobalLayerNumber.next()
+            new_layer = LayerGene(self.config, layer_number)
+            for qubit in range(self.config.n_qubits):
+                innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'rot', self.config)
+                new_rot = GateROT(innovation_number, self.config, qubits=[qubit])
+                new_layer.add_gate(new_rot)
+            for qubit in range(self.config.n_qubits):
+                innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'cnot', self.config)
+                new_cnot = GateCNOT(innovation_number, self.config, qubits=[qubit, qubit+1])
+                new_layer.add_gate(new_cnot)
+            initial_layers[layer_number] = new_layer
         for _ in range(self.config.population_size):
             genome = self.config.Genome(self.config)
             # Add self.config.initial_layers amount of full layers initially
-            for _ in range(self.config.initial_layers):
-                layer_number = self.config.GlobalLayerNumber.next()
-                new_layer = LayerGene(self.config, layer_number)
-                for qubit in range(self.config.n_qubits):
-                    innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'rot', self.config)
-                    new_rot = GateROT(innovation_number, self.config, qubits=[qubit])
-                    new_layer.add_gate(new_rot)
-                for qubit in range(self.config.n_qubits):
-                    innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'cnot', self.config)
-                    new_cnot = GateCNOT(innovation_number, self.config, qubits=[qubit, qubit+1])
-                    new_layer.add_gate(new_cnot)
+            genome.set_layers(initial_layers)
             population.append(genome)
         return self.sort_genomes(population)
     

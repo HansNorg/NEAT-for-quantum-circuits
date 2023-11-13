@@ -1,6 +1,6 @@
 import logging
     
-def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_file_level = logging.INFO, quantumneat_level = logging.INFO, test_level = logging.DEBUG, experiments_level = logging.INFO, mode ="a"):
+def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_file_level = logging.INFO, quantumneat_level = logging.INFO, test_level = logging.DEBUG, experiments_level = logging.INFO, mode ="a", print_start = True):
     print("setup_logger")
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -53,8 +53,14 @@ def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_fil
     fh.setFormatter(formatter)
     experiments_logger.addHandler(fh)
 
-def default_logger(debugging = False):
+    if print_start:
+        logger.info("==================logger_setup==================")
+        quantumneat_logger.info("======logger_setup==================")
+        test_logger.info("============logger_setup==================")
+        experiments_logger.info("======logger_setup==================")
+
+def default_logger(debugging = False, print_start = True):
     if debugging:
-        setup_logger(main_file_level=logging.DEBUG, quantumneat_level=logging.DEBUG, experiments_level=logging.DEBUG)
+        setup_logger(main_file_level=logging.DEBUG, quantumneat_level=logging.DEBUG, experiments_level=logging.DEBUG, print_start=print_start)
     else:
-        setup_logger
+        setup_logger(print_start=print_start)

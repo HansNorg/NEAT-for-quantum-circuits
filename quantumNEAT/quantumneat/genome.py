@@ -17,7 +17,7 @@ class Genome(ABC):
     """
     Abstract base class for genomes.
     """
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("quantumNEAT.Genome")
     
     def __init__(self, config:QuantumNEATConfig) -> None:
         """
@@ -34,13 +34,14 @@ class Genome(ABC):
         self._n_circuit_parameters = 0
         self._update_circuit = True
         self._gradient = None
+        self._energy = None
         self._update_gradient = True
 
         self.genes:list[Gene] = [] #TODO Onur: Discuss what datatype to use
 
     def _changed(self):
         """Signal the Genome has changed."""
-        self.logger.debug("changed")
+        # self.logger.debug("changed")
         self._update_fitness = True
         self._update_circuit = True
         self._update_gradient = True
@@ -48,7 +49,7 @@ class Genome(ABC):
     @abstractmethod
     def mutate(self):
         """Mutate the Genome."""
-        self.logger.debug("mutate")
+        # self.logger.debug("mutate")
         self._changed()
 
     def add_gene(self, gene:Gene) -> bool:
@@ -63,7 +64,7 @@ class Genome(ABC):
         -------
         - bool: Whether the addition was successfull.
         """
-        self.logger.debug("add_gene")
+        # self.logger.debug("add_gene")
         self.genes.append(gene)
         self._changed()
         return True
@@ -76,7 +77,7 @@ class Genome(ABC):
         -------
         - float: Fitness of the Genome.
         """
-        self.logger.debug("get_fitness")
+        # self.logger.debug("get_fitness")
         if self._update_fitness: 
             # Only update fitness if the Genome has changed,
             #  as fitness calculation can be costly.
@@ -86,7 +87,7 @@ class Genome(ABC):
     @abstractmethod
     def update_fitness(self):
         """Update the fitness of the Genome."""
-        self.logger.debug("update_fitness")
+        # self.logger.debug("update_fitness")
         self._update_fitness = False
 
     def get_circuit(self) -> tuple[Circuit, int]:
@@ -98,7 +99,7 @@ class Genome(ABC):
         - Circuit: Circuit representing the Genome.
         - int: Number of parameters in the Circuit
         """
-        self.logger.debug("get_circuit")
+        # self.logger.debug("get_circuit")
         if self._update_circuit: 
             # Only update the circuit if the Genome has changed,
             #  as circuit composition can be costly.
@@ -108,7 +109,7 @@ class Genome(ABC):
     @abstractmethod
     def update_circuit(self):
         """Update the circuit of the Genome."""
-        self.logger.debug("update_circuit")
+        # self.logger.debug("update_circuit")
         self._update_circuit = False
 
     def get_gradient(self) -> float:
@@ -119,25 +120,32 @@ class Genome(ABC):
         -------
         - float: Gradient of the Genome.
         """
-        self.logger.debug("get_gradient")
+        # self.logger.debug("get_gradient")
         if self._update_gradient: 
             # Only update fitness if the Genome has changed,
             #  as fitness calculation can be costly.
             self.update_gradient()
         return self._gradient
     
+    def get_energy(self):
+        if self._update_gradient: 
+            # Only update fitness if the Genome has changed,
+            #  as fitness calculation can be costly.
+            self.update_gradient()
+        return self._energy
+    
     @abstractmethod
     def update_gradient(self):
         """Update the gradient of the Genome."""
-        self.logger.debug("update_gradient")
+        # self.logger.debug("update_gradient")
         self._update_gradient = False
 
     def get_circuit_error(self) -> float:
         """
         Get the error of the circuit of the Genome.
         """
-        self.logger.debug("get_circuit_error")
-        self.logger.debug(len(self.genes)*0.2)
+        # self.logger.debug("get_circuit_error")
+        # self.logger.debug(len(self.genes)*0.2)
         return len(self.genes)*0.2 #TODO
 
     @staticmethod
@@ -185,7 +193,7 @@ class CircuitGenome(Genome):
     def mutate(self):
         # super().mutate() # Don't change the parameters in case of unsuccesful mutation
         if np.random.random() < self.config.prob_add_gene_mutation:
-            self.mutate_add_gene(self)
+            self.mutate_add_gene()
         if np.random.random() < self.config.prob_weight_mutation:
             self._changed = True
             for gene in self.genes:
@@ -219,10 +227,12 @@ class CircuitGenome(Genome):
     def update_fitness(self, fitness_function = "Default", **fitness_function_kwargs):
         super().update_fitness()
         def default():
-            self.logger.debug("Default fitness function")
+            # self.logger.debug("Default fitness function")
             gradient = self.get_gradient()
             circuit_error = self.get_circuit_error()
-            return 1/(1+circuit_error)*gradient
+            energy = self.get_energy()
+            # return 1/(1+circuit_error)*gradient
+            return 1/(1+circuit_error)*(-energy)+gradient
         if fitness_function == "Default":
             self._fitness = default()
         else:
@@ -239,7 +249,7 @@ class CircuitGenome(Genome):
 
     @staticmethod
     def compatibility_distance(genome1:Genome, genome2:Genome, config:QuantumNEATConfig):
-        Genome.logger.debug("compatibility_distance")
+        # Genome.logger.debug("compatibility_distance")
         def line_up(genome1:Genome, genome2:Genome):
             matching = 0
             disjoint = 0
@@ -288,7 +298,7 @@ class CircuitGenome(Genome):
     def crossover(genome1: Genome, genome2: Genome) -> Genome:
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
-        Genome.logger.debug("crossover")
+        # Genome.logger.debug("crossover")
         child = CircuitGenome(genome1.config)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"

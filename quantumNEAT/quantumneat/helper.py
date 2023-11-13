@@ -255,3 +255,10 @@ def get_gradient(self, circuit, n_parameters, parameters, config):
             parameters[ind] = temp # Return the parameter to original value
             total_gradient += partial_gradient**2
     return total_gradient/n_parameters
+
+def get_energy(self, circuit, parameters, config):
+    if config.simulator == 'qulacs':
+        observable = Z(0, config.n_qubits)
+        return get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+    elif config.simulator == 'qiskit':
+        return energy_from_circuit(circuit, parameters, config.n_shots)

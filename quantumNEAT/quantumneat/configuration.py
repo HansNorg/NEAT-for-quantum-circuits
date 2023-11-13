@@ -7,7 +7,7 @@ from quantumneat.population import Population
 from quantumneat.species import Species
 from quantumneat.genome import Genome
 from quantumneat.gene import Gene
-from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient
+from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient, get_energy
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit
@@ -46,6 +46,7 @@ class QuantumNEATConfig():
     max_add_gene_tries: int = 10
     simulator = 'qulacs' # 'qiskit'
     gradient_function = get_gradient
+    energy_function = get_energy
 
     # Gene settings
     gene_types:list[Gene] = field(default_factory=list)
