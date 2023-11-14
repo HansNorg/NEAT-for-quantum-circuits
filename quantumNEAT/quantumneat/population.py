@@ -47,11 +47,11 @@ class Population():
     
     def update_avg_fitness(self):
         self.average_fitness = np.mean([genome.get_fitness() for genome in self.population])
-        self.logger.debug(f"{self.average_fitness=}")
+        # self.logger.debug(f"{self.average_fitness=}")
 
     def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
         """Generate the next generation of the population by mutation and crossover."""
-        self.logger.debug(f"{self.average_fitness =}")
+        # self.logger.debug(f"{self.average_fitness =}")
         new_population:list[QuantumNEATConfig.Genome] = []
         for specie in self.species:
             total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
@@ -61,15 +61,16 @@ class Population():
             sorted_genomes = self.sort_genomes(specie.genomes)[:cutoff]
 
             if len(specie.genomes) >= self.config.specie_champion_size:
+                self.logger.debug(f"new_population: {n_offspring=}; champion")
                 new_population.append(copy.deepcopy(sorted_genomes[0]))
                 n_offspring -= 1
             for _ in range(n_offspring):
                 if len(sorted_genomes) > 1 and random.random() > self.config.prob_mutation_without_crossover:
-                    self.logger.debug("if")
+                    self.logger.debug(f"new_population: {n_offspring=}; crossover")
                     parent1, parent2 = random.sample(sorted_genomes, 2)
                     new_population.append(self.config.Genome.crossover(parent1, parent2))
                 else:
-                    self.logger.debug("else")
+                    self.logger.debug(f"new_population: {n_offspring=}; no crossover")
                     new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness()))
                 self.logger.debug(f"{new_population[-1]=}")
                 new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)

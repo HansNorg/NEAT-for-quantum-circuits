@@ -306,17 +306,17 @@ class CircuitGenome(Genome):
             better = "genome2"
         else:
             better = "equal"
-        Genome.logger.debug(f"{genome1.get_fitness()=}, {genome2.get_fitness()=}, {better=}")
+        # Genome.logger.debug(f"{genome1.get_fitness()=}, {genome2.get_fitness()=}, {better=}")
 
         n_genes1, n_genes2 = len(genome1.genes), len(genome2.genes)
         index1, index2 = 0, 0
         while index1 < n_genes1 or index2 < n_genes2:
-            Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
+            # Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
             gene1 = genome1.genes[index1] if index1 < n_genes1 else None
             gene2 = genome2.genes[index2] if index2 < n_genes2 else None
             chosen_gene = None
             if gene1 and gene2:
-                Genome.logger.debug("gene1 and gene2")
+                # Genome.logger.debug("gene1 and gene2")
                 if gene1.innovation_number < gene2.innovation_number: # disjoint
                     if better == "genome1":
                         chosen_gene = gene1
@@ -336,11 +336,11 @@ class CircuitGenome(Genome):
                     index1 += 1
                     index2 += 1
             elif gene1 and better == "genome1": # excess
-                Genome.logger.debug("gene1 and (not gene2) and better == 'genome1'")
+                # Genome.logger.debug("gene1 and (not gene2) and better == 'genome1'")
                 chosen_gene = gene1
                 index1 += 1
             elif gene2 and better == "genome2": # excess
-                Genome.logger.debug("(not gene1) and gene2 and better == 'genome2'")
+                # Genome.logger.debug("(not gene1) and gene2 and better == 'genome2'")
                 chosen_gene = gene2
                 index2 += 1
             elif better == "equal":
@@ -348,7 +348,7 @@ class CircuitGenome(Genome):
                     if gene1: chosen_gene = gene1
                     elif gene2: chosen_gene = gene2
             else: # excess
-                Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
+                # Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
                 break
             if chosen_gene: # not None
                 if chosen_gene == "random":

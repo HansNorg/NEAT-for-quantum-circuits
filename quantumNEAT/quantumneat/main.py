@@ -19,7 +19,7 @@ class QuantumNEAT:
 
     def run_generation(self):
         if self.config.simulator == 'qiskit':
-            self.logger.debug(f"Best circuit: \n{self.population.get_best_genome().get_circuit()[0].draw(fold=-1)}")
+            self.logger.info(f"Best circuit: \n{self.population.get_best_genome().get_circuit()[0].draw(fold=-1)}")
         elif self.config.simulator == 'qulacs':
             self.logger.info(f"Best circuit: \n{self.population.get_best_genome().get_circuit()[0].to_string()}")
         #TODO check stopping criterion

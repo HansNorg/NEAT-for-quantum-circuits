@@ -94,7 +94,7 @@ class LayerGene(GateGene):
         self.ind = ind
 
     def add_gate(self, gate:GateGene) -> bool:
-        self.logger.debug(f"LayerGene.add_gate: {gate=}")
+        # self.logger.debug(f"LayerGene.add_gate: {gate=}")
         if type(gate) in self.genes:
             for existing_gate in self.genes[type(gate)]:
                 if gate.qubits[0] == existing_gate.qubits[0]:
@@ -107,10 +107,10 @@ class LayerGene(GateGene):
     
     def get_parameters(self):
         parameters = []
-        self.logger.debug(f"{self.genes=}")
-        self.logger.debug(f"{self.genes[GateROT]=}")
+        # self.logger.debug(f"{self.genes=}")
+        # self.logger.debug(f"{self.genes[GateROT]=}")
         for rotgate in self.genes[GateROT]:
-            self.logger.debug(f"{rotgate.parameters=}")
+            # self.logger.debug(f"{rotgate.parameters=}")
             parameters.append(rotgate.parameters)
         return parameters
 
@@ -197,11 +197,11 @@ class QNEAT_Genome(CircuitGenome):
         super().update_gradient()
         circuit, n_parameters = self.get_circuit()
         parameters = np.array([])
-        self.logger.debug(f"{self.genes.values()=}")
+        # self.logger.debug(f"{self.genes.values()=}")
         for gene in self.genes.values():
-            self.logger.debug(f"{gene.get_parameters()=}")
+            # self.logger.debug(f"{gene.get_parameters()=}")
             parameters = np.append(parameters, gene.get_parameters())
-        self.logger.debug(f"{n_parameters==len(parameters)=}; {parameters=}")
+        # self.logger.debug(f"{n_parameters==len(parameters)=}; {parameters=}")
         self._gradient = self.config.gradient_function(circuit, n_parameters, 
                                                        parameters, self.config)
         self._energy = self.config.energy_function(circuit, parameters, self.config)
@@ -278,6 +278,7 @@ class QNEAT_Genome(CircuitGenome):
         genes1 = sorted(genome1.genes.values(), key=lambda gene: gene.ind)
         genes2 = sorted(genome2.genes.values(), key=lambda gene: gene.ind)
         n_genes1, n_genes2 = len(genes1), len(genes2)
+        # QNEAT_Genome.logger.info(f"{n_genes1=}; {n_genes2=}")
         index1, index2 = 0, 0
         while index1 < n_genes1 or index2 < n_genes2:
             # QNEAT_Genome.logger.debug(f"{index1=}:{n_genes1=}, {index2=}:{n_genes2=}")
@@ -314,15 +315,19 @@ class QNEAT_Genome(CircuitGenome):
                 index2 += 1
             elif better == "equal":
                 if np.random.random() < 0.5:
-                    if gene1: chosen_gene = gene1
-                    elif gene2: chosen_gene = gene2
+                    if gene1:
+                        chosen_gene = gene1
+                        index1 += 1
+                    elif gene2:
+                        chosen_gene = gene2
+                        index2 += 1
             else: # excess
                 # QNEAT_Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
                 break
             if chosen_gene: # not None
                 if chosen_gene == "random":
                     chosen_gene = np.random.choice([gene1, gene2])
-                QNEAT_Genome.logger.debug(f"crossover: {chosen_gene=}")
+                # QNEAT_Genome.logger.debug(f"crossover: {chosen_gene=}")
                 if not child.add_gene(copy.deepcopy(chosen_gene)):
                     QNEAT_Genome.logger.error("Child did not add gene of parent.")
 
