@@ -1,8 +1,8 @@
 import logging
     
 def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_file_level = logging.INFO, quantumneat_level = logging.INFO, test_level = logging.DEBUG, experiments_level = logging.INFO, mode ="a", print_start = True, extra_file_name = ""):
-    print(extra_file_name+"setup_logger")
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(lineno)d\n%(message)s')
+    # print(extra_file_name+"setup_logger")
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(filename)s - %(funcName)s - line: %(lineno)d\n%(message)s')
 
     logger = logging.getLogger(name)
     logger.setLevel(min(console_level, main_file_level))

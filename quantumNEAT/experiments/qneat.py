@@ -17,11 +17,12 @@ def qneat_experiment(n_generations, name, folder = "quantumneat"):
     logger.debug(f"{config.dynamic_compatibility_threshold=}")
     quantumneat = QuantumNEAT(config)
     fitness_record, population_size, number_of_species, average_fitnesses = quantumneat.run(n_generations)
-    np.savez(folder+"/results/results"+name, 
+    np.savez(folder+"/results/"+name+"results",
              fitness_record=fitness_record, 
              population_size=population_size, 
              number_of_species=number_of_species, 
              average_fitnesses=average_fitnesses)
+    np.save(folder+"/results/"+name+"config", config)
     
     plt.plot(fitness_record)
     plt.title("fitness_record")
@@ -56,4 +57,4 @@ if __name__ == "__main__":
     name = f"run{run_n}_"
     default_logger(False, extra_file_name=name)
     # setup_logger(quantumneat_level=logging.DEBUG)
-    qneat_experiment(500, name, folder)
+    qneat_experiment(100, name, folder)
