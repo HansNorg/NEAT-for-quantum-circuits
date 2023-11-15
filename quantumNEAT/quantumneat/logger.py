@@ -23,44 +23,52 @@ def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_fil
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-    quantumneat_logger = logging.getLogger(f"{name}.quantumneat")
-    quantumneat_logger.setLevel(min(console_level, main_file_level, quantumneat_level))
-
     try:
-        fh = logging.FileHandler("logs/"+extra_file_name+"quantumneat.log", mode=mode, encoding = "utf-8")    
+        fh = logging.FileHandler("logs/"+extra_file_name+"debug.log", mode=mode, encoding = "utf-8")    
     except FileNotFoundError:
-        fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"quantumneat.log", mode=mode, encoding = "utf-8")
-    fh.setLevel(quantumneat_level)
+        fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"debug.log", mode=mode, encoding = "utf-8")
+    fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
-    quantumneat_logger.addHandler(fh)
+    logger.addHandler(fh)
+
+    # quantumneat_logger = logging.getLogger(f"{name}.quantumneat")
+    # quantumneat_logger.setLevel(min(console_level, main_file_level, quantumneat_level))
+
+    # try:
+    #     fh = logging.FileHandler("logs/"+extra_file_name+"quantumneat.log", mode=mode, encoding = "utf-8")    
+    # except FileNotFoundError:
+    #     fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"quantumneat.log", mode=mode, encoding = "utf-8")
+    # fh.setLevel(quantumneat_level)
+    # fh.setFormatter(formatter)
+    # quantumneat_logger.addHandler(fh)
     
-    test_logger = logging.getLogger(f"{name}.tests")
-    test_logger.setLevel(min(console_level, main_file_level, test_level))
+    # test_logger = logging.getLogger(f"{name}.tests")
+    # test_logger.setLevel(min(console_level, main_file_level, test_level))
     
-    try:
-        fh = logging.FileHandler("logs/"+extra_file_name+"test.log", mode=mode, encoding = "utf-8")    
-    except FileNotFoundError:
-        fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"test.log", mode=mode, encoding = "utf-8")
-    fh.setLevel(test_level)
-    fh.setFormatter(formatter)
-    test_logger.addHandler(fh)
+    # try:
+    #     fh = logging.FileHandler("logs/"+extra_file_name+"test.log", mode=mode, encoding = "utf-8")    
+    # except FileNotFoundError:
+    #     fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"test.log", mode=mode, encoding = "utf-8")
+    # fh.setLevel(test_level)
+    # fh.setFormatter(formatter)
+    # test_logger.addHandler(fh)
 
-    experiments_logger = logging.getLogger(f"{name}.experiments")
-    experiments_logger.setLevel(min(console_level, main_file_level, experiments_level))
+    # experiments_logger = logging.getLogger(f"{name}.experiments")
+    # experiments_logger.setLevel(min(console_level, main_file_level, experiments_level))
 
-    try:
-        fh = logging.FileHandler("logs/"+extra_file_name+"experiments.log", mode=mode, encoding = "utf-8")    
-    except FileNotFoundError:
-        fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"experiments.log", mode=mode, encoding = "utf-8")
-    fh.setLevel(experiments_level)
-    fh.setFormatter(formatter)
-    experiments_logger.addHandler(fh)
+    # try:
+    #     fh = logging.FileHandler("logs/"+extra_file_name+"experiments.log", mode=mode, encoding = "utf-8")    
+    # except FileNotFoundError:
+    #     fh = logging.FileHandler("quantumneat/logs/"+extra_file_name+"experiments.log", mode=mode, encoding = "utf-8")
+    # fh.setLevel(experiments_level)
+    # fh.setFormatter(formatter)
+    # experiments_logger.addHandler(fh)
 
     if print_start:
         logger.info("==================logger_setup==================")
-        quantumneat_logger.info("==================logger_setup==================")
-        test_logger.info("==================logger_setup==================")
-        experiments_logger.info("==================logger_setup==================")
+        # quantumneat_logger.info("==================logger_setup==================")
+        # test_logger.info("==================logger_setup==================")
+        # experiments_logger.info("==================logger_setup==================")
     
     # log uncaught exceptions
     def handle_exception(exc_type, exc_value, exc_traceback):

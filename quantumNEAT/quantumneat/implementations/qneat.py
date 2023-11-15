@@ -21,10 +21,10 @@ class GlobalLayerNumber:
     '''
     Class for keeping a global layer number.
     
-    Layer number starts at 0.
+    Layer number starts at -1.
     '''
     def __init__(self):
-        self._layer_number:int = 0
+        self._layer_number:int = -1
 
     def next(self):
         '''
@@ -75,11 +75,11 @@ class GateROT(GateGene):
             circuit.add_parametric_RZ_gate(self.qubits[0], self.parameters[2])
             n_parameters += 3
         elif self.config.simulator == 'qiskit':
-            circuit.rx(Parameter(n_parameters), self.qubits[0])
+            circuit.rx(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
-            circuit.ry(Parameter(n_parameters), self.qubits[0])
+            circuit.ry(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
-            circuit.rz(Parameter(n_parameters), self.qubits[0])
+            circuit.rz(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
@@ -261,11 +261,11 @@ class QNEAT_Genome(CircuitGenome):
         return config.excess_coefficient*excess/n_genes + config.disjoint_coefficient*disjoint/n_genes + config.weight_coefficient*avg_distance
     
     @staticmethod
-    def crossover(genome1: QNEAT_Genome, genome2: QNEAT_Genome) -> QNEAT_Genome:
+    def crossover(genome1: QNEAT_Genome, genome2: QNEAT_Genome, config:QNEAT_Config) -> QNEAT_Genome:
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
         # QNEAT_Genome.logger.debug("crossover")
-        child = QNEAT_Genome(genome1.config)
+        child = config.Genome(genome1.config)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"
         elif genome1.get_fitness() < genome2.get_fitness():

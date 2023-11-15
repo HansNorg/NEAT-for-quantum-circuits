@@ -20,7 +20,7 @@ class GateCNOT(GateGene):
     def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits: list[int], **kwargs) -> None:
         super().__init__(innovation_number, config, qubits, **kwargs)
         # self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
-        self.logger.debug(f"{self.qubits=}")
+        # self.logger.debug(f"{self.qubits=}")
 
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -42,11 +42,11 @@ class GateROT(GateGene):
             circuit.add_parametric_RZ_gate(self.qubits[0], self.parameters[2])
             n_parameters += 3
         elif self.config.simulator == 'qiskit':
-            circuit.rx(Parameter(n_parameters), self.qubits[0])
+            circuit.rx(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
-            circuit.ry(Parameter(n_parameters), self.qubits[0])
+            circuit.ry(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
-            circuit.rz(Parameter(n_parameters), self.qubits[0])
+            circuit.rz(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
