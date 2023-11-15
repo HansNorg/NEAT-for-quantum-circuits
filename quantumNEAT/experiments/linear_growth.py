@@ -5,16 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from quantumneat.main import QuantumNEAT
-from quantumneat.implementations.qneat import QNEAT_Config
+from quantumneat.implementations.linear_growth import LinearGrowthConfig
 from quantumneat.logger import default_logger, setup_logger
 
 def qneat_experiment(n_generations, name, folder = "quantumneat"):
-    logger = logging.getLogger("quantumNEAT.experiments.qneat")
-    logger.info("qneat_experiment started")
-    config = QNEAT_Config(5, 1000)
-    # logger.debug(f"{config.gene_types=}")
-    # logger.debug(f"{config.compatibility_threshold=}")
-    # logger.debug(f"{config.dynamic_compatibility_threshold=}")
+    logger = logging.getLogger("quantumNEAT.experiments.linear_growth")
+    logger.info("linear_growth_experiment started")
+    config = LinearGrowthConfig(5, 100)
     quantumneat = QuantumNEAT(config)
     fitness_record, population_size, number_of_species, average_fitnesses = quantumneat.run(n_generations)
     np.savez(folder+"/results/"+name+"results",
@@ -44,17 +41,17 @@ def qneat_experiment(n_generations, name, folder = "quantumneat"):
     # plt.legend()
     plt.savefig(folder+"/figures/"+name+"average_fitnesses.png")
     plt.close()
-    logger.info("qneat_experiment finished")
+    logger.info("linear_growth_experiment finished")
 
 if __name__ == "__main__":
     np.random.seed(0)
     folder = "."#"quantumneat"
     try:
-        run_n = np.load(folder+"/experiments/qneat_run_number.npy")[0]+1
+        run_n = np.load(folder+"/experiments/linear_growth_run_number.npy")[0]+1
     except FileNotFoundError:
         run_n = 0
-    np.save(folder+"/experiments/qneat_run_number", [run_n])
-    name = f"qneat_run{run_n}_"
-    default_logger(False, extra_file_name=name)
+    np.save(folder+"/experiments/linear_growth_run_number", [run_n])
+    name = f"linear_growth_run{run_n}_"
+    default_logger(True, extra_file_name=name)
     # setup_logger(quantumneat_level=logging.DEBUG)
     qneat_experiment(100, name, folder)

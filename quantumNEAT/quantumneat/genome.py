@@ -195,7 +195,7 @@ class CircuitGenome(Genome):
         if np.random.random() < self.config.prob_add_gene_mutation:
             self.mutate_add_gene()
         if np.random.random() < self.config.prob_weight_mutation:
-            self._changed = True
+            self._changed()
             for gene in self.genes:
                 gene.mutate_parameters()
 
@@ -204,7 +204,8 @@ class CircuitGenome(Genome):
         for _ in range(self.config.max_add_gene_tries):
             new_gene:GateGene = np.random.choice(self.config.gene_types)
             qubits = np.random.choice(range(self.config.n_qubits), 
-                                        size = new_gene.n_qubits)
+                                        size = new_gene.n_qubits, replace=False).tolist()
+            # self.logger.debug(f"{qubits=}")
             new_gene = new_gene(innovation_number, config = self.config, 
                                 qubits = qubits)
             if self.add_gene(new_gene):
@@ -295,11 +296,11 @@ class CircuitGenome(Genome):
         return config.excess_coefficient*excess/n_genes + config.disjoint_coefficient*disjoint/n_genes + config.weight_coefficient*avg_distance
     
     @staticmethod
-    def crossover(genome1: Genome, genome2: Genome) -> Genome:
+    def crossover(genome1: Genome, genome2: Genome, config:QuantumNEATConfig) -> Genome:
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
         # Genome.logger.debug("crossover")
-        child = CircuitGenome(genome1.config)
+        child = config.Genome(genome1.config)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"
         elif genome1.get_fitness() < genome2.get_fitness():
@@ -345,8 +346,12 @@ class CircuitGenome(Genome):
                 index2 += 1
             elif better == "equal":
                 if np.random.random() < 0.5:
-                    if gene1: chosen_gene = gene1
-                    elif gene2: chosen_gene = gene2
+                    if gene1: 
+                        chosen_gene = gene1
+                        index1 += 1
+                    elif gene2: 
+                        chosen_gene = gene2
+                        index2 += 1
             else: # excess
                 # Genome.logger.debug("not (gene1 and better == 'genome1') and not (gene2 and better == 'genome2')")
                 break

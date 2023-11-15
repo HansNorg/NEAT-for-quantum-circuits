@@ -168,7 +168,7 @@ class TestCircuitGenome(unittest.TestCase):
 
     def check_correct_child(self, correct_child:CircuitGenome, message):
         self.logger.debug("check_correct_child: "+message)
-        child = CircuitGenome.crossover(self.genome1, self.genome2)
+        child = CircuitGenome.crossover(self.genome1, self.genome2, self.config)
         with self.subTest("type"):
             self.assertEqual(type(child), type(correct_child), 
                 "Child should match correct child: "+message)

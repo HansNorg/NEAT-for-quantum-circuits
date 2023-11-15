@@ -34,7 +34,8 @@ class Population():
         for _ in range(self.config.population_size):
             genome = self.config.Genome(self.config)
             gene_type = np.random.choice(self.config.gene_types)
-            qubits = np.random.randint(self.config.n_qubits, size=gene_type.n_qubits).tolist()
+            qubits = np.random.choice(range(self.config.n_qubits), size=gene_type.n_qubits, replace=False).tolist()
+            # self.logger.debug(f"{qubits=}; {type(qubits)=}")
             gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, qubits)
             genome.add_gene(gate)
             population.append(genome)
@@ -61,18 +62,18 @@ class Population():
             sorted_genomes = self.sort_genomes(specie.genomes)[:cutoff]
 
             if len(specie.genomes) >= self.config.specie_champion_size:
-                self.logger.debug(f"new_population: {n_offspring=}; champion")
+                # self.logger.debug(f"new_population: {n_offspring=}; champion")
                 new_population.append(copy.deepcopy(sorted_genomes[0]))
                 n_offspring -= 1
             for _ in range(n_offspring):
                 if len(sorted_genomes) > 1 and random.random() > self.config.prob_mutation_without_crossover:
-                    self.logger.debug(f"new_population: {n_offspring=}; crossover")
+                    # self.logger.debug(f"new_population: {n_offspring=}; crossover")
                     parent1, parent2 = random.sample(sorted_genomes, 2)
-                    new_population.append(self.config.Genome.crossover(parent1, parent2))
+                    new_population.append(self.config.Genome.crossover(parent1, parent2, self.config))
                 else:
-                    self.logger.debug(f"new_population: {n_offspring=}; no crossover")
+                    # self.logger.debug(f"new_population: {n_offspring=}; no crossover")
                     new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness()))
-                self.logger.debug(f"{new_population[-1]=}")
+                # self.logger.debug(f"{new_population[-1]=}")
                 new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)
             specie.empty()
         return self.sort_genomes(new_population)
