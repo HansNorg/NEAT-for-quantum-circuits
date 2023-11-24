@@ -54,9 +54,11 @@ class Population():
         """Generate the next generation of the population by mutation and crossover."""
         # self.logger.debug(f"{self.average_fitness =}")
         new_population:list[QuantumNEATConfig.Genome] = []
+        n_offsprings = []
         for specie in self.species:
             total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
             n_offspring = round(total_specie_fitness/self.average_fitness)
+            n_offsprings.append(n_offspring)
             cutoff = int(np.ceil(self.config.percentage_survivors * len(specie.genomes)))
         
             sorted_genomes = self.sort_genomes(specie.genomes)[:cutoff]
@@ -76,6 +78,7 @@ class Population():
                 # self.logger.debug(f"{new_population[-1]=}")
                 new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)
             specie.empty()
+        print(f"{sum(n_offsprings)}, {n_offsprings=}")
         return self.sort_genomes(new_population)
 
     def speciate(self):

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import logging
 
 import numpy as np
@@ -7,6 +10,10 @@ from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.quant_lib_np import Z, ZZ
+from quantumneat.problems.transverous_field_ising import ising_1d_instance, ising_hamilatonian
+
+if TYPE_CHECKING:
+    from quantumneat.configuration import QuantumNEATConfig
 
 logger = logging.getLogger("quantumNEAT.quantumneat.helper")
 
@@ -65,17 +72,6 @@ class GlobalSpeciesNumber:
         '''
         self._species_number += 1
         return self._species_number
-
-def ising_1d_instance(qubits, seed = None):
-    def rand1d(qubits):
-        np.random.seed(seed)
-        return [np.random.choice([+1, -1]) for _ in range(qubits)]
-
-    # transverse field terms
-    h = rand1d(qubits)
-    # links between lines
-    j = rand1d(qubits-1)
-    return h, j
 
 def compute_expected_energy(counts,h,j):
     '''
@@ -219,24 +215,14 @@ def get_shot_noise(weights, n_shots):
         
     return shot_noise
 
-def get_Ising(h_vec, J_vec):
-    n_qubits = len(h_vec)
-    H = 0
-
-    for iq in range(n_qubits -1):
-        H += h_vec[iq]*Z(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
-
-    H += h_vec[n_qubits-1] * Z(n_qubits-1, n_qubits)
-
-    return H
-
-def get_gradient(self, circuit, n_parameters, parameters, config):
+def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConfig):
     if n_parameters == 0:
         return 0 # Prevent division by 0
     total_gradient = 0
     
     if config.simulator == 'qulacs':
-        observable = Z(0, config.n_qubits)
+        instance = ising_1d_instance(config.n_qubits, 0)
+        observable = ising_hamilatonian(instance[0], instance[1]) #Z(0, config.n_qubits)
         for ind in range(n_parameters):
             temp = parameters[ind]
             parameters[ind] += config.epsilon/2
@@ -256,9 +242,11 @@ def get_gradient(self, circuit, n_parameters, parameters, config):
             total_gradient += partial_gradient**2
     return total_gradient/n_parameters
 
-def get_energy(self, circuit, parameters, config):
+def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
     if config.simulator == 'qulacs':
-        observable = Z(0, config.n_qubits)
+        instance = ising_1d_instance(config.n_qubits, 0)
+        observable = ising_hamilatonian(instance[0], instance[1])
+        # observable = Z(0, config.n_qubits)
         return get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
     elif config.simulator == 'qiskit':
         return energy_from_circuit(circuit, parameters, config.n_shots)

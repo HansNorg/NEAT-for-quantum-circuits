@@ -12,11 +12,13 @@ class QuantumNEAT:
         self.logger.info("QuantumNEAT Started")
 
         self.population = self.config.Population(self.config)
-        self.best_fitness = self.population.get_best_genome().get_fitness()
+        best_genome = self.population.get_best_genome()
+        self.best_fitness = best_genome.get_fitness()
 
         # For experimenting only
         self.best_fitnesses = [self.best_fitness]
-        self.best_genomes = [(self.population.generation, copy.deepcopy(self.population.get_best_genome()))]
+        self.best_energies = [best_genome.get_energy()]
+        self.best_genomes = [(self.population.generation, copy.deepcopy(best_genome))]
         self.average_fitnesses = [self.population.average_fitness]
         self.population_sizes = [len(self.population.population)]
         self.number_of_species = [len(self.population.species)]
@@ -34,6 +36,7 @@ class QuantumNEAT:
             self.best_fitness = best_genome.get_fitness()
             self.best_genomes.append((self.population.generation, copy.deepcopy(self.population.get_best_genome())))
         self.best_fitnesses.append(self.best_fitness)
+        self.best_energies.append(best_genome.get_energy())
         self.average_fitnesses.append(self.population.average_fitness)
         self.population_sizes.append(len(self.population.population))
         self.number_of_species.append(len(self.population.species))

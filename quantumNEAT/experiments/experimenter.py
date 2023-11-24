@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 from quantumneat.logger import default_logger
 from quantumneat.main import QuantumNEAT
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
 
 class Experimenter:
-    def __init__(self, name:str, config:QuantumNEATConfig, run:int = None, folder:str = "quantumneat") -> None:
+    def __init__(self, name:str, config:QuantumNEATConfig, run:int = None, folder:str = "quantumneat", setup_logger = True) -> None:
         self.config = config
         self.quantumneat = QuantumNEAT(config)
         self.name = name
@@ -24,15 +26,19 @@ class Experimenter:
             self.load_next_run_number()
         else:
             self.run = run
-        default_logger(True, extra_file_name=f"{name}_run{self.run}_")
-        self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}")
-
+        if setup_logger:
+            default_logger(True, extra_file_name=f"{name}_run{self.run}_")
+        self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_run{self.run}")
+    
     def load_next_run_number(self, N = 1):
         try:
             self.run = np.load(f"{self.folder}/experiments/run_cache/{self.name}_run_number.npy")[0]
         except FileNotFoundError:
             self.run = 0
         np.save(f"{self.folder}/experiments/run_cache/{self.name}_run_number", [self.run+N], allow_pickle=False)
+    
+    def reset_run_number(self, new_number = 0):
+        np.save(f"{self.folder}/experiments/run_cache/{self.name}_run_number", [new_number], allow_pickle=False)
 
     def run_default(self, n_generations, do_plot = False, do_print = True):
         self.logger.info(f"Running experiment {self.name}")
@@ -56,25 +62,30 @@ class Experimenter:
                 number_of_species=self.quantumneat.number_of_species, 
                 average_fitnesses=self.quantumneat.average_fitnesses, 
                 best_genomes = self.quantumneat.best_genomes,
+                best_energies = self.quantumneat.best_energies,
                 )
         # pickle.dump(best_genomes, folder+"/results/"+name+"best_genomes")
     
     def plot_results(self):
         plt.plot(self.quantumneat.best_fitnesses)
         plt.title("fitness_record")
-        plt.savefig(f"{self.folder}/results/{self.name}_run{self.run}_fitness_record.png")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_fitness_record.png")
         plt.close()
         plt.plot(self.quantumneat.population_sizes)
         plt.title("population_size")
-        plt.savefig(f"{self.folder}/results/{self.name}_run{self.run}_population_size.png")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_population_size.png")
         plt.close()
         plt.plot(self.quantumneat.number_of_species)
         plt.title("number_of_species")
-        plt.savefig(f"{self.folder}/results/{self.name}_run{self.run}_number_of_species.png")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_number_of_species.png")
         plt.close()
         plt.plot(self.quantumneat.average_fitnesses)
         plt.title("average_fitnesses")
-        plt.savefig(f"{self.folder}/results/{self.name}_run{self.run}_average_fitnesses.png")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_average_fitnesses.png")
+        plt.close()
+        plt.plot(self.quantumneat.best_energies)
+        plt.title("best_energies")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_best_energies.png")
         plt.close()
         
     def log_best_circuit(self, fold=-1, do_print = True, do_latex = False):
@@ -99,3 +110,61 @@ class Experimenter:
                 self.logger.info(f"Generation: {generation}\n{circuit}")
         
         self.config.simulator = backup
+
+class MultipleRunExperimenter:
+    def __init__(self, name:str, config:QuantumNEATConfig, folder:str = "quantumneat") -> None:
+        self.config = config
+        self.name = name
+        self.folder = folder
+        self.experimenters:list[Experimenter] = []
+
+        default_logger(True, extra_file_name=f"{name}_multiple_runs_")
+        self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_multiple_runs")
+
+    def run_experiment(self, n_generations, do_plot = False, do_print = True):
+        experimenter = Experimenter(self.name, self.config, folder=self.folder, setup_logger=False)
+        experimenter.run_default(n_generations, do_plot, do_print)
+        self.experimenters.append(experimenter)
+
+    def run_multiple_experiments(self, n_experiments, n_generations, do_plot_individual=False, do_plot_multiple = True, do_print=False):
+        for i in range(n_experiments):
+            self.logger.info(f"Running experiment {i}/{n_experiments}")
+            self.run_experiment(n_generations, do_plot_individual, do_print)
+        if do_plot_multiple:
+            self.plot_multiple()
+
+    def plot_multiple(self):
+        data = pd.DataFrame()
+        for experimenter in self.experimenters:
+            data_experiment = pd.DataFrame({
+                "best_fitnesses":experimenter.quantumneat.best_fitnesses,
+                "population_sizes":experimenter.quantumneat.population_sizes,  
+                "number_of_species":experimenter.quantumneat.number_of_species, 
+                "average_fitnesses":experimenter.quantumneat.average_fitnesses,
+                "best_energies":experimenter.quantumneat.best_energies,
+                })
+            # self.logger.info(f"{data_experiment=}")
+            data = pd.concat((data,data_experiment))
+        # self.logger.info(f"{data=}")
+        sns.lineplot(data=data, x=data.index, y="best_fitnesses")
+        # plt.legend()
+        # plt.plot(self.quantumneat.best_fitnesses)
+        plt.title("fitness_record")
+        plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_fitness_record.png")
+        plt.close()
+        sns.lineplot(data=data, x=data.index, y="population_sizes")
+        plt.title("population_size")
+        plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_population_size.png")
+        plt.close()
+        sns.lineplot(data=data, x=data.index, y="number_of_species")
+        plt.title("number_of_species")
+        plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_number_of_species.png")
+        plt.close()
+        sns.lineplot(data=data, x=data.index, y="average_fitnesses")
+        plt.title("average_fitnesses")
+        plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_average_fitnesses.png")
+        plt.close()
+        sns.lineplot(data=data, x=data.index, y="best_energies")
+        plt.title("best_energies")
+        plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_best_energies.png")
+        plt.close()
