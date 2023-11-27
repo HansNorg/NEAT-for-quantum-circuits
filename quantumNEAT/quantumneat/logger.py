@@ -82,7 +82,9 @@ def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_fil
         sys.excepthook = handle_exception
 
 def default_logger(debugging = False, print_start = True, extra_file_name=""):
-    if debugging:
-        setup_logger(main_file_level=logging.DEBUG, quantumneat_level=logging.DEBUG, experiments_level=logging.DEBUG, print_start=print_start, extra_file_name=extra_file_name)
-    else:
-        setup_logger(print_start=print_start, extra_file_name=extra_file_name)
+    # if debugging:
+    #     setup_logger(main_file_level=logging.DEBUG, quantumneat_level=logging.DEBUG, experiments_level=logging.DEBUG, print_start=print_start, extra_file_name=extra_file_name)
+    # else:
+    #     setup_logger(print_start=print_start, extra_file_name=extra_file_name)
+
+    setup_logger(print_start=print_start, extra_file_name=extra_file_name)

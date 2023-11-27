@@ -24,7 +24,7 @@ class GlobalLayerNumber:
     Layer number starts at -1.
     '''
     def __init__(self):
-        self._layer_number:int = -1
+        self._layer_number:int = 0
 
     def next(self):
         '''
@@ -342,7 +342,7 @@ class QNEAT_Population(Population):
         population = []
         initial_layers = {}
         for _ in range(self.config.initial_layers):
-            layer_number = self.config.GlobalLayerNumber.next()
+            layer_number = self.config.GlobalLayerNumber.next() - 1
             new_layer = LayerGene(self.config, layer_number)
             for qubit in range(self.config.n_qubits):
                 innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'rot', self.config)

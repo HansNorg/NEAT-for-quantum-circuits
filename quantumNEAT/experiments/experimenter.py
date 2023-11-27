@@ -29,6 +29,7 @@ class Experimenter:
         if setup_logger:
             default_logger(True, extra_file_name=f"{name}_run{self.run}_")
         self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_run{self.run}")
+        self.final_energies = []
     
     def load_next_run_number(self, N = 1):
         try:
@@ -43,6 +44,7 @@ class Experimenter:
     def run_default(self, n_generations, do_plot = False, do_print = True):
         self.logger.info(f"Running experiment {self.name}")
         self.run_generations(n_generations)
+        self.final_energies = self.quantumneat.get_energies()
         self.save_results()
         if do_plot:
             self.plot_results()
@@ -63,6 +65,7 @@ class Experimenter:
                 average_fitnesses=self.quantumneat.average_fitnesses, 
                 best_genomes = self.quantumneat.best_genomes,
                 best_energies = self.quantumneat.best_energies,
+                final_energies = self.final_energies,
                 )
         # pickle.dump(best_genomes, folder+"/results/"+name+"best_genomes")
     
@@ -86,6 +89,10 @@ class Experimenter:
         plt.plot(self.quantumneat.best_energies)
         plt.title("best_energies")
         plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_best_energies.png")
+        plt.close()
+        plt.hist(self.final_energies, bins=np.arange(min(self.final_energies), max(self.final_energies))-0.5)
+        plt.title("best_energies")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_final_energies.png")
         plt.close()
         
     def log_best_circuit(self, fold=-1, do_print = True, do_latex = False):
@@ -145,6 +152,7 @@ class MultipleRunExperimenter:
                 })
             # self.logger.info(f"{data_experiment=}")
             data = pd.concat((data,data_experiment))
+        final_energy_data = pd.DataFrame({"final_energies":experimenter.final_energies,})
         # self.logger.info(f"{data=}")
         sns.lineplot(data=data, x=data.index, y="best_fitnesses")
         # plt.legend()
@@ -167,4 +175,8 @@ class MultipleRunExperimenter:
         sns.lineplot(data=data, x=data.index, y="best_energies")
         plt.title("best_energies")
         plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_best_energies.png")
+        plt.close()
+        sns.histplot(data=final_energy_data, binwidth=1)
+        plt.title("final_energies")
+        plt.savefig(f"{self.folder}/figures/{self.name}_multiple_runs_final_energies.png")
         plt.close()

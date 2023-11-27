@@ -50,6 +50,12 @@ class QuantumNEAT:
         self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
         self.logger.info(f"Finished running.")
 
+    def get_energies(self):
+        energies = []
+        for genome in self.population.population:
+            energies.append(genome.get_energy())
+        return energies
+    
 def main():
     settings = QuantumNEATConfig(3, 10)
     quantum_neat = QuantumNEAT(settings)

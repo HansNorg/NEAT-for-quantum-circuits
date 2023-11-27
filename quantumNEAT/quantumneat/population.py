@@ -48,17 +48,36 @@ class Population():
     
     def update_avg_fitness(self):
         self.average_fitness = np.mean([genome.get_fitness() for genome in self.population])
+        fitnesses = [genome.get_fitness() for genome in self.population]
+        fitnesses = self.normalise(fitnesses, True)
+        self.average_normalised_fitness = np.mean(fitnesses)
         # self.logger.debug(f"{self.average_fitness=}")
+
+    def normalise(self, fitnesses, update = False):
+        self.logger.debug(f"{fitnesses=}, {update=}")
+        if update:
+            self._min_fitness = min(fitnesses) - 1 # min(fitnesses) = fitnesses[-1] (sorted)
+            # self._max_fitness = max(fitnesses) - self._min_fitness
+        fitnesses -= self._min_fitness
+        # fitnesses = fitnesses/self._max_fitness
+        self.logger.debug(f"{fitnesses=}")        
+        return fitnesses
 
     def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
         """Generate the next generation of the population by mutation and crossover."""
         # self.logger.debug(f"{self.average_fitness =}")
         new_population:list[QuantumNEATConfig.Genome] = []
-        n_offsprings = []
+        # n_offsprings = []
         for specie in self.species:
-            total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
-            n_offspring = round(total_specie_fitness/self.average_fitness)
-            n_offsprings.append(n_offspring)
+            # total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
+            # n_offspring = round(total_specie_fitness/self.average_fitness)
+            # print(f"{total_specie_fitness=}, {self.average_fitness=}, {n_offspring=}")
+            specie_fitnesses = [genome.get_fitness() for genome in specie.genomes]
+            specie_normalised_fitnesses = self.normalise(specie_fitnesses)
+            total_specie_normalised_fitness = np.sum(specie_normalised_fitnesses)
+            n_offspring = round(total_specie_normalised_fitness/self.average_normalised_fitness)
+            # print(f"{total_specie_fitness=:.2f}, {self.average_fitness=:.2f}, {total_specie_normalised_fitness=:.2f}, {self.average_normalised_fitness=:.2f}, {n_offspring}")
+            # n_offsprings.append(n_offspring)
             cutoff = int(np.ceil(self.config.percentage_survivors * len(specie.genomes)))
         
             sorted_genomes = self.sort_genomes(specie.genomes)[:cutoff]
@@ -78,7 +97,7 @@ class Population():
                 # self.logger.debug(f"{new_population[-1]=}")
                 new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)
             specie.empty()
-        print(f"{sum(n_offsprings)}, {n_offsprings=}")
+        # print(n_offsprings)
         return self.sort_genomes(new_population)
 
     def speciate(self):

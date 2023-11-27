@@ -14,8 +14,10 @@ class TestPopulation(unittest.TestCase):
         population = Population(config)
         self.assertEqual(len(population.population), n_population)
         for _ in range(100):
-            population.next_generation()
-            self.assertEqual(len(population.population), n_population)
+            with self.subTest("check_during_generations"):
+                population.next_generation()
+                self.assertEqual(len(population.population), n_population)
+        self.assertEqual(len(population.population), n_population)
 
 if __name__ == '__main__':
     unittest.main()
