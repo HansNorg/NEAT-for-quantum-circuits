@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import logging
 import pickle
 from typing import TYPE_CHECKING
@@ -26,6 +27,7 @@ class Experimenter:
             self.load_next_run_number()
         else:
             self.run = run
+        print(f"Run {self.run} initialised")
         if setup_logger:
             default_logger(True, extra_file_name=f"{name}_run{self.run}_")
         self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_run{self.run}")
@@ -36,9 +38,11 @@ class Experimenter:
             self.run = np.load(f"{self.folder}/experiments/run_cache/{self.name}_run_number.npy")[0]
         except FileNotFoundError:
             self.run = 0
+        os.makedirs(f"{self.folder}/experiments/run_cache", exist_ok=True)
         np.save(f"{self.folder}/experiments/run_cache/{self.name}_run_number", [self.run+N], allow_pickle=False)
     
     def reset_run_number(self, new_number = 0):
+        os.makedirs(f"{self.folder}/experiments/run_cache", exist_ok=True)
         np.save(f"{self.folder}/experiments/run_cache/{self.name}_run_number", [new_number], allow_pickle=False)
 
     def run_default(self, n_generations, do_plot = False, do_print = True):
@@ -57,6 +61,7 @@ class Experimenter:
 
     def save_results(self):
         self.logger.info("linear_growth_experiment finished")
+        os.makedirs(f"{self.folder}/results", exist_ok=True)
         np.savez(f"{self.folder}/results/{self.name}_run{self.run}_results",
                 config = self.config,
                 fitness_record=self.quantumneat.best_fitnesses, 
@@ -72,6 +77,7 @@ class Experimenter:
         # pickle.dump(best_genomes, folder+"/results/"+name+"best_genomes")
     
     def plot_results(self):
+        os.makedirs(f"{self.folder}/figures", exist_ok=True)
         plt.plot(self.quantumneat.best_fitnesses)
         plt.title("fitness_record")
         plt.xlabel("Generations")
@@ -102,7 +108,17 @@ class Experimenter:
         plt.xlabel("Generations")
         plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_final_energies.png")
         plt.close()
-        
+        plt.plot(self.quantumneat.number_of_solutions)
+        plt.title("number_of_solutions")
+        plt.xlabel("Generations")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_number_of_solutions.png")
+        plt.close()
+        plt.plot(self.quantumneat.min_energies)
+        plt.title("min_energies")
+        plt.xlabel("Generations")
+        plt.savefig(f"{self.folder}/figures/{self.name}_run{self.run}_min_energies.png")
+        plt.close()
+
     def log_best_circuit(self, fold=-1, do_print = True, do_latex = False):
         if not (do_print or do_latex):
             return
@@ -149,6 +165,7 @@ class MultipleRunExperimenter:
             self.plot_multiple()
 
     def plot_multiple(self):
+        os.makedirs(f"{self.folder}/figures", exist_ok=True)
         data = pd.DataFrame()
         for experimenter in self.experimenters:
             data_experiment = pd.DataFrame({

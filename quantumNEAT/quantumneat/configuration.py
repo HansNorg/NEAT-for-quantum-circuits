@@ -47,6 +47,8 @@ class QuantumNEATConfig():
     simulator = 'qulacs' # 'qiskit'
     gradient_function = get_gradient
     energy_function = get_energy
+    optimize_energy = False
+    optimize_energy_max_iter = 100 # Ignored if optimize_energy == False
 
     # Gene settings
     gene_types:list[Gene] = field(default_factory=list)

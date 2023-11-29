@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 import logging
 
 import numpy as np
+from scipy.optimize import minimize
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit_aer import Aer, AerSimulator
 from qulacs import DensityMatrix, QuantumState
@@ -243,10 +244,24 @@ def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConf
     return total_gradient/n_parameters
 
 def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
-    if config.simulator == 'qulacs':
-        instance = ising_1d_instance(config.n_qubits, 0)
-        observable = ising_hamilatonian(instance[0], instance[1])
-        # observable = Z(0, config.n_qubits)
-        return get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
-    elif config.simulator == 'qiskit':
-        return energy_from_circuit(circuit, parameters, config.n_shots)
+    if config.optimize_energy:
+        if config.simulator == 'qulacs':
+            instance = ising_1d_instance(config.n_qubits, 0)
+            observable = ising_hamilatonian(instance[0], instance[1])
+            # observable = Z(0, config.n_qubits)
+            def expectation_function(params):
+                return get_energy_qulacs(params, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+            return minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
+        elif config.simulator == 'qiskit':
+            def expectation_function(params):
+                return energy_from_circuit(circuit, params, config.n_shots)
+            return minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
+    else:
+        if config.simulator == 'qulacs':
+            instance = ising_1d_instance(config.n_qubits, 0)
+            observable = ising_hamilatonian(instance[0], instance[1])
+            # observable = Z(0, config.n_qubits)
+            return get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
+        elif config.simulator == 'qiskit':
+            return energy_from_circuit(circuit, parameters, config.n_shots)
+    raise NotImplementedError(f"Simulator type {config.simulator} not implemented.")
