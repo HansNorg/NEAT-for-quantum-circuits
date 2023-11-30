@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from quantumneat.quant_lib_np import Z, ZZ
+from quantumneat.quant_lib_np import X, Z, ZZ
 
 def ising_1d_instance(n_qubits, seed = None):
     def rand1d(qubits):
@@ -16,7 +16,7 @@ def ising_1d_instance(n_qubits, seed = None):
     j = rand1d(n_qubits-1)
     return h, j
 
-def ising_hamilatonian(h_vec, J_vec):
+def classical_ising_hamilatonian(h_vec, J_vec):
     n_qubits = len(h_vec)
     H = 0
 
@@ -24,6 +24,17 @@ def ising_hamilatonian(h_vec, J_vec):
         H += h_vec[iq]*Z(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
 
     H += h_vec[n_qubits-1] * Z(n_qubits-1, n_qubits)
+
+    return H
+
+def transverse_ising_hamilatonian(h_vec, J_vec):
+    n_qubits = len(h_vec)
+    H = 0
+
+    for iq in range(n_qubits -1):
+        H += h_vec[iq]*X(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
+
+    H += h_vec[n_qubits-1] * X(n_qubits-1, n_qubits)
 
     return H
 
@@ -60,6 +71,7 @@ def qubit_to_spin(state):
 
 if __name__ == "__main__":
     observable_h, observable_j = ising_1d_instance(5, seed = 0)
+    print(observable_h, observable_j)
     exact_classical_energy, exact_classical_configurations = bruteforceLowestValue(observable_h,observable_j)
     print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations])
 

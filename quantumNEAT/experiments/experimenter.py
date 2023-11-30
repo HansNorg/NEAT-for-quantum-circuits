@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 class Experimenter:
     def __init__(self, name:str, config:QuantumNEATConfig, run:int = None, folder:str = "quantumneat", setup_logger = True) -> None:
         self.config = config
-        self.quantumneat = QuantumNEAT(config)
         self.name = name
         self.folder = folder
         if run is None:
@@ -31,6 +30,8 @@ class Experimenter:
         if setup_logger:
             default_logger(True, extra_file_name=f"{name}_run{self.run}_")
         self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_run{self.run}")
+        
+        self.quantumneat = QuantumNEAT(config)
         self.final_energies = []
     
     def load_next_run_number(self, N = 1):
