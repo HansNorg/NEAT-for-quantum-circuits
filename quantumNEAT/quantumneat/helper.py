@@ -11,7 +11,7 @@ from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.quant_lib_np import Z, ZZ
-from quantumneat.problems.transverous_field_ising import ising_1d_instance, classical_ising_hamilatonian
+from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig

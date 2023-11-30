@@ -4,7 +4,7 @@ import copy
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.configuration import QuantumNEATConfig
-from quantumneat.problems.transverous_field_ising import bruteforceLowestValue, ising_1d_instance
+from quantumneat.problems.ising import bruteforceLowestValue, ising_1d_instance
 
 class QuantumNEAT:
     logger = logging.getLogger("quantumNEAT.quantumneat.main")
