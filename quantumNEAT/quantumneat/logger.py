@@ -8,7 +8,7 @@ def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_fil
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(filename)s - %(funcName)s - line: %(lineno)d\n%(message)s')
 
     logger = logging.getLogger(name)
-    logger.setLevel(min(console_level, main_file_level))
+    logger.setLevel(min(console_level, main_file_level, logging.DEBUG))
     
     sh = logging.StreamHandler()
     sh.setLevel(console_level)

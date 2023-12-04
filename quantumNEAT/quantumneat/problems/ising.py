@@ -38,6 +38,27 @@ def transverse_ising_hamilatonian(h_vec, J_vec):
 
     return H
 
+def bruteforce_transverse_ising_hamiltonian(h_vec, J_vec):
+    def configurations(n):
+        if n == 0:
+            yield [-1]
+            yield [1]
+        for configuration in configurations(n-1):
+            yield np.concatenate(([-1], configuration))
+            yield np.concatenate(([1], configuration))
+    
+    n_qubits = len(h_vec)
+    best_energy = np.inf
+    best_configurations = []
+    for configuration in configurations(n_qubits):
+        current_energy = ... #TODO Is this possible?
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_configurations = [configuration]
+        elif current_energy == best_energy:
+            best_configurations.append(configuration)
+    return best_energy, best_configurations
+
 def bruteforceLowestValue(h,j):
     def bool_to_state(integer):
     # Convert the 1/0 of a bit to +1/-1
@@ -72,8 +93,12 @@ def qubit_to_spin(state):
 if __name__ == "__main__":
     observable_h, observable_j = ising_1d_instance(5, seed = 0)
     print(observable_h, observable_j)
+    
     exact_classical_energy, exact_classical_configurations = bruteforceLowestValue(observable_h,observable_j)
     print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations])
+
+    # exact_classical_energy, exact_classical_configurations = bruteforce_transverse_ising_hamiltonian(observable_h,observable_j)
+    # print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations])
 
     # solutions = pd.DataFrame()
     # for n_qubits in range(2, 11):

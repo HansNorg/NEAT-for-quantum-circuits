@@ -11,7 +11,7 @@ from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.quant_lib_np import Z, ZZ
-from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian
+from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian, transverse_ising_hamilatonian
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
@@ -223,7 +223,8 @@ def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConf
     
     if config.simulator == 'qulacs':
         instance = ising_1d_instance(config.n_qubits, 0)
-        observable = classical_ising_hamilatonian(instance[0], instance[1]) #Z(0, config.n_qubits)
+        # observable = classical_ising_hamilatonian(instance[0], instance[1]) #Z(0, config.n_qubits)
+        observable = transverse_ising_hamilatonian(instance[0], instance[1])
         for ind in range(n_parameters):
             temp = parameters[ind]
             parameters[ind] += config.epsilon/2
@@ -247,7 +248,8 @@ def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
     if config.optimize_energy:
         if config.simulator == 'qulacs':
             instance = ising_1d_instance(config.n_qubits, 0)
-            observable = classical_ising_hamilatonian(instance[0], instance[1])
+            # observable = classical_ising_hamilatonian(instance[0], instance[1])
+            observable = transverse_ising_hamilatonian(instance[0], instance[1])
             # observable = Z(0, config.n_qubits)
             def expectation_function(params):
                 return get_energy_qulacs(params, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
@@ -259,7 +261,8 @@ def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
     else:
         if config.simulator == 'qulacs':
             instance = ising_1d_instance(config.n_qubits, 0)
-            observable = classical_ising_hamilatonian(instance[0], instance[1])
+            # observable = classical_ising_hamilatonian(instance[0], instance[1])
+            observable = transverse_ising_hamilatonian(instance[0], instance[1])
             # observable = Z(0, config.n_qubits)
             return get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
         elif config.simulator == 'qiskit':

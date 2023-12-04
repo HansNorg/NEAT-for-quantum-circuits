@@ -89,6 +89,7 @@ class Genome(ABC):
         """Update the fitness of the Genome."""
         # self.logger.debug("update_fitness")
         self._update_fitness = False
+        # self.logger.debug("fitness updated")
 
     def get_circuit(self) -> tuple[Circuit, int]:
         """

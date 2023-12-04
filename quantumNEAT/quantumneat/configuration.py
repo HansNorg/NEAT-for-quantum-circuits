@@ -20,30 +20,31 @@ class QuantumNEATConfig():
     Class for keeping the configuration settings of the QNEAT algorithm
     """
     # Global settings
-    n_qubits: int
-    population_size: int
+    n_qubits:int
+    population_size:int
     GlobalInnovationNumber = GlobalInnovationNumber()
     GlobalSpeciesNumber = GlobalSpeciesNumber()
 
     # Main QNEAT settings
+    number_of_cpus:int = -1 # Number of cpu's to use for multiprocessing. If < 0 no multiprocessing is used.
 
     # Population settings
     Population = Population
-    compatibility_threshold: float = 3
-    prob_mutation_without_crossover: float = 0.25
-    specie_champion_size: int = 5
-    percentage_survivors: float = 0.5
+    compatibility_threshold:float = 3
+    prob_mutation_without_crossover:float = 0.25
+    specie_champion_size:int = 5
+    percentage_survivors:float = 0.5
 
     # Species settings
     Species = Species
     
     # Genome settings
     Genome = Genome
-    prob_weight_mutation: float = 0.8
-    prob_weight_perturbation: float = 0.9
-    perturbation_amplitude: float = 1
-    prob_add_gene_mutation: float = 0.1
-    max_add_gene_tries: int = 10
+    prob_weight_mutation:float = 0.8
+    prob_weight_perturbation:float = 0.9
+    perturbation_amplitude:float = 1
+    prob_add_gene_mutation:float = 0.1
+    max_add_gene_tries:int = 10
     simulator = 'qulacs' # 'qiskit'
     gradient_function = get_gradient
     energy_function = get_energy

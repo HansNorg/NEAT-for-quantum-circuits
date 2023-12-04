@@ -25,5 +25,5 @@ def run_multiple(n_qubits, population_size, n_generations, folder = "quantumneat
 
 if __name__ == "__main__":
     np.random.seed(0)
-    # main(n_qubits=10, population_size=100, n_generations=100, folder = ".")#"quantumneat"
-    run_multiple(n_qubits=10, population_size=100, n_generations=100, folder = ".", n_runs=10)
+    main(n_qubits=10, population_size=100, n_generations=2, folder = ".")#"quantumneat"
+    # run_multiple(n_qubits=5, population_size=100, n_generations=100, folder = ".", n_runs=10)

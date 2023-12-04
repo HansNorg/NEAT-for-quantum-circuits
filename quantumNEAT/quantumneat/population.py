@@ -4,6 +4,8 @@ import logging
 import random
 import copy
 from typing import TYPE_CHECKING
+import multiprocessing as mp
+import time
 
 import numpy as np
 
@@ -23,6 +25,7 @@ class Population():
         config: class with all the configuration settings of the algorithm.
         """
         self.config = config
+        self.logger.debug(f"{self.config.number_of_cpus=}")
         self.generation:int = 0
         self.population = self.generate_initial_population()
         self.update_avg_fitness()
@@ -39,6 +42,17 @@ class Population():
             gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, qubits)
             genome.add_gene(gate)
             population.append(genome)
+        
+        starttime = time.time()
+        if (self.config.number_of_cpus is None) or (self.config.number_of_cpus > 0):
+            p = mp.Pool(processes=self.config.number_of_cpus)
+            p.map_async(self.update_fitness, population)
+            p.close()
+        else:
+            for pop in population:
+                pop.get_fitness()
+        difference = time.time() - starttime
+        self.logger.info(f"{difference=}")
         return self.sort_genomes(population)
 
     @staticmethod
@@ -54,13 +68,13 @@ class Population():
         # self.logger.debug(f"{self.average_fitness=}")
 
     def normalise(self, fitnesses, update = False):
-        self.logger.debug(f"{fitnesses=}, {update=}")
+        # self.logger.debug(f"{fitnesses=}, {update=}")
         if update:
             self._min_fitness = min(fitnesses) - 1 # min(fitnesses) = fitnesses[-1] (sorted)
             # self._max_fitness = max(fitnesses) - self._min_fitness
         fitnesses -= self._min_fitness
         # fitnesses = fitnesses/self._max_fitness
-        self.logger.debug(f"{fitnesses=}")        
+        # self.logger.debug(f"{fitnesses=}")        
         return fitnesses
 
     def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
@@ -98,8 +112,22 @@ class Population():
                 new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)
             specie.empty()
         # print(n_offsprings)
+        starttime = time.time()
+        # self.logger.info(f"{starttime=}")
+        if (self.config.number_of_cpus is None) or (self.config.number_of_cpus > 0):
+            p = mp.Pool(processes=self.config.number_of_cpus)
+            p.map_async(self.update_fitness, new_population)
+            p.close()
+        else:
+            for pop in new_population:
+                pop.get_fitness()
+        difference = time.time() - starttime
+        self.logger.info(f"{difference=}")
         return self.sort_genomes(new_population)
 
+    def update_fitness(self, i):
+        i.get_fitness()
+    
     def speciate(self):
         """Devide the population in species by similarity"""
         for genome in self.population:
