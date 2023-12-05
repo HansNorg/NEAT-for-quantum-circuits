@@ -65,19 +65,18 @@ def setup_logger(name = "quantumNEAT", console_level = logging.WARNING, main_fil
     # experiments_logger.addHandler(fh)
 
     if print_start:
-        logger.info("==================logger_setup==================")
-        # quantumneat_logger.info("==================logger_setup==================")
-        # test_logger.info("==================logger_setup==================")
-        # experiments_logger.info("==================logger_setup==================")
+        logger.info("======================================== Logger setup =========================================")
+        # quantumneat_logger.info("=========================================logger_setup==========================================")
+        # test_logger.info("=========================================logger_setup==========================================")
+        # experiments_logger.info("=========================================logger_setup==========================================")
     
     # log uncaught exceptions
     def handle_exception(exc_type, exc_value, exc_traceback):
         if issubclass(exc_type, KeyboardInterrupt):
-            logger.error("================= Keyboard interruption =================")
+            logger.error("==================================== Keyboard interruption ====================================")
             sys.__excepthook__(exc_type, exc_value, exc_traceback) # calls default excepthook
             return
-        logger.error("================= Uncaught exception =================", exc_info=(exc_type, exc_value, exc_traceback))
-        
+        logger.error("===================================== Uncaught exception ======================================", exc_info=(exc_type, exc_value, exc_traceback))
     if log_errors:
         sys.excepthook = handle_exception
 

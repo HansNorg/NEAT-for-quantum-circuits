@@ -52,7 +52,7 @@ class Population():
             for pop in population:
                 pop.get_fitness()
         difference = time.time() - starttime
-        self.logger.info(f"{difference=}")
+        self.logger.debug(f"Time to update fitnesses = {difference}")
         return self.sort_genomes(population)
 
     @staticmethod
@@ -122,10 +122,10 @@ class Population():
             for pop in new_population:
                 pop.get_fitness()
         difference = time.time() - starttime
-        self.logger.info(f"{difference=}")
+        self.logger.debug(f"Time to update fitnesses = {difference}")
         return self.sort_genomes(new_population)
 
-    def update_fitness(self, i):
+    def update_fitness(self, i:QuantumNEATConfig.Genome):
         i.get_fitness()
     
     def speciate(self):

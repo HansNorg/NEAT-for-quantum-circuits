@@ -11,7 +11,7 @@ from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.quant_lib_np import Z, ZZ
-from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian, transverse_ising_hamilatonian
+from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian, transverse_ising_hamilatonian, bruteforceLowestValue
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
@@ -248,12 +248,18 @@ def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
     if config.optimize_energy:
         if config.simulator == 'qulacs':
             instance = ising_1d_instance(config.n_qubits, 0)
+            # instance = ising_1d_instance(config.n_qubits)
             # observable = classical_ising_hamilatonian(instance[0], instance[1])
+            # solution = bruteforceLowestValue(instance[0], instance[1])       
             observable = transverse_ising_hamilatonian(instance[0], instance[1])
             # observable = Z(0, config.n_qubits)
             def expectation_function(params):
                 return get_energy_qulacs(params, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
-            return minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
+            result = minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
+            # log_message = f"{solution=}, {result=}"
+            # result -= solution[0]
+            # logger.debug(f"{log_message}, new {result=}")
+            return result
         elif config.simulator == 'qiskit':
             def expectation_function(params):
                 return energy_from_circuit(circuit, params, config.n_shots)

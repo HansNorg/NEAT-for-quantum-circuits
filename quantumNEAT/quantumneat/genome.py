@@ -235,6 +235,7 @@ class CircuitGenome(Genome):
             energy = self.get_energy()
             # return 1/(1+circuit_error)*gradient
             return 1/(1+circuit_error)*(-energy)+gradient
+            # return 1/(1+circuit_error)-energy+gradient
         if fitness_function == "Default":
             self._fitness = default()
         else:
