@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import logging
 import pickle
+from time import time
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -48,6 +49,7 @@ class Experimenter:
 
     def run_default(self, n_generations, do_plot = False, do_print = True):
         self.logger.info(f"Running experiment {self.name}")
+        starttime = time()
         self.run_generations(n_generations)
         self.final_energies = self.quantumneat.get_energies()
         self.save_results()
@@ -55,7 +57,8 @@ class Experimenter:
             self.plot_results()
         if do_print:
             self.log_best_circuit()
-        self.logger.info(f"Experiment {self.name} finished")
+        runtime = time() - starttime
+        self.logger.info(f"Experiment {self.name} finished in {runtime}.")
 
     def run_generations(self, n_generations):
         self.quantumneat.run(n_generations)
@@ -160,9 +163,12 @@ class MultipleRunExperimenter:
         self.experimenters.append(experimenter)
 
     def run_multiple_experiments(self, n_experiments, n_generations, do_plot_individual=False, do_plot_multiple = True, do_print=False):
+        starttime = time()
         for i in range(n_experiments):
-            self.logger.info(f"Running experiment {i}/{n_experiments}")
+            self.logger.info(f"Running experiment {i+1}/{n_experiments}")
             self.run_experiment(n_generations, do_plot_individual, do_print)
+        runtime = time() - starttime
+        self.logger.info(f"Finished running {n_experiments} experiments in {runtime} time. ({runtime/n_experiments} time/experiment)")
         if do_plot_multiple:
             self.plot_multiple()
 

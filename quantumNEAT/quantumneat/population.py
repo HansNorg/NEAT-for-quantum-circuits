@@ -116,7 +116,8 @@ class Population():
         # self.logger.info(f"{starttime=}")
         if (self.config.number_of_cpus is None) or (self.config.number_of_cpus > 0):
             p = mp.Pool(processes=self.config.number_of_cpus)
-            p.map_async(self.update_fitness, new_population)
+            chunks = len(new_population)/self.config.number_of_cpus
+            p.map_async(self.update_fitness, new_population, chunksize=int(chunks))
             p.close()
         else:
             for pop in new_population:

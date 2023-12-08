@@ -90,6 +90,14 @@ def qubit_to_spin(state):
         return 2*int(integer)-1
     return [bool_to_state(state[bit_value]) for bit_value in range(0,len(state))]
 
+def add_encoding_layer(config, circuit):
+    if config.simulator == "qiskit":
+        for qubit in range(config.n_qubits):
+                circuit.h(qubit)
+    elif config.simulator == "qulacs":
+        for qubit in range(config.n_qubits):
+                circuit.add_H_gate(qubit)
+
 if __name__ == "__main__":
     observable_h, observable_j = ising_1d_instance(5, seed = 0)
     print(observable_h, observable_j)

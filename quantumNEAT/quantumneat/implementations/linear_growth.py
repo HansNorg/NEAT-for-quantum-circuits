@@ -52,20 +52,16 @@ class GateROT(GateGene):
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
         return circuit, n_parameters
 
-class LinearGrowthGenome(CircuitGenome):
-    
+class LinearGrowthGenome(CircuitGenome):        
     def update_circuit(self): 
         super().update_circuit()
         n_parameters = 0
         if self.config.simulator == "qiskit":
             circuit = QuantumCircuit(QuantumRegister(self.config.n_qubits))
-            for qubit in range(self.config.n_qubits):
-                circuit.h(qubit)
         elif self.config.simulator == "qulacs":
             circuit = ParametricQuantumCircuit(self.config.n_qubits)
-            for qubit in range(self.config.n_qubits):
-                circuit.add_H_gate(qubit)
-        
+            
+        self.config.encoding_layer(circuit)
         for gene in self.genes:
             circuit, n_parameters = gene.add_to_circuit(circuit, n_parameters)
         self._circuit = circuit

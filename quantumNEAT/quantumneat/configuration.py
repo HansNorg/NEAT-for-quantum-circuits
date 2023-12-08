@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from qulacs import ParametricQuantumCircuit
     Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
 
+def no_encoding(config, circuit):
+    pass 
+
 @dataclass
 class QuantumNEATConfig():
     """
@@ -40,12 +43,14 @@ class QuantumNEATConfig():
     
     # Genome settings
     Genome = Genome
+    encoding_layer = no_encoding
     prob_weight_mutation:float = 0.8
     prob_weight_perturbation:float = 0.9
     perturbation_amplitude:float = 1
     prob_add_gene_mutation:float = 0.1
     max_add_gene_tries:int = 10
     simulator = 'qulacs' # 'qiskit'
+    fitness_function = "Default"
     gradient_function = get_gradient
     energy_function = get_energy
     optimize_energy = False

@@ -129,11 +129,12 @@ class Genome(ABC):
         return self._gradient
     
     def get_energy(self):
-        if self._update_gradient: 
-            # Only update fitness if the Genome has changed,
-            #  as fitness calculation can be costly.
-            self.update_gradient()
-        return self._energy
+        return 0
+        # if self._update_gradient: 
+        #     # Only update fitness if the Genome has changed,
+        #     #  as fitness calculation can be costly.
+        #     self.update_gradient()
+        # return self._energy
     
     @abstractmethod
     def update_gradient(self):
@@ -226,9 +227,10 @@ class CircuitGenome(Genome):
     #     self._circuit = circuit
     #     self._n_circuit_parameters = n_parameters
 
-    def update_fitness(self, fitness_function = "Default", **fitness_function_kwargs):
+    def update_fitness(self, **fitness_function_kwargs):
         super().update_fitness()
-        def default():
+        fitness_function = self.config.fitness_function
+        def default(**kwargs):
             # self.logger.debug("Default fitness function")
             gradient = self.get_gradient()
             circuit_error = self.get_circuit_error()
@@ -237,7 +239,7 @@ class CircuitGenome(Genome):
             return 1/(1+circuit_error)*(-energy)+gradient
             # return 1/(1+circuit_error)-energy+gradient
         if fitness_function == "Default":
-            self._fitness = default()
+            self._fitness = default(**fitness_function_kwargs)
         else:
             self._fitness = fitness_function(self, **fitness_function_kwargs)
 
