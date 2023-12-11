@@ -9,11 +9,15 @@ from quantumneat.implementations.linear_growth import LinearGrowthConfig as Conf
 from quantumneat.problems.fox_in_the_hole import fitness, energy, add_encoding_layer
 EXPERIMENT_NAME = "linear_growth_fith"
 
+def no_gradient(self, circuit, n_parameters, parameters, config):
+    return 0
+
 @dataclass
 class FithConfig(Config):
     fitness_function = fitness
     encoding_layer = add_encoding_layer
     energy_function = energy
+    gradient_function = no_gradient
 
 def main(n_qubits, population_size, n_generations, folder = "quantumneat", number_of_cpus = -1):
     config = FithConfig(n_qubits, population_size, number_of_cpus = number_of_cpus)
