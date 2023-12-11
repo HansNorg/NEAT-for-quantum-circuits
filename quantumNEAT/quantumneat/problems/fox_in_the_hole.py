@@ -46,6 +46,9 @@ def fitness(config, self:CircuitGenome, **kwargs):
     # self.logger.debug("fith fitness used")
     return 6-np.mean(get_multiple_returns(self.get_circuit()[0], self.config, 10))
 
+def energy(self, circuit, parameters, config, **kwargs):
+    return np.mean(get_multiple_returns(circuit, config, 100))
+
 def choose_action(circuit:Circuit, env:FoxInAHolev2, env_state, len_state, n_holes, n_qubits):
     for i, param in enumerate(env_state):
         circuit.set_parameter(i, param)

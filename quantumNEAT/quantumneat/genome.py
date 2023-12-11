@@ -121,7 +121,7 @@ class Genome(ABC):
         -------
         - float: Gradient of the Genome.
         """
-        # self.logger.debug("get_gradient")
+        self.logger.debug("get_gradient")
         if self._update_gradient: 
             # Only update fitness if the Genome has changed,
             #  as fitness calculation can be costly.
@@ -129,12 +129,12 @@ class Genome(ABC):
         return self._gradient
     
     def get_energy(self):
-        return 0
-        # if self._update_gradient: 
-        #     # Only update fitness if the Genome has changed,
-        #     #  as fitness calculation can be costly.
-        #     self.update_gradient()
-        # return self._energy
+        # return 0
+        if self._update_gradient: 
+            # Only update fitness if the Genome has changed,
+            #  as fitness calculation can be costly.
+            self.update_gradient()
+        return self._energy
     
     @abstractmethod
     def update_gradient(self):

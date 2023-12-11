@@ -14,6 +14,6 @@ module load Python/3.10.8-GCCcore-12.2.0
 source "/home/s3727599/.cache/pypoetry/virtualenvs/quantumneat-gXCYO08V-py3.10/bin/activate"
 DATE=$(date)
 echo "#### Starting Python test at $DATE"
-python ./experiments/linear_growth_fith.py -G 1000 -R 10
+python ./experiments/linear_growth_fith.py -G 1000 -R 10 -cpus 2
 DATE=$(date)
 echo "#### Finished Test at $DATE."

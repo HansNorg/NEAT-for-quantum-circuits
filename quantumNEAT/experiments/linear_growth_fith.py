@@ -6,13 +6,14 @@ import numpy as np
 
 from experiments.experimenter import Experimenter, MultipleRunExperimenter
 from quantumneat.implementations.linear_growth import LinearGrowthConfig as Config
-from quantumneat.problems.fox_in_the_hole import fitness, add_encoding_layer
+from quantumneat.problems.fox_in_the_hole import fitness, energy, add_encoding_layer
 EXPERIMENT_NAME = "linear_growth_fith"
 
 @dataclass
 class FithConfig(Config):
     fitness_function = fitness
     encoding_layer = add_encoding_layer
+    energy_function = energy
 
 def main(n_qubits, population_size, n_generations, folder = "quantumneat", number_of_cpus = -1):
     config = FithConfig(n_qubits, population_size, number_of_cpus = number_of_cpus)
@@ -37,6 +38,6 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     if args.n_runs > 0:
-        run_multiple(n_qubits=args.n_qubits, population_size=args.population_size, n_generations=args.generations, folder = ".", n_runs=args.n_runs)
+        run_multiple(n_qubits=args.n_qubits, population_size=args.population_size, n_generations=args.generations, folder = ".", n_runs=args.n_runs, number_of_cpus=args.number_of_cpus)
     else:
         main(n_qubits=args.n_qubits, population_size=args.population_size, n_generations=args.generations, folder = ".", number_of_cpus=args.number_of_cpus)#"quantumneat"

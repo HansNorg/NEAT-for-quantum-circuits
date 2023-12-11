@@ -170,7 +170,10 @@ class MultipleRunExperimenter:
         runtime = time() - starttime
         self.logger.info(f"Finished running {n_experiments} experiments in {runtime} time. ({runtime/n_experiments} time/experiment)")
         if do_plot_multiple:
-            self.plot_multiple()
+            try:
+                self.plot_multiple()
+            except Exception as e:
+                self.logger.error(exc_info=e)
 
     def plot_multiple(self):
         os.makedirs(f"{self.folder}/figures", exist_ok=True)
