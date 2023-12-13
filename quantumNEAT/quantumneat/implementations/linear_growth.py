@@ -88,7 +88,7 @@ class LinearGrowthGenome(CircuitGenome):
         for gene in self.genes:
             # self.logger.debug(f"{gene.get_parameters()=}")
             parameters = np.append(parameters, gene.get_parameters())
-        return fith_energy(self.get_circuit()[0], parameters, self.config, N=N)
+        return fith_energy(self.config, self.get_circuit()[0], parameters, self.config, N=N)
 
 @dataclass
 class LinearGrowthConfig(QuantumNEATConfig):
