@@ -11,6 +11,7 @@ from qulacs import ParametricQuantumCircuit
 from quantumneat.configuration import QuantumNEATConfig
 from quantumneat.gene import GateGene
 from quantumneat.genome import CircuitGenome
+from quantumneat.problems.fox_in_the_hole import energy as fith_energy
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
 
@@ -79,6 +80,15 @@ class LinearGrowthGenome(CircuitGenome):
         self._gradient = self.config.gradient_function(circuit, n_parameters, 
                                                        parameters, self.config)
         self._energy = self.config.energy_function(circuit, parameters, self.config)
+
+    def evaluate(self, N = 100, **kwargs):
+        circuit, n_parameters = self.get_circuit()
+        parameters = np.array([])
+        # self.logger.debug(f"{self.genes.values()=}")
+        for gene in self.genes:
+            # self.logger.debug(f"{gene.get_parameters()=}")
+            parameters = np.append(parameters, gene.get_parameters())
+        return fith_energy(self.get_circuit()[0], parameters, self.config, N=N)
 
 @dataclass
 class LinearGrowthConfig(QuantumNEATConfig):

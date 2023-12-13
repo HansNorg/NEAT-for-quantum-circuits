@@ -185,6 +185,9 @@ class Genome(ABC):
         """
         return None
 
+    def evaluate(self, **kwargs) -> float:
+        return 0.0
+
 class CircuitGenome(Genome):
     """Genome consisting of GateGenes acting on qubit wires in a defined order."""
 

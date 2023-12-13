@@ -26,7 +26,7 @@ class QuantumNEAT:
         self.best_energies = [best_genome.get_energy()]
         self.number_of_solutions = [sum([energy == self.optimal_energy for energy in self.get_energies()])]
         self.min_energies = [min(self.get_energies())]
-        self.best_genomes = [(self.population.generation, copy.deepcopy(best_genome))]
+        self.best_genomes:list[self.config.Genome] = [(self.population.generation, copy.deepcopy(best_genome))]
         self.average_fitnesses = [self.population.average_fitness]
         self.population_sizes = [len(self.population.population)]
         self.number_of_species = [len(self.population.species)]
@@ -56,8 +56,10 @@ class QuantumNEAT:
 
         while self.population.generation < max_generations:
             self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
-            self.run_generation()    
+            self.run_generation()
         self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
+        best_circuit_performance = self.best_genomes[-1].evaluate(N=1000)
+        self.logger.info(f"Best circuit performance: {best_circuit_performance}")
         self.logger.info(f"Finished running.")
 
     def get_energies(self):

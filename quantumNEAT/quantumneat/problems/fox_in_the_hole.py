@@ -8,6 +8,7 @@ from qiskit.circuit import Parameter
 
 from quantumneat.quant_lib_np import dtype, sz, Id, Z
 from quantumneat.problems.fox_in_a_hole_gym import FoxInAHolev2
+from quantumneat.problems.ising import add_encoding_layer as add_h_layer
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig, Circuit
@@ -46,8 +47,8 @@ def fitness(config, self:CircuitGenome, **kwargs):
     # self.logger.debug("fith fitness used")
     return 6-np.mean(get_multiple_returns(self.get_circuit()[0], self.config, 10))
 
-def energy(self, circuit, parameters, config, **kwargs):
-    return np.mean(get_multiple_returns(circuit, config, 100))
+def energy(self, circuit, parameters, config, N = 100, **kwargs):
+    return np.mean(get_multiple_returns(circuit, config, N))
 
 def choose_action(circuit:Circuit, env:FoxInAHolev2, env_state, len_state, n_holes, n_qubits):
     for i, param in enumerate(env_state):
@@ -77,6 +78,7 @@ def choose_action(circuit:Circuit, env:FoxInAHolev2, env_state, len_state, n_hol
     return env_state, reward, done
 
 def add_encoding_layer(config:QuantumNEATConfig, circuit:Circuit):
+    # add_h_layer(config, circuit)
     if config.simulator == "qiskit":
         circuit.rx(Parameter('enc_0'), 0)
         circuit.rx(Parameter('enc_1'), 1)

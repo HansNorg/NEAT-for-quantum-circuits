@@ -4,3 +4,5 @@
 *.npy
 *.npz
 *.svg
+*.png
+*.sh
