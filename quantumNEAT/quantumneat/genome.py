@@ -369,3 +369,11 @@ class CircuitGenome(Genome):
                     Genome.logger.error("Child did not add gene of parent.")
 
         return child
+
+    def get_parameters(self) -> list[float]:
+        parameters = np.array([])
+        # self.logger.debug(f"{self.genes.values()=}")
+        for gene in self.genes:
+            # self.logger.debug(f"{gene.get_parameters()=}")
+            parameters = np.append(parameters, gene.get_parameters())
+        return parameters

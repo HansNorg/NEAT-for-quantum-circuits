@@ -60,6 +60,7 @@ class QuantumNEAT:
         self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
         best_circuit_performance = self.best_genomes[-1][1].evaluate(N=1000)
         self.logger.info(f"Best circuit performance: {best_circuit_performance}")
+        self.logger.debug(f"Best circuit parameters: {self.best_genomes[-1][1].get_parameters()}")
         self.logger.info(f"Finished running.")
 
     def get_energies(self):
