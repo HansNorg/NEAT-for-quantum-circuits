@@ -7,7 +7,7 @@ import numpy as np
 from experiments.experimenter import Experimenter, MultipleRunExperimenter
 from quantumneat.implementations.linear_growth import LinearGrowthConfig as Config
 from quantumneat.problems.fox_in_the_hole import new_fitness, new_energy, add_encoding_layer
-EXPERIMENT_NAME = "linear_growth_fith"
+EXPERIMENT_NAME = "linear_growth_fith_new"
 
 def no_gradient(self, circuit, n_parameters, parameters, config):
     return 0

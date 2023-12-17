@@ -154,7 +154,7 @@ class FoxInAHolev2():
             state = np.roll(self.state, 1)
             state[0]=action
             self.state = state
-            done = True
+            done = False # Changed from True
         else:
             reward = -1
             state = np.roll(self.state, 1)

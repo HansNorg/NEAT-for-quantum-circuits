@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from time import time
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -28,14 +29,14 @@ def run_episode(circuit:Circuit, config:QuantumNEATConfig):
     max_steps = 6
     env = FoxInAHolev2(n_holes, max_steps, len_state)
     env_state = env.reset()
-    return_ = 0
+    return_ = 1
     for _ in range(max_steps):
         env_state, reward, done = choose_action(circuit, env, env_state, len_state, n_holes, config.n_qubits)
-        return_ += reward
         if done:
             break
+        return_ += 1 #reward
     # print(returns)
-    return -return_+1
+    return return_
 
 def get_multiple_returns(circuit, config, n_iterations = 100):
     returns = []
@@ -43,11 +44,11 @@ def get_multiple_returns(circuit, config, n_iterations = 100):
         returns.append(run_episode(circuit, config))
     return returns
 
-def fitness(config, self:CircuitGenome, **kwargs):
+def new_fitness(config, self:CircuitGenome, **kwargs):
     # self.logger.debug("fith fitness used")
     return 6-np.mean(get_multiple_returns(self.get_circuit()[0], self.config, 10))
 
-def energy(self, circuit, parameters, config, N = 100, **kwargs):
+def new_energy(self, circuit, parameters, config, N = 100, **kwargs):
     return np.mean(get_multiple_returns(circuit, config, N))
 
 def choose_action(circuit:Circuit, env:FoxInAHolev2, env_state, len_state, n_holes, n_qubits):
@@ -86,13 +87,154 @@ def add_encoding_layer(config:QuantumNEATConfig, circuit:Circuit):
         circuit.add_parametric_RX_gate(0, -1)
         circuit.add_parametric_RX_gate(1, -1)
 
+class FoxInAHoleExact:
+    def __init__(self, n_holes, max_guesses, memory_length = 2) -> None:
+        self.n_holes = n_holes
+        self.max_guesses = max_guesses
+        self.transfermatrix = np.array([[0.5 if abs(i-j) == 1 else 0 for i in range(n_holes)] for j in range(n_holes)])
+        self.transfermatrix[1,0] = 1
+        self.transfermatrix[-2, -1] = 1
+        self.initial_state = np.ones(n_holes)/n_holes 
+        self.memory_length = memory_length
+    
+    def reset(self):
+        """
+        Resets the environment.
+
+        Returns
+        -------
+            memory (np.array): numpy array with the last two made guesses.
+        """
+        # reset the environment to initial random state
+        self.state = self.initial_state.copy()
+        self.memory = -1*np.ones(int(self.memory_length)) #n previous picks encoding TODO talk to Jesse about this (angles are mod 2pi, does this make sense?)
+        self.guess_counter = 0
+        self.avg_steps = 0
+        return self.memory
+    
+    def step(self, action):
+        """"
+        Takes the agents guess as to where the fox is. Computes the average return it would get from this step.
+
+        Input:
+            actions (int): the number of the hole to check for the fox
+
+        Returns:
+            memory (np.array): numpy array with the last two made guesses (inlcuding the guess made with this functions call).
+            avg_reward (int): the average reward for the guess.
+            done (bool): True if the game is finished, False if not.
+            {} (?): Ignore this, its a remnant of the gym environment guidelines. 
+
+        """
+        done = self._update_state(action)
+        self.memory = np.roll(self.memory, 1)
+        self.memory[0] = action
+        return self.memory, self.avg_steps, done, {}
+    
+    def _update_state(self, action):
+        self.guess_counter += 1
+        self.avg_steps += self.state[action]*(self.guess_counter)
+        self.state[action] = 0
+        self.state = np.inner(self.transfermatrix,self.state)
+        if self.guess_counter == self.max_guesses:
+            self.avg_steps += np.sum(self.state)*(self.guess_counter + 1)
+            return True
+        return False
+    
+    def multiple_steps(self, actions:np.ndarray):
+        self.reset()
+        for action in actions:
+            self._update_state(action)
+        return self.avg_steps
+    
+def get_action(circuit:Circuit, memory, n_holes, n_qubits):
+    for i, param in enumerate(memory):
+        circuit.set_parameter(i, param)
+
+    state = QuantumState(n_qubits)
+    circuit.update_quantum_state(state)
+    psi = state.get_vector()
+    # operator = Zs(n_holes, len_state)
+    # expval = (np.conj(psi).T @ operator @ psi).real
+    # print(expval)
+
+    expvals = []
+    for i in range(n_holes):
+    # for i in range(len_state, 0, -1):
+        operator = Z(i, n_qubits)
+        expval = (np.conj(psi).T @ operator @ psi).real
+        expvals.append(expval)
+
+    # print(expvals)
+    action = np.argmax(expvals)
+    return action
+
+def new_fitness(config, self:CircuitGenome, **kwargs):
+    # self.logger.debug("fith new_fitness used")
+    n_qubits = self.config.n_qubits
+    n_holes = 5
+    len_state = 2
+    max_steps = 6
+    env = FoxInAHoleExact(n_holes, max_steps, len_state)
+    memory = env.reset()
+    circuit = self.get_circuit()[0]
+    done = False
+    while not done:
+        action = get_action(circuit, memory, n_holes, n_qubits)
+        memory, avg_steps, done, _ = env.step(action)
+    return max_steps-avg_steps+1
+
+def new_energy(self, circuit, parameters, config, **kwargs):
+    n_qubits = config.n_qubits
+    n_holes = 5
+    len_state = 2
+    max_steps = 6
+    env = FoxInAHoleExact(n_holes, max_steps, len_state)
+    memory = env.reset()
+    done = False
+    while not done:
+        action = get_action(circuit, memory, n_holes, n_qubits)
+        memory, avg_steps, done, _ = env.step(action)
+    return max_steps-avg_steps+1
+
+def brute_force_fith(n_holes, max_guesses):
+    def configurations(N):
+        if N == 1:
+            for i in range(n_holes):
+                yield [i]
+        else:
+            for configuration in configurations(N-1):
+                for i in range(n_holes):
+                    yield np.concatenate(([i], configuration))    
+
+    avgs = {}
+    starttime1 = time()
+    env = FoxInAHoleExact(n_holes, max_guesses)
+    for ind, guesses in enumerate(configurations(max_guesses)):
+        avgs[ind] = env.multiple_steps(guesses)
+        if ind%10000 == 0:
+            print(f"Strategy: {ind}", end="\r")
+    print(end="                                                                                                                   \r")
+    runtime1 = time()-starttime1
+    
+    min_performance = np.inf
+    min_configuration = []
+    for i, configuration in enumerate(configurations(max_guesses)):
+        if avgs[i] < min_performance:
+            min_performance = avgs[i]
+            min_configuration = configuration
+    print(f"{max_guesses}: {min_performance:.2f} {min_configuration}, {runtime1:.4f}, {ind}")
+
 if __name__ == "__main__":
+    # brute_force_fith(5, 6)
+    brute_force_fith(5, 10)
+    exit()
+
     from qulacs import ParametricQuantumCircuit
     from quantumneat.configuration import QuantumNEATConfig
     import pandas as pd
     import seaborn as sns
     import matplotlib.pyplot as plt
-    from time import time
     from scipy.optimize import minimize
 
     config = QuantumNEATConfig(5, 10)

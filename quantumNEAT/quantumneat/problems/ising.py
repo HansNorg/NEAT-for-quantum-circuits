@@ -43,9 +43,10 @@ def bruteforce_transverse_ising_hamiltonian(h_vec, J_vec):
         if n == 0:
             yield [-1]
             yield [1]
-        for configuration in configurations(n-1):
-            yield np.concatenate(([-1], configuration))
-            yield np.concatenate(([1], configuration))
+        else:
+            for configuration in configurations(n-1):
+                yield np.concatenate(([-1], configuration))
+                yield np.concatenate(([1], configuration))
     
     n_qubits = len(h_vec)
     best_energy = np.inf
