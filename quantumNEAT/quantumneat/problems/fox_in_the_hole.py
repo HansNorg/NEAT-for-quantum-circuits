@@ -184,6 +184,21 @@ def new_fitness(config, self:CircuitGenome, **kwargs):
         memory, avg_steps, done, _ = env.step(action)
     return max_steps-avg_steps+1
 
+def new_fitness_n_gates(config, self:CircuitGenome, **kwargs):
+    # self.logger.debug("fith new_fitness used")
+    n_qubits = self.config.n_qubits
+    n_holes = 5
+    len_state = 2
+    max_steps = 6
+    env = FoxInAHoleExact(n_holes, max_steps, len_state)
+    memory = env.reset()
+    circuit = self.get_circuit()[0]
+    done = False
+    while not done:
+        action = get_action(circuit, memory, n_holes, n_qubits)
+        memory, avg_steps, done, _ = env.step(action)
+    return max_steps-avg_steps+1+1/(len(self.genes)+1)
+
 def new_energy(self, circuit, parameters, config, **kwargs):
     n_qubits = config.n_qubits
     n_holes = 5
@@ -224,10 +239,11 @@ def brute_force_fith(n_holes, max_guesses):
             min_performance = avgs[i]
             min_configuration = configuration
     print(f"{max_guesses}: {min_performance:.2f} {min_configuration}, {runtime1:.4f}, {ind}")
+    # print(f"{min_performance}")
 
 if __name__ == "__main__":
-    # brute_force_fith(5, 6)
-    brute_force_fith(5, 10)
+    brute_force_fith(5, 6)
+    # brute_force_fith(5, 10)
     exit()
 
     from qulacs import ParametricQuantumCircuit
