@@ -7,22 +7,22 @@ import numpy as np
 from experiments.experimenter import Experimenter, MultipleRunExperimenter
 from quantumneat.implementations.linear_growth import LinearGrowthConfig as Config
 from quantumneat.implementations.linear_growth import LinearGrowthConfigSeparate as ConfigSeparate
-from quantumneat.problems.fox_in_the_hole import new_fitness, new_energy, add_encoding_layer
-EXPERIMENT_NAME = "linear_growth_fith_new"
+from quantumneat.problems.fox_in_the_hole import new_fitness_n_gates, new_energy, add_encoding_layer
+EXPERIMENT_NAME = "linear_growth_fith_fitness"
 
 def no_gradient(self, circuit, n_parameters, parameters, config):
     return 0
 
 @dataclass
 class FithConfig(Config):
-    fitness_function = new_fitness
+    fitness_function = new_fitness_n_gates
     encoding_layer = add_encoding_layer
     energy_function = new_energy
     gradient_function = no_gradient
 
 @dataclass
 class FithConfigSeparate(ConfigSeparate):
-    fitness_function = new_fitness
+    fitness_function = new_fitness_n_gates
     encoding_layer = add_encoding_layer
     energy_function = new_energy
     gradient_function = no_gradient

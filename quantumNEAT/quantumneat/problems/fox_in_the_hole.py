@@ -44,11 +44,11 @@ def get_multiple_returns(circuit, config, n_iterations = 100):
         returns.append(run_episode(circuit, config))
     return returns
 
-def new_fitness(config, self:CircuitGenome, **kwargs):
+def fitness(config, self:CircuitGenome, **kwargs):
     # self.logger.debug("fith fitness used")
     return 6-np.mean(get_multiple_returns(self.get_circuit()[0], self.config, 10))
 
-def new_energy(self, circuit, parameters, config, N = 100, **kwargs):
+def energy(self, circuit, parameters, config, N = 100, **kwargs):
     return np.mean(get_multiple_returns(circuit, config, N))
 
 def choose_action(circuit:Circuit, env:FoxInAHolev2, env_state, len_state, n_holes, n_qubits):
