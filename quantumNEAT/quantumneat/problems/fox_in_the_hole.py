@@ -195,7 +195,7 @@ def new_energy(self, circuit, parameters, config, **kwargs):
     while not done:
         action = get_action(circuit, memory, n_holes, n_qubits)
         memory, avg_steps, done, _ = env.step(action)
-    return max_steps-avg_steps+1
+    return avg_steps
 
 def brute_force_fith(n_holes, max_guesses):
     def configurations(N):
