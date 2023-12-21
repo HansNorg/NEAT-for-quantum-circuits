@@ -121,7 +121,7 @@ class Genome(ABC):
         -------
         - float: Gradient of the Genome.
         """
-        self.logger.debug("get_gradient")
+        # self.logger.debug("get_gradient")
         if self._update_gradient: 
             # Only update fitness if the Genome has changed,
             #  as fitness calculation can be costly.

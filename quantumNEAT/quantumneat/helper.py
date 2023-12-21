@@ -11,7 +11,7 @@ from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.quant_lib_np import Z, ZZ
-from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian, transverse_ising_hamilatonian, bruteforceLowestValue
+from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian, transverse_ising_hamilatonian, bruteforceLowestValue, exact_diagonalisation
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
@@ -222,7 +222,8 @@ def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConf
     total_gradient = 0
     
     if config.simulator == 'qulacs':
-        instance = ising_1d_instance(config.n_qubits, 0)
+        # instance = ising_1d_instance(config.n_qubits, 0)
+        instance = ising_1d_instance(config.n_qubits)
         # observable = classical_ising_hamilatonian(instance[0], instance[1]) #Z(0, config.n_qubits)
         observable = transverse_ising_hamilatonian(instance[0], instance[1])
         for ind in range(n_parameters):
@@ -247,17 +248,18 @@ def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConf
 def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
     if config.optimize_energy:
         if config.simulator == 'qulacs':
-            instance = ising_1d_instance(config.n_qubits, 0)
-            # instance = ising_1d_instance(config.n_qubits)
+            # instance = ising_1d_instance(config.n_qubits, 0)
+            instance = ising_1d_instance(config.n_qubits)
             # observable = classical_ising_hamilatonian(instance[0], instance[1])
-            # solution = bruteforceLowestValue(instance[0], instance[1])       
+            # solution = bruteforceLowestValue(instance[0], instance[1])[0]
             observable = transverse_ising_hamilatonian(instance[0], instance[1])
+            solution = exact_diagonalisation(observable)
             # observable = Z(0, config.n_qubits)
             def expectation_function(params):
                 return get_energy_qulacs(params, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
             result = minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
             # log_message = f"{solution=}, {result=}"
-            # result -= solution[0]
+            result -= solution
             # logger.debug(f"{log_message}, new {result=}")
             return result
         elif config.simulator == 'qiskit':

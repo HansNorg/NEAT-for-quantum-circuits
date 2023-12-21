@@ -17,6 +17,7 @@ qiskit-aer = "^0.12.2"
 qulacs = "^0.6.2"
 pyzx = "^0.7.3"
 pylatexenc = "^2.10"
+quimb = "^1.7.0"
 
 [build-system]
 requires = ["poetry-core"]

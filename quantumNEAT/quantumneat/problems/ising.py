@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import quimb as q
+from time import time
 
 from quantumneat.quant_lib_np import X, Z, ZZ
 
@@ -60,6 +62,10 @@ def bruteforce_transverse_ising_hamiltonian(h_vec, J_vec):
             best_configurations.append(configuration)
     return best_energy, best_configurations
 
+def exact_diagonalisation(H):
+    el, ev = q.eigh(H, k=1)
+    return el[0]
+
 def bruteforceLowestValue(h,j):
     def bool_to_state(integer):
     # Convert the 1/0 of a bit to +1/-1
@@ -102,10 +108,17 @@ def add_encoding_layer(config, circuit):
 if __name__ == "__main__":
     observable_h, observable_j = ising_1d_instance(5, seed = 0)
     print(observable_h, observable_j)
-    
+    H = classical_ising_hamilatonian(observable_h, observable_j)
+    print(np.shape(H))
+    starttime = time()
+    el, ev = q.eigh(H, k=1)
+    timediff = time() - starttime
+    print(el, ev.T, timediff)
+    starttime = time()
     exact_classical_energy, exact_classical_configurations = bruteforceLowestValue(observable_h,observable_j)
-    print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations])
-
+    timediff = time() - starttime
+    print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations], timediff)
+    
     # exact_classical_energy, exact_classical_configurations = bruteforce_transverse_ising_hamiltonian(observable_h,observable_j)
     # print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations])
 
