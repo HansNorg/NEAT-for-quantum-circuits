@@ -10,7 +10,7 @@ from qulacs import ParametricQuantumCircuit
 from quantumneat.helper import get_energy_qulacs
 # EXPERIMENT_NAME = "linear_growth_optimized"
 # EXPERIMENT_NAME = "linear_growth_optimized_energy_difference_positive"
-EXPERIMENT_NAME = "linear_growth_transverse_solution"
+EXPERIMENT_NAME = "linear_growth_transverse_solution_all_ones"
 @dataclass
 class OptConfig(Config):
     optimize_energy = True

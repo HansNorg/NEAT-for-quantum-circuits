@@ -13,9 +13,11 @@ def ising_1d_instance(n_qubits, seed = None):
         return [np.random.choice([+1, -1]) for _ in range(qubits)]
 
     # transverse field terms
-    h = rand1d(n_qubits)
-    # links between lines
-    j = rand1d(n_qubits-1)
+    # h = rand1d(n_qubits)
+    # # links between lines
+    # j = rand1d(n_qubits-1)
+    h = np.ones(n_qubits).tolist()
+    j = np.ones(n_qubits-1).tolist()
     return h, j
 
 def classical_ising_hamilatonian(h_vec, J_vec):

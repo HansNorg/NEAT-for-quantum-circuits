@@ -245,7 +245,7 @@ def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConf
             total_gradient += partial_gradient**2
     return total_gradient/n_parameters
 
-def get_energy(self, circuit, parameters, config:QuantumNEATConfig):
+def get_energy(self, circuit, parameters, config:QuantumNEATConfig, **kwargs):
     if config.optimize_energy:
         if config.simulator == 'qulacs':
             # instance = ising_1d_instance(config.n_qubits, 0)
