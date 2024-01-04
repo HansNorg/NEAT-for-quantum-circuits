@@ -367,7 +367,7 @@ class QNEAT_Config(QuantumNEATConfig):
     Genome = QNEAT_Genome
     gene_types:list[GateGene] = field(default_factory=lambda:[GateROT, GateCNOT])
     GlobalLayerNumber = GlobalLayerNumber()       
-    initial_layers:int = 1                              # num_initial_layers
+    initial_layers:int = 0                              # num_initial_layers
     disjoint_coefficient:float = 1                      # disjoint_coeff
     excess_coefficient:float = disjoint_coefficient     # (Excess and disjoint are not distinguished in original)
     weight_coefficient:float = 1                        # weight_coeff

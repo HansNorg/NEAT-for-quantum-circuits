@@ -1,11 +1,39 @@
+from __future__ import annotations
+
+from time import time
+from typing import TYPE_CHECKING
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import quimb as q
-from time import time
 
 from quantumneat.quant_lib_np import X, Z, ZZ
+from quantumneat.problems.problem import Problem
+
+if TYPE_CHECKING:
+    # from quantumneat.configuration import QuantumNEATConfig
+    from quantumneat.genome import Genome
+
+class ClassicalIsing(Problem):
+    def fitness(self, genome:Genome) -> float:
+        fitness_function = self.config.fitness_function
+        def default(**kwargs):
+            # self.logger.debug("Default fitness function")
+            gradient = self.gradient()
+            circuit_error = genome.get_circuit_error()
+            energy = self.energy(genome)
+            # return 1/(1+circuit_error)*gradient
+            return 1/(1+circuit_error)*(-energy)+gradient
+            # return 1/(1+circuit_error)-energy+gradient
+        if fitness_function == "Default":
+            self._fitness = default()
+        else:
+            self._fitness = fitness_function(self)
+    
+    def energy(self, genome:Genome) -> float:
+        return 0
 
 def ising_1d_instance(n_qubits, seed = None):
     def rand1d(qubits):
