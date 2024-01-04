@@ -50,14 +50,13 @@ class Experimenter:
     def run_default(self, n_generations, do_plot = False, do_print = True):
         self.logger.info(f"Running experiment {self.name}")
         starttime = time()
-        print(f"running experiment {self.name}")
-        # self.run_generations(n_generations)
-        # self.final_energies = self.quantumneat.get_energies()
-        # self.save_results()
-        # if do_plot:
-        #     self.plot_results()
-        # if do_print:
-        #     self.log_best_circuit()
+        self.run_generations(n_generations)
+        self.final_energies = self.quantumneat.get_energies()
+        self.save_results()
+        if do_plot:
+            self.plot_results()
+        if do_print:
+            self.log_best_circuit()
         runtime = time() - starttime
         self.logger.info(f"Experiment {self.name} finished in {runtime}.")
 
