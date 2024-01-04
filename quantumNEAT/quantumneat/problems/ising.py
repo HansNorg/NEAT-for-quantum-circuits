@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from time import time
 from typing import TYPE_CHECKING
+from abc import abstractmethod
 
 import numpy as np
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -11,12 +13,34 @@ import quimb as q
 
 from quantumneat.quant_lib_np import X, Z, ZZ
 from quantumneat.problems.problem import Problem
+from quantumneat.helper import get_energy_qulacs, energy_from_circuit
 
 if TYPE_CHECKING:
     # from quantumneat.configuration import QuantumNEATConfig
     from quantumneat.genome import Genome
 
-class ClassicalIsing(Problem):
+def ising_1d_instance(n_qubits, seed = None):
+        def rand1d(qubits):
+            np.random.seed(seed)
+            return [np.random.choice([+1, -1]) for _ in range(qubits)]
+
+        # transverse field terms
+        h = rand1d(n_qubits)
+        # links between lines
+        j = rand1d(n_qubits-1)
+        return h, j
+
+def exact_diagonalisation(H):
+    el, ev = q.eigh(H, k=1)
+    return el[0]
+
+class Ising(Problem):
+    def get_instance(self, seed = None) -> tuple[np.ndarray]:
+        if self.instance is None:
+            self.instance = np.ones(self.config.n_qubits).tolist(), np.ones(self.config.n_qubits-1).tolist()
+        return self.instance
+        # return ising_1d_instance(self.config.n_qubits, seed=seed)
+    
     def fitness(self, genome:Genome) -> float:
         fitness_function = self.config.fitness_function
         def default(**kwargs):
@@ -31,70 +55,73 @@ class ClassicalIsing(Problem):
             self._fitness = default()
         else:
             self._fitness = fitness_function(self)
-    
-    def energy(self, genome:Genome) -> float:
-        return 0
 
-def ising_1d_instance(n_qubits, seed = None):
-    def rand1d(qubits):
-        np.random.seed(seed)
-        return [np.random.choice([+1, -1]) for _ in range(qubits)]
-
-    # transverse field terms
-    # h = rand1d(n_qubits)
-    # # links between lines
-    # j = rand1d(n_qubits-1)
-    h = np.ones(n_qubits).tolist()
-    j = np.ones(n_qubits-1).tolist()
-    return h, j
-
-def classical_ising_hamilatonian(h_vec, J_vec):
-    n_qubits = len(h_vec)
-    H = 0
-
-    for iq in range(n_qubits -1):
-        H += h_vec[iq]*Z(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
-
-    H += h_vec[n_qubits-1] * Z(n_qubits-1, n_qubits)
-
-    return H
-
-def transverse_ising_hamilatonian(h_vec, J_vec):
-    n_qubits = len(h_vec)
-    H = 0
-
-    for iq in range(n_qubits -1):
-        H += h_vec[iq]*X(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
-
-    H += h_vec[n_qubits-1] * X(n_qubits-1, n_qubits)
-
-    return H
-
-def bruteforce_transverse_ising_hamiltonian(h_vec, J_vec):
-    def configurations(n):
-        if n == 0:
-            yield [-1]
-            yield [1]
+    def energy(self, circuit, parameters, no_optimization = False) -> float:
+        instance = self.get_instance()
+        hamiltonian = self.hamiltonian(instance[0], instance[1])
+        solution = exact_diagonalisation(hamiltonian)
+        if self.config.simulator == 'qulacs':
+            def expectation_function(params):
+                return get_energy_qulacs(
+                    params, hamiltonian, [], circuit, self.config.n_qubits, 0, 
+                    self.config.n_shots, self.config.phys_noise
+                )
+        elif self.config.simulator == 'qiskit':
+            #TODO check if correct
+            def expectation_function(params):
+                return energy_from_circuit(
+                    circuit, params, self.config.n_shots
+                )
         else:
-            for configuration in configurations(n-1):
-                yield np.concatenate(([-1], configuration))
-                yield np.concatenate(([1], configuration))
-    
-    n_qubits = len(h_vec)
-    best_energy = np.inf
-    best_configurations = []
-    for configuration in configurations(n_qubits):
-        current_energy = ... #TODO Is this possible?
-        if current_energy < best_energy:
-            best_energy = current_energy
-            best_configurations = [configuration]
-        elif current_energy == best_energy:
-            best_configurations.append(configuration)
-    return best_energy, best_configurations
+            raise NotImplementedError(f"Simulator type {self.config.simulator} not implemented.")
+        
+        if self.config.optimize_energy and not no_optimization:
+            expectation = minimize(
+                expectation_function,parameters, method="COBYLA", tol=1e-4, 
+                options={'maxiter':self.config.optimize_energy_max_iter}
+                ).fun
+        else:
+            expectation = expectation_function(parameters)
+        return expectation - solution
 
-def exact_diagonalisation(H):
-    el, ev = q.eigh(H, k=1)
-    return el[0]
+    @abstractmethod
+    @classmethod
+    def hamiltonian(h_vec, J_vec) -> list:
+        pass
+
+    def add_encoding_layer(self, circuit):
+        if self.config.simulator == "qiskit":
+            for qubit in range(self.config.n_qubits):
+                    circuit.h(qubit)
+        elif self.config.simulator == "qulacs":
+            for qubit in range(self.config.n_qubits):
+                    circuit.add_H_gate(qubit)
+
+class ClassicalIsing(Ising):
+    @classmethod
+    def hamiltonian(h_vec, J_vec):
+        n_qubits = len(h_vec)
+        H = 0
+
+        for iq in range(n_qubits -1):
+            H += h_vec[iq]*Z(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
+
+        H += h_vec[n_qubits-1] * Z(n_qubits-1, n_qubits)
+
+        return H
+
+class TransverseIsing(Ising):
+    @classmethod
+    def hamiltonian(h_vec, J_vec):
+        n_qubits = len(h_vec)
+        H = 0
+
+        for iq in range(n_qubits -1):
+            H += h_vec[iq]*X(iq, n_qubits) + J_vec[iq]*ZZ(iq, n_qubits)
+
+        H += h_vec[n_qubits-1] * X(n_qubits-1, n_qubits)
+
+        return H
 
 def bruteforceLowestValue(h,j):
     def bool_to_state(integer):
@@ -127,18 +154,10 @@ def qubit_to_spin(state):
         return 2*int(integer)-1
     return [bool_to_state(state[bit_value]) for bit_value in range(0,len(state))]
 
-def add_encoding_layer(config, circuit):
-    if config.simulator == "qiskit":
-        for qubit in range(config.n_qubits):
-                circuit.h(qubit)
-    elif config.simulator == "qulacs":
-        for qubit in range(config.n_qubits):
-                circuit.add_H_gate(qubit)
-
 if __name__ == "__main__":
     observable_h, observable_j = ising_1d_instance(5, seed = 0)
     print(observable_h, observable_j)
-    H = classical_ising_hamilatonian(observable_h, observable_j)
+    H = ClassicalIsing.hamiltonian(observable_h, observable_j)
     print(np.shape(H))
     starttime = time()
     el, ev = q.eigh(H, k=1)
