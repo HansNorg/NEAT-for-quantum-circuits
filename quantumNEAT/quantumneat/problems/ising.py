@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from abc import abstractmethod
 
 import numpy as np
+from quantumneat.configuration import QuantumNEATConfig
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -84,10 +85,15 @@ class Ising(Problem):
             expectation = expectation_function(parameters)
         return expectation - solution
 
+    @staticmethod
     @abstractmethod
-    @classmethod
     def hamiltonian(h_vec, J_vec) -> list:
         pass
+
+    def solution(self) -> float:
+        instance = self.get_instance()
+        hamiltonian = self.hamiltonian(instance[0], instance[1])
+        return q.eigh(hamiltonian, k=1)[0]
 
     def add_encoding_layer(self, circuit):
         if self.config.simulator == "qiskit":
@@ -98,7 +104,7 @@ class Ising(Problem):
                     circuit.add_H_gate(qubit)
 
 class ClassicalIsing(Ising):
-    @classmethod
+    @staticmethod
     def hamiltonian(h_vec, J_vec):
         n_qubits = len(h_vec)
         H = 0
@@ -111,7 +117,7 @@ class ClassicalIsing(Ising):
         return H
 
 class TransverseIsing(Ising):
-    @classmethod
+    @staticmethod
     def hamiltonian(h_vec, J_vec):
         n_qubits = len(h_vec)
         H = 0

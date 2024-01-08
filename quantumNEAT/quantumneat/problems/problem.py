@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from quantumneat.genome import Genome
 
 class Problem(ABC):
-    def __init__(self, config:QuantumNEATConfig) -> None:
+    def __init__(self, config:QuantumNEATConfig, **kwargs) -> None:
         self.config = config
 
     @abstractmethod

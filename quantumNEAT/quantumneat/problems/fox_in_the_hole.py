@@ -4,16 +4,70 @@ from time import time
 from typing import TYPE_CHECKING
 
 import numpy as np
+from quantumneat.configuration import QuantumNEATConfig
+from quantumneat.genome import Genome
 from qulacs import QuantumState
 from qiskit.circuit import Parameter
 
 from quantumneat.quant_lib_np import dtype, sz, Id, Z
+from quantumneat.problems.problem import Problem
 from quantumneat.problems.fox_in_a_hole_gym import FoxInAHolev2
 from quantumneat.problems.ising import add_encoding_layer as add_h_layer
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig, Circuit
     from quantumneat.genome import CircuitGenome
+
+class FoxInTheHole(Problem):
+    def __init__(self, config: QuantumNEATConfig, n_holes = 5, len_state = 2, max_steps = 6, **kwargs) -> None:
+        super().__init__(config)
+        self.env = FoxInAHoleExact(n_holes, max_steps, len_state)
+
+    def fitness(self, genome: Genome) -> float:
+        #TODO
+        fitness = self.env.max_guesses - self.energy(genome.get_circuit(),)
+        return fitness
+    
+    def energy(self, circuit, parameters, no_optimization=False) -> float:
+        memory = self.env.reset()
+        done = False
+        while not done:
+            action = self.get_action(circuit, memory)
+            memory, avg_steps, done, _ = self.env.step(action)
+        return avg_steps
+    
+    def add_encoding_layer(self, circuit):
+        if self.config.simulator == "qiskit":
+            circuit.rx(Parameter('enc_0'), 0)
+            circuit.rx(Parameter('enc_1'), 1)
+        elif self.config.simulator == "qulacs":
+            circuit.add_parametric_RX_gate(0, -1)
+            circuit.add_parametric_RX_gate(1, -1)
+    
+    def solution(self) -> float:
+        return brute_force_fith(self.env.n_holes, self.env.max_guesses)
+    
+    def get_action(self, circuit:Circuit, memory):
+        for i, param in enumerate(memory):
+            circuit.set_parameter(i, param)
+
+        state = QuantumState(self.config.n_qubits)
+        circuit.update_quantum_state(state)
+        psi = state.get_vector()
+        # operator = Zs(n_holes, len_state)
+        # expval = (np.conj(psi).T @ operator @ psi).real
+        # print(expval)
+
+        expvals = []
+        for i in range(self.env.n_holes):
+        # for i in range(len_state, 0, -1):
+            operator = Z(i, self.config.n_qubits)
+            expval = (np.conj(psi).T @ operator @ psi).real
+            expvals.append(expval)
+
+        # print(expvals)
+        action = np.argmax(expvals)
+        return action
 
 def Zs(n_Zs, n_qubits):
     U = np.array([1], dtype = dtype)
