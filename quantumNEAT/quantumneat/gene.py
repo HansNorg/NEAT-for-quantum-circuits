@@ -8,6 +8,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from quantumNEAT.quantumneat.configuration import QuantumNEATConfig, Circuit
+    from quantumneat.problem import Problem
     
 class Gene(ABC):
     """
@@ -20,7 +21,7 @@ class Gene(ABC):
     n_parameters:int = 0
     logger = logging.getLogger("quantumNEAT.quantumneat.Gene")
     
-    def __init__(self, innovation_number: int, config:QuantumNEATConfig, **kwargs) -> None:
+    def __init__(self, innovation_number: int, config:QuantumNEATConfig, problem:Problem, **kwargs) -> None:
         """
         Initialise the Gene.
 
@@ -31,6 +32,7 @@ class Gene(ABC):
         """
         self.innovation_number = innovation_number
         self.config = config
+        self.problem = problem
         self.parameters = config.parameter_amplitude*np.random.random(self.n_parameters)
 
     def mutate_parameters(self) -> bool:
@@ -88,7 +90,7 @@ class GateGene(Gene):
     """
     n_qubits:int
     
-    def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits:list[int], **kwargs) -> None:
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits:list[int], **kwargs) -> None:
         """
         Initialise the Gene.
 
@@ -98,7 +100,7 @@ class GateGene(Gene):
         - config: class with all the configuration settings of the algorithm.
         - qubits: list of qubits the gene acts on. (should have length n_qubits)
         """
-        super().__init__(innovation_number, config, **kwargs)
+        super().__init__(innovation_number, config, problem, **kwargs)
         self.qubits = qubits
         # self.qubits = qubits%self.config.n_qubits
 

@@ -17,10 +17,12 @@ from quantumneat.main import QuantumNEAT
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit
     from quantumneat.configuration import QuantumNEATConfig
+    from quantumneat.problem import Problem
 
 class Experimenter:
-    def __init__(self, name:str, config:QuantumNEATConfig, run:int = None, folder:str = "quantumneat", setup_logger = True) -> None:
+    def __init__(self, name:str, config:QuantumNEATConfig, problem:Problem, run:int = None, folder:str = "quantumneat", setup_logger = True) -> None:
         self.config = config
+        self.problem = problem
         self.name = name
         self.folder = folder
         if run is None:
@@ -32,7 +34,7 @@ class Experimenter:
             default_logger(True, extra_file_name=f"{name}_run{self.run}_")
         self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_run{self.run}")
         
-        self.quantumneat = QuantumNEAT(config)
+        self.quantumneat = QuantumNEAT(config, problem)
         self.final_energies = []
     
     def load_next_run_number(self, N = 1):
@@ -149,8 +151,9 @@ class Experimenter:
         self.config.simulator = backup
 
 class MultipleRunExperimenter:
-    def __init__(self, name:str, config:QuantumNEATConfig, folder:str = "quantumneat") -> None:
+    def __init__(self, name:str, config:QuantumNEATConfig, problem:Problem, folder:str = "quantumneat") -> None:
         self.config = config
+        self.problem = problem
         self.name = name
         self.folder = folder
         self.experimenters:list[Experimenter] = []
@@ -159,7 +162,7 @@ class MultipleRunExperimenter:
         self.logger = logging.getLogger(f"quantumNEAT.experiments.{name}_multiple_runs")
 
     def run_experiment(self, n_generations, do_plot = False, do_print = True):
-        experimenter = Experimenter(self.name, self.config, folder=self.folder, setup_logger=False)
+        experimenter = Experimenter(self.name, self.config, self.problem, folder=self.folder, setup_logger=False)
         experimenter.run_default(n_generations, do_plot, do_print)
         self.experimenters.append(experimenter)
 

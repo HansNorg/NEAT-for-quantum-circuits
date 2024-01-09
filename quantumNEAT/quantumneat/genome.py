@@ -11,6 +11,7 @@ from qulacs import ParametricQuantumCircuit
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig, Circuit
+    from quantumneat.problem import Problem
     from quantumneat.gene import Gene, GateGene
 
 class Genome(ABC):
@@ -19,7 +20,7 @@ class Genome(ABC):
     """
     logger = logging.getLogger("quantumNEAT.quantumneat.Genome")
     
-    def __init__(self, config:QuantumNEATConfig) -> None:
+    def __init__(self, config:QuantumNEATConfig, problem:Problem) -> None:
         """
         Initialise the Genome.
         
@@ -28,6 +29,7 @@ class Genome(ABC):
         - config: class with all the configuration settings of the algorithm.
         """
         self.config = config
+        self.problem = problem
         self._fitness = None
         self._update_fitness = True
         self._circuit = None
@@ -89,6 +91,7 @@ class Genome(ABC):
         """Update the fitness of the Genome."""
         # self.logger.debug("update_fitness")
         self._update_fitness = False
+        # self._fitness = self.problem.fitness(self)
         # self.logger.debug("fitness updated")
 
     def get_circuit(self) -> tuple[Circuit, int]:
@@ -211,7 +214,7 @@ class CircuitGenome(Genome):
             qubits = np.random.choice(range(self.config.n_qubits), 
                                         size = new_gene.n_qubits, replace=False).tolist()
             # self.logger.debug(f"{qubits=}")
-            new_gene = new_gene(innovation_number, config = self.config, 
+            new_gene = new_gene(innovation_number, config = self.config, problem = self.problem,
                                 qubits = qubits)
             if self.add_gene(new_gene):
                 break
@@ -307,7 +310,7 @@ class CircuitGenome(Genome):
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
         # Genome.logger.debug("crossover")
-        child = config.Genome(genome1.config)
+        child = config.Genome(genome1.config, genome1.problem)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"
         elif genome1.get_fitness() < genome2.get_fitness():

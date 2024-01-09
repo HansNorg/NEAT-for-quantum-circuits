@@ -11,12 +11,13 @@ import numpy as np
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
+    from quantumneat.problem import Problem
 
 class Population():
     """Keep and update a population of genomes."""
     logger = logging.getLogger("quantumNEAT.quantumneat.population")
     
-    def __init__(self, config:QuantumNEATConfig) -> None:
+    def __init__(self, config:QuantumNEATConfig, problem:Problem) -> None:
         """
         Initialise a population.
 
@@ -25,6 +26,7 @@ class Population():
         config: class with all the configuration settings of the algorithm.
         """
         self.config = config
+        self.problem = problem
         self.logger.debug(f"{self.config.number_of_cpus=}")
         self.generation:int = 0
         self.population = self.generate_initial_population()
@@ -35,7 +37,7 @@ class Population():
     def generate_initial_population(self) -> list[QuantumNEATConfig.Genome]:
         population = []
         for _ in range(self.config.population_size):
-            genome = self.config.Genome(self.config)
+            genome = self.config.Genome(self.config, self.problem)
             gene_type = np.random.choice(self.config.gene_types)
             qubits = np.random.choice(range(self.config.n_qubits), size=gene_type.n_qubits, replace=False).tolist()
             # self.logger.debug(f"{qubits=}; {type(qubits)=}")

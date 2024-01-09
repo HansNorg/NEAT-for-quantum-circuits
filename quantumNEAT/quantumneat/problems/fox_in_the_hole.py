@@ -10,7 +10,7 @@ from qulacs import QuantumState
 from qiskit.circuit import Parameter
 
 from quantumneat.quant_lib_np import dtype, sz, Id, Z
-from quantumneat.problems.problem import Problem
+from quantumneat.problem import Problem
 from quantumneat.problems.fox_in_a_hole_gym import FoxInAHolev2
 from quantumneat.problems.ising import add_encoding_layer as add_h_layer
 

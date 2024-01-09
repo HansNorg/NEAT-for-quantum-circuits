@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from abc import abstractmethod
 
 import numpy as np
+from numpy import ndarray
 from quantumneat.configuration import QuantumNEATConfig
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -13,7 +14,7 @@ import seaborn as sns
 import quimb as q
 
 from quantumneat.quant_lib_np import X, Z, ZZ
-from quantumneat.problems.problem import Problem
+from quantumneat.problem import Problem
 from quantumneat.helper import get_energy_qulacs, energy_from_circuit
 
 if TYPE_CHECKING:
@@ -37,10 +38,7 @@ def exact_diagonalisation(H):
 
 class Ising(Problem):
     def get_instance(self, seed = None) -> tuple[np.ndarray]:
-        if self.instance is None:
-            self.instance = np.ones(self.config.n_qubits).tolist(), np.ones(self.config.n_qubits-1).tolist()
-        return self.instance
-        # return ising_1d_instance(self.config.n_qubits, seed=seed)
+        return ising_1d_instance(self.config.n_qubits, seed=seed)
     
     def fitness(self, genome:Genome) -> float:
         fitness_function = self.config.fitness_function
@@ -87,12 +85,12 @@ class Ising(Problem):
 
     @staticmethod
     @abstractmethod
-    def hamiltonian(h_vec, J_vec) -> list:
+    def hamiltonian(instance) -> list:
         pass
 
     def solution(self) -> float:
         instance = self.get_instance()
-        hamiltonian = self.hamiltonian(instance[0], instance[1])
+        hamiltonian = self.hamiltonian(instance)
         return q.eigh(hamiltonian, k=1)[0]
 
     def add_encoding_layer(self, circuit):
@@ -105,7 +103,8 @@ class Ising(Problem):
 
 class ClassicalIsing(Ising):
     @staticmethod
-    def hamiltonian(h_vec, J_vec):
+    def hamiltonian(instance):
+        h_vec, J_vec = instance[0], instance[1]
         n_qubits = len(h_vec)
         H = 0
 
@@ -117,8 +116,31 @@ class ClassicalIsing(Ising):
         return H
 
 class TransverseIsing(Ising):
+    def __init__(self, config: QuantumNEATConfig, g = 1, **kwargs) -> None:
+        super().__init__(config, **kwargs)
+        self.g = g
+
+    def get_instance(self, seed=None) -> tuple[ndarray]:
+        if self.instance is None:
+            self.instance = self.config.n_qubits, self.g
+        return self.instance
+
     @staticmethod
-    def hamiltonian(h_vec, J_vec):
+    def hamiltonian(instance):
+        n_qubits = instance[0]
+        H = 0
+
+        for iq in range(n_qubits -1):
+            H += instance[1]*X(iq, n_qubits) + ZZ(iq, n_qubits)
+
+        H += instance[1] * X(n_qubits-1, n_qubits)
+
+        return H
+
+class LocalTransverseIsing(Ising):
+    @staticmethod
+    def hamiltonian(instance):
+        h_vec, J_vec = instance[0], instance[1]
         n_qubits = len(h_vec)
         H = 0
 
@@ -163,7 +185,7 @@ def qubit_to_spin(state):
 if __name__ == "__main__":
     observable_h, observable_j = ising_1d_instance(5, seed = 0)
     print(observable_h, observable_j)
-    H = ClassicalIsing.hamiltonian(observable_h, observable_j)
+    H = ClassicalIsing.hamiltonian((observable_h, observable_j))
     print(np.shape(H))
     starttime = time()
     el, ev = q.eigh(H, k=1)

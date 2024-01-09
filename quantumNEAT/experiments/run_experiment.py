@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from experiments.experimenter import Experimenter, MultipleRunExperimenter
 from quantumneat.implementations.linear_growth import LinearGrowthConfig, LinearGrowthConfigSeparate
 from quantumneat.implementations.qneat import QNEAT_Config
+from quantumneat.problems import ising, fox_in_the_hole
 
 def main(args:Namespace, unknown:list[str]):
     implementation = args.implementation.lower()
@@ -20,21 +21,22 @@ def main(args:Namespace, unknown:list[str]):
         raise NotImplementedError(f"Implementation {implementation} not found.")
     config = config(args.n_qubits, args.population_size, number_of_cpus=args.number_of_cpus)
         
-    problem = args.problem.lower()
-    if "cim" in problem or "classical_ising" in problem:
-        # config.fitness_function
-        # config.gradient_function
-        # config.energy_function
-        print("cim")
-    elif "tfim" in problem or "transverous_ising" in problem:
-        print("tfim")
-    elif "fith" in problem or "fox_in_the_hole" in problem:
-        print("fith")
+    problem_arg:str = args.problem.lower()
+    if "cim" in problem_arg or "classical_ising" in problem_arg:
+        problem = ising.ClassicalIsing(config)
+    elif "tfim" in problem_arg or "transverous_ising" in problem_arg:
+        if "g_" in problem_arg:
+            g = float(problem_arg.split("g_")[-1])
+        else:
+            g = 1
+        problem = ising.TransverseIsing(config, g)
+    elif "fith" in problem_arg or "fox_in_the_hole" in problem_arg:
+        problem = fox_in_the_hole.FoxInTheHole(config)
     else:
-        raise NotImplementedError(f"Problem {problem} not found.")
+        raise NotImplementedError(f"Problem {problem_arg} not found.")
     
     if args.name is None:
-        args.name = f"{problem}_{implementation}"
+        args.name = f"{problem_arg}_{implementation}"
     args.name += f"_{args.gate_set}_{args.n_qubits}-qubits_{args.population_size}-population"
     
     if args.optimizer_steps > 0:
@@ -44,10 +46,10 @@ def main(args:Namespace, unknown:list[str]):
 
     print(args.name)
     if args.n_runs > 0:
-        experimenter = MultipleRunExperimenter(args.name, config, folder=".")
+        experimenter = MultipleRunExperimenter(args.name, config, problem, folder=".")
         experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=True, do_plot_multiple=True, do_print=True)
     else:
-        experimenter = Experimenter(args.name, config, folder=".")
+        experimenter = Experimenter(args.name, config, problem, folder=".")
         experimenter.run_default(args.generations, do_plot=True, do_print=True)
     
 if __name__ == "__main__":

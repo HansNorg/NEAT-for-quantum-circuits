@@ -39,3 +39,14 @@ class Problem(ABC):
     
     def add_encoding_layer(self, circuit):
         pass
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        # cls = self.__class__
+        # result = cls.__new__(cls)
+        # memo[id(self)] = result
+        # for k, v in self.__dict__.items():
+        #     setattr(result, k, copy.deepcopy(v, memo))
+        return self

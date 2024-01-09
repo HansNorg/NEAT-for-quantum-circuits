@@ -14,12 +14,13 @@ from quantumneat.genome import CircuitGenome
 from quantumneat.problems.fox_in_the_hole import new_energy as fith_energy
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
+    from quantumneat.problem import Problem
 
 class GateCNOT(GateGene):
     n_qubits = 2
 
-    def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits: list[int], **kwargs) -> None:
-        super().__init__(innovation_number, config, qubits, **kwargs)
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits: list[int], **kwargs) -> None:
+        super().__init__(innovation_number, config, problem, qubits, **kwargs)
         # self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
         # self.logger.debug(f"{self.qubits=}")
 
@@ -148,4 +149,4 @@ class LinearGrowthConfigSeparate(QuantumNEATConfig):
 
 if __name__ == "__main__":
     config = LinearGrowthConfig(5, 10)
-    LinearGrowthGenome(config)
+    LinearGrowthGenome(config) # TODO add problem

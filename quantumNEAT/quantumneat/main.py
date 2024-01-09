@@ -4,16 +4,18 @@ import copy
 from qulacs import ParametricQuantumCircuit
 
 from quantumneat.configuration import QuantumNEATConfig
+from quantumneat.problem import Problem
 from quantumneat.problems.ising import bruteforceLowestValue, ising_1d_instance, exact_diagonalisation, classical_ising_hamilatonian, transverse_ising_hamilatonian
 
 class QuantumNEAT:
     logger = logging.getLogger("quantumNEAT.quantumneat.main")
-    def __init__(self, config:QuantumNEATConfig):
+    def __init__(self, config:QuantumNEATConfig, problem:Problem):
         self.config = config
+        self.problem = problem
 
         self.logger.info("QuantumNEAT Started")
 
-        self.population = self.config.Population(self.config)
+        self.population = self.config.Population(self.config, self.problem)
         best_genome = self.population.get_best_genome()
         self.best_fitness = best_genome.get_fitness()
 
@@ -72,10 +74,10 @@ class QuantumNEAT:
             energies.append(genome.get_energy())
         return energies
     
-def main():
-    settings = QuantumNEATConfig(3, 10)
-    quantum_neat = QuantumNEAT(settings)
-    quantum_neat.run()
+# def main():
+#     settings = QuantumNEATConfig(3, 10)
+#     quantum_neat = QuantumNEAT(settings) #TODO add problem
+#     quantum_neat.run()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

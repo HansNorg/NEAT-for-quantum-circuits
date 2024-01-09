@@ -11,7 +11,7 @@ class TestPopulation(unittest.TestCase):
     def test_population_size(self):
         n_population = 100
         config = LinearGrowthConfig(5, n_population)
-        population = Population(config)
+        population = Population(config)# TODO add problem
         self.assertEqual(len(population.population), n_population)
         for _ in range(100):
             with self.subTest("check_during_generations"):

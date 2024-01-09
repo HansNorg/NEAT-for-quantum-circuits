@@ -16,6 +16,7 @@ from qulacs import ParametricQuantumCircuit
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
     from quantumneat.implementations.qneat import QNEAT_Config
+    from quantumneat.problem import Problem
 
 class GlobalLayerNumber:
     '''
@@ -50,8 +51,8 @@ class InnovationTracker:            # Original: Gate/InnovTable
 class GateCNOT(GateGene):
     n_qubits = 2
 
-    def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits: list[int], **kwargs) -> None:
-        super().__init__(innovation_number, config, qubits, **kwargs)
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits: list[int], **kwargs) -> None:
+        super().__init__(innovation_number, config, problem, qubits, **kwargs)
         self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
         # self.logger.debug(f"{self.qubits=}")
 
@@ -88,8 +89,8 @@ class GateROT(GateGene):
 class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
 
-    def __init__(self, config:QNEAT_Config, ind:int) -> None:
-        super().__init__(ind, config, range(config.n_qubits))
+    def __init__(self, config:QNEAT_Config, problem:Problem, ind:int) -> None:
+        super().__init__(ind, config, problem, range(config.n_qubits))
         self.genes:dict[object, list] = {GateROT:[], GateCNOT:[]}
         self.ind = ind
 
@@ -150,7 +151,7 @@ class QNEAT_Genome(CircuitGenome):
                                         size = new_gene.n_qubits)
             if len(qubits) == 2:
                 qubits[1] = qubits[0] + 1
-            new_gene = new_gene(innovation_number, config = self.config, 
+            new_gene = new_gene(innovation_number, config = self.config, problem = self.problem,
                                 qubits = qubits)
             if self.add_gene(new_gene):
                 break
@@ -334,8 +335,8 @@ class QNEAT_Genome(CircuitGenome):
         return child
     
 class QNEAT_Population(Population):
-    def __init__(self, config: QNEAT_Config) -> None:
-        super().__init__(config)
+    def __init__(self, config: QNEAT_Config, problem:Problem) -> None:
+        super().__init__(config, problem)
         self.config:QNEAT_Config
 
     def generate_initial_population(self) -> list[QNEAT_Genome]:
