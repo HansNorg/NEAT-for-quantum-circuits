@@ -41,7 +41,7 @@ class Population():
             gene_type = np.random.choice(self.config.gene_types)
             qubits = np.random.choice(range(self.config.n_qubits), size=gene_type.n_qubits, replace=False).tolist()
             # self.logger.debug(f"{qubits=}; {type(qubits)=}")
-            gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, qubits)
+            gate = gene_type(self.config.GlobalInnovationNumber.next(), self.config, self.problem, qubits)
             genome.add_gene(gate)
             population.append(genome)
         

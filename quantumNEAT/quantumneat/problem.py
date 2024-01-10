@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
@@ -8,6 +9,7 @@ if TYPE_CHECKING:
     from quantumneat.genome import Genome
 
 class Problem(ABC):
+    logger = logging.getLogger("quantumNEAT.quantumneat.problem")
     def __init__(self, config:QuantumNEATConfig, **kwargs) -> None:
         self.config = config
 

@@ -6,31 +6,27 @@ from abc import abstractmethod
 
 import numpy as np
 from numpy import ndarray
-from quantumneat.configuration import QuantumNEATConfig
 from scipy.optimize import minimize
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 import quimb as q
 
 from quantumneat.quant_lib_np import X, Z, ZZ
 from quantumneat.problem import Problem
-from quantumneat.helper import get_energy_qulacs, energy_from_circuit
+from quantumneat.helper import get_energy_qulacs
 
 if TYPE_CHECKING:
-    # from quantumneat.configuration import QuantumNEATConfig
+    from quantumneat.configuration import QuantumNEATConfig
     from quantumneat.genome import Genome
 
 def ising_1d_instance(n_qubits, seed = None):
-        def rand1d(qubits):
-            np.random.seed(seed)
-            return [np.random.choice([+1, -1]) for _ in range(qubits)]
+    def rand1d(qubits):
+        np.random.seed(seed)
+        return [np.random.choice([+1, -1]) for _ in range(qubits)]
 
-        # transverse field terms
-        h = rand1d(n_qubits)
-        # links between lines
-        j = rand1d(n_qubits-1)
-        return h, j
+    # transverse field terms
+    h = rand1d(n_qubits)
+    # links between lines
+    j = rand1d(n_qubits-1)
+    return h, j
 
 def exact_diagonalisation(H):
     el, ev = q.eigh(H, k=1)
@@ -41,35 +37,26 @@ class Ising(Problem):
         return ising_1d_instance(self.config.n_qubits, seed=seed)
     
     def fitness(self, genome:Genome) -> float:
-        fitness_function = self.config.fitness_function
-        def default(**kwargs):
-            # self.logger.debug("Default fitness function")
-            gradient = self.gradient()
-            circuit_error = genome.get_circuit_error()
-            energy = self.energy(genome)
-            # return 1/(1+circuit_error)*gradient
-            return 1/(1+circuit_error)*(-energy)+gradient
-            # return 1/(1+circuit_error)-energy+gradient
-        if fitness_function == "Default":
-            self._fitness = default()
-        else:
-            self._fitness = fitness_function(self)
+        circuit, n_parameters = genome.get_circuit()
+        parameters = genome.get_parameters()
+        gradient = self.gradient(circuit, parameters, n_parameters)
+        circuit_error = genome.get_circuit_error()
+        energy = self.energy(circuit,parameters)
+        # return 1/(1+circuit_error)*gradient
+        # return 1/(1+circuit_error)*(-energy)+gradient
+        # fitness = 1/(1+circuit_error)-energy+gradient
+        # self.logger.debug(f"{gradient=},{circuit_error=},{energy=}, {fitness=}")
+        return 1/(1+circuit_error)-energy+gradient
 
     def energy(self, circuit, parameters, no_optimization = False) -> float:
         instance = self.get_instance()
-        hamiltonian = self.hamiltonian(instance[0], instance[1])
+        hamiltonian = self.hamiltonian(instance)
         solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
                     params, hamiltonian, [], circuit, self.config.n_qubits, 0, 
                     self.config.n_shots, self.config.phys_noise
-                )
-        elif self.config.simulator == 'qiskit':
-            #TODO check if correct
-            def expectation_function(params):
-                return energy_from_circuit(
-                    circuit, params, self.config.n_shots
                 )
         else:
             raise NotImplementedError(f"Simulator type {self.config.simulator} not implemented.")
@@ -81,6 +68,7 @@ class Ising(Problem):
                 ).fun
         else:
             expectation = expectation_function(parameters)
+        # return expectation
         return expectation - solution
 
     @staticmethod
@@ -88,10 +76,11 @@ class Ising(Problem):
     def hamiltonian(instance) -> list:
         pass
 
-    def solution(self) -> float:
-        instance = self.get_instance()
+    def solution(self, instance = None) -> float:
+        if instance is None:
+            instance = self.get_instance()
         hamiltonian = self.hamiltonian(instance)
-        return q.eigh(hamiltonian, k=1)[0]
+        return q.eigh(hamiltonian, k=1)[0][0]
 
     def add_encoding_layer(self, circuit):
         if self.config.simulator == "qiskit":
@@ -121,9 +110,7 @@ class TransverseIsing(Ising):
         self.g = g
 
     def get_instance(self, seed=None) -> tuple[ndarray]:
-        if self.instance is None:
-            self.instance = self.config.n_qubits, self.g
-        return self.instance
+        return self.config.n_qubits, self.g
 
     @staticmethod
     def hamiltonian(instance):
@@ -196,6 +183,9 @@ if __name__ == "__main__":
     timediff = time() - starttime
     print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations], timediff)
     
+    # import matplotlib.pyplot as plt
+    # import pandas as pd
+    # import seaborn as sns
     # exact_classical_energy, exact_classical_configurations = bruteforce_transverse_ising_hamiltonian(observable_h,observable_j)
     # print(exact_classical_energy, exact_classical_configurations, [qubit_to_spin(state) for state in exact_classical_configurations])
 

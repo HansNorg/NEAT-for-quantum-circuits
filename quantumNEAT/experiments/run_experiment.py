@@ -2,20 +2,20 @@ from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 
 from experiments.experimenter import Experimenter, MultipleRunExperimenter
-from quantumneat.implementations.linear_growth import LinearGrowthConfig, LinearGrowthConfigSeparate
-from quantumneat.implementations.qneat import QNEAT_Config
-from quantumneat.problems import ising, fox_in_the_hole
 
 def main(args:Namespace, unknown:list[str]):
     implementation = args.implementation.lower()
     if "linear_growth" in implementation:
         if args.gate_set == "ROT-CNOT":
+            from quantumneat.implementations.linear_growth import LinearGrowthConfig
             config = LinearGrowthConfig
         elif args.gate_set == "R-CNOT":
+            from quantumneat.implementations.linear_growth import LinearGrowthConfigSeparate
             config = LinearGrowthConfigSeparate
         else:
             raise NotImplementedError(f"Gateset {args.gate_set} not found.")
     elif "qneat" in implementation:
+        from quantumneat.implementations.qneat import QNEAT_Config
         config = QNEAT_Config
     else:
         raise NotImplementedError(f"Implementation {implementation} not found.")
@@ -23,15 +23,22 @@ def main(args:Namespace, unknown:list[str]):
         
     problem_arg:str = args.problem.lower()
     if "cim" in problem_arg or "classical_ising" in problem_arg:
-        problem = ising.ClassicalIsing(config)
+        from quantumneat.problems.ising import ClassicalIsing
+        problem = ClassicalIsing(config)
     elif "tfim" in problem_arg or "transverous_ising" in problem_arg:
+        from quantumneat.problems.ising import TransverseIsing
         if "g_" in problem_arg:
             g = float(problem_arg.split("g_")[-1])
         else:
             g = 1
-        problem = ising.TransverseIsing(config, g)
+        problem = TransverseIsing(config, g)
     elif "fith" in problem_arg or "fox_in_the_hole" in problem_arg:
-        problem = fox_in_the_hole.FoxInTheHole(config)
+        if "gates" in problem_arg:
+            from quantumneat.problems.fox_in_the_hole import FoxInTheHoleNGates
+            problem = FoxInTheHoleNGates(config)
+        else:
+            from quantumneat.problems.fox_in_the_hole import FoxInTheHole
+            problem = FoxInTheHole(config)
     else:
         raise NotImplementedError(f"Problem {problem_arg} not found.")
     

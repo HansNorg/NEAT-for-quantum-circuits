@@ -1,11 +1,9 @@
 import logging
 import copy
-
-from qulacs import ParametricQuantumCircuit
+from time import time
 
 from quantumneat.configuration import QuantumNEATConfig
 from quantumneat.problem import Problem
-from quantumneat.problems.ising import bruteforceLowestValue, ising_1d_instance, exact_diagonalisation, classical_ising_hamilatonian, transverse_ising_hamilatonian
 
 class QuantumNEAT:
     logger = logging.getLogger("quantumNEAT.quantumneat.main")
@@ -21,13 +19,14 @@ class QuantumNEAT:
 
         # For experimenting only
         self.best_fitnesses = [self.best_fitness]
-        instance = ising_1d_instance(self.config.n_qubits, 0)
+        # instance = ising_1d_instance(self.config.n_qubits, 0)
         # optimal_energy, optimal_configuration = bruteforceLowestValue(instance[0], instance[1])
         # self.logger.info(f"{optimal_energy=:.2f}, {optimal_configuration=}")
         # hamiltonian = classical_ising_hamilatonian(instance[0], instance[1])
-        hamiltonian = transverse_ising_hamilatonian(instance[0], instance[1])
-        optimal_energy = exact_diagonalisation(hamiltonian)
-        self.optimal_energy = optimal_energy
+        # hamiltonian = transverse_ising_hamilatonian(instance[0], instance[1])
+        # optimal_energy = exact_diagonalisation(hamiltonian)
+        self.optimal_energy = self.problem.solution()
+        self.logger.info(f"{self.optimal_energy=:.2f}")
         self.best_energies = [best_genome.get_energy()]
         self.number_of_solutions = [sum([energy == self.optimal_energy for energy in self.get_energies()])]
         self.min_energies = [min(self.get_energies())]
@@ -53,8 +52,10 @@ class QuantumNEAT:
         self.average_fitnesses.append(self.population.average_fitness)
         self.population_sizes.append(len(self.population.population))
         self.number_of_species.append(len(self.population.species))
+        starttime = time()
         self.number_of_solutions.append(sum([genome.get_energy() == self.optimal_energy for genome in self.population.population]))
         self.min_energies.append(min([genome.get_energy() for genome in self.population.population]))
+        self.logger.debug(f"run_generation things {time()-starttime}")
         
     def run(self, max_generations:int = 10):
         self.logger.info(f"Started running for {max_generations-self.population.generation} generations.")

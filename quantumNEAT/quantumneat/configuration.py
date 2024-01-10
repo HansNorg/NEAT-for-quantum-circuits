@@ -7,16 +7,15 @@ from quantumneat.population import Population
 from quantumneat.species import Species
 from quantumneat.genome import Genome
 from quantumneat.gene import Gene
-from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient, get_energy
-from quantumneat.problem import Problem
+from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit
     from qulacs import ParametricQuantumCircuit
     Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
 
-def no_encoding(config, circuit):
-    pass 
+# def no_encoding(config, circuit):
+#     pass 
 
 @dataclass
 class QuantumNEATConfig():
@@ -44,7 +43,7 @@ class QuantumNEATConfig():
     
     # Genome settings
     Genome = Genome
-    encoding_layer = no_encoding
+    # encoding_layer = no_encoding
     prob_weight_mutation:float = 0.8
     prob_weight_perturbation:float = 0.9
     perturbation_amplitude:float = 1
