@@ -41,7 +41,7 @@ class Ising(Problem):
         parameters = genome.get_parameters()
         gradient = self.gradient(circuit, parameters, n_parameters)
         circuit_error = genome.get_circuit_error()
-        energy = self.energy(circuit,parameters)
+        energy = genome.get_energy()
         # return 1/(1+circuit_error)*gradient
         # return 1/(1+circuit_error)*(-energy)+gradient
         # fitness = 1/(1+circuit_error)-energy+gradient
@@ -49,6 +49,7 @@ class Ising(Problem):
         return 1/(1+circuit_error)-energy+gradient
 
     def energy(self, circuit, parameters, no_optimization = False) -> float:
+        # self.logger.debug("Ising energy called", stacklevel=2)
         instance = self.get_instance()
         hamiltonian = self.hamiltonian(instance)
         solution = exact_diagonalisation(hamiltonian)
