@@ -1,20 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import logging
 
 import numpy as np
-from scipy.optimize import minimize
 from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit_aer import Aer, AerSimulator
 from qulacs import DensityMatrix, QuantumState
 from qulacs import ParametricQuantumCircuit
-
-from quantumneat.quant_lib_np import Z, ZZ
-from quantumneat.problems.ising import ising_1d_instance, classical_ising_hamilatonian, transverse_ising_hamilatonian, bruteforceLowestValue, exact_diagonalisation
-
-if TYPE_CHECKING:
-    from quantumneat.configuration import QuantumNEATConfig
 
 logger = logging.getLogger("quantumNEAT.quantumneat.helper")
 
@@ -55,6 +47,12 @@ class GlobalInnovationNumber:
         Should only be used in case of failed innovations.
         '''
         self._innovation_number -= 1
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
     
 class GlobalSpeciesNumber:
     '''
@@ -73,39 +71,46 @@ class GlobalSpeciesNumber:
         '''
         self._species_number += 1
         return self._species_number
+    
+    def __copy__(self):
+        return self
 
-def compute_expected_energy(counts,h,j):
-    '''
-    returns the expected energy of a circuit given the counts, the 1d-ising parameters h and j
-    '''
-    def bool_to_state(integer):
-        # Convert the 1/0 of a bit to +1/-1
-        return 2*int(integer)-1
-    # Get total energy of each count
-    r1=list(counts.keys())
-    r2=list(counts.values())
-    total_energy = 0
-    for k in range(0,len(r1)):
-        # r2[k] is the number of shots that have this result
-        # r1[k] is the result as qubits (like 0001)
-        # Energy of h
-        total_energy += sum([bool_to_state(r1[k][bit_value])*h[bit_value] for bit_value in range(0,len(r1[k]))])*r2[k]
-        # Energy of j
-        total_energy += sum([bool_to_state(r1[k][bit_value])*bool_to_state(r1[k][bit_value+1])*j[bit_value] for bit_value in range(0,len(j))])*r2[k]
-    # Divide over the total count(shots)
-    expectation_value = total_energy/sum(r2)
-    return expectation_value
+    def __deepcopy__(self, memo):
+        return self
 
-def energy_from_circuit(circuit:QuantumCircuit, parameters, shots, backend_simulator="local_qasm_simulator"):
-    bound_circuit = circuit.bind_parameters(parameters)
-    measurement_circuit = add_measurement(bound_circuit)
-    try:
-        backend_sim = AerSimulator.from_backend(backend_simulator)
-    except:
-        backend_sim = AerSimulator()
-    counts = backend_sim.run(transpile(measurement_circuit, backend_sim), shots=shots).result().get_counts()
-    h, j = ising_1d_instance(circuit.num_qubits, 0) # TODO Move, change seed
-    return compute_expected_energy(counts, h, j)
+# def compute_expected_energy(counts,h,j):
+#     '''
+#     returns the expected energy of a circuit given the counts, the 1d-ising parameters h and j
+#     '''
+#     def bool_to_state(integer):
+#         # Convert the 1/0 of a bit to +1/-1
+#         return 2*int(integer)-1
+#     # Get total energy of each count
+#     r1=list(counts.keys())
+#     r2=list(counts.values())
+#     total_energy = 0
+#     for k in range(0,len(r1)):
+#         # r2[k] is the number of shots that have this result
+#         # r1[k] is the result as qubits (like 0001)
+#         # Energy of h
+#         total_energy += sum([bool_to_state(r1[k][bit_value])*h[bit_value] for bit_value in range(0,len(r1[k]))])*r2[k]
+#         # Energy of j
+#         total_energy += sum([bool_to_state(r1[k][bit_value])*bool_to_state(r1[k][bit_value+1])*j[bit_value] for bit_value in range(0,len(j))])*r2[k]
+#     # Divide over the total count(shots)
+#     expectation_value = total_energy/sum(r2)
+#     return expectation_value
+
+# def energy_from_circuit(circuit:QuantumCircuit, parameters, shots, backend_simulator="local_qasm_simulator"):
+#     # bound_circuit = circuit.bind_parameters(parameters)
+#     # measurement_circuit = add_measurement(bound_circuit)
+#     # try:
+#     #     backend_sim = AerSimulator.from_backend(backend_simulator)
+#     # except:
+#     #     backend_sim = AerSimulator()
+#     # counts = backend_sim.run(transpile(measurement_circuit, backend_sim), shots=shots).result().get_counts()
+#     # h, j = ising_1d_instance(circuit.num_qubits, 0) # TODO Move, change seed
+#     # return compute_expected_energy(counts, h, j)
+#     return None #TODO Fix if needed
 
 def add_measurement(circuit: QuantumCircuit) -> QuantumCircuit:
     '''Mostly copied from Richard Middelkoop'''
@@ -215,64 +220,3 @@ def get_shot_noise(weights, n_shots):
         shot_noise +=(np.array(weights).real).T@np.random.normal(mu,sigma,len(weights))
         
     return shot_noise
-
-def get_gradient(self, circuit, n_parameters, parameters, config:QuantumNEATConfig):
-    if n_parameters == 0:
-        return 0 # Prevent division by 0
-    total_gradient = 0
-    
-    if config.simulator == 'qulacs':
-        # instance = ising_1d_instance(config.n_qubits, 0)
-        instance = ising_1d_instance(config.n_qubits)
-        # observable = classical_ising_hamilatonian(instance[0], instance[1]) #Z(0, config.n_qubits)
-        observable = transverse_ising_hamilatonian(instance[0], instance[1])
-        for ind in range(n_parameters):
-            temp = parameters[ind]
-            parameters[ind] += config.epsilon/2
-            partial_gradient = get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
-            parameters[ind] -= config.epsilon
-            partial_gradient -= get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
-            parameters[ind] = temp # Return the parameter to original value
-            total_gradient += partial_gradient**2
-    elif config.simulator == 'qiskit':
-        for ind in range(n_parameters):
-            temp = parameters[ind]
-            parameters[ind] += config.epsilon/2
-            partial_gradient = energy_from_circuit(circuit, parameters, config.n_shots)
-            parameters[ind] -= config.epsilon
-            partial_gradient -= energy_from_circuit(circuit, parameters, config.n_shots)
-            parameters[ind] = temp # Return the parameter to original value
-            total_gradient += partial_gradient**2
-    return total_gradient/n_parameters
-
-def get_energy(self, circuit, parameters, config:QuantumNEATConfig, **kwargs):
-    if config.optimize_energy:
-        if config.simulator == 'qulacs':
-            # instance = ising_1d_instance(config.n_qubits, 0)
-            instance = ising_1d_instance(config.n_qubits)
-            # observable = classical_ising_hamilatonian(instance[0], instance[1])
-            # solution = bruteforceLowestValue(instance[0], instance[1])[0]
-            observable = transverse_ising_hamilatonian(instance[0], instance[1])
-            solution = exact_diagonalisation(observable)
-            # observable = Z(0, config.n_qubits)
-            def expectation_function(params):
-                return get_energy_qulacs(params, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
-            result = minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
-            # log_message = f"{solution=}, {result=}"
-            result -= solution
-            # logger.debug(f"{log_message}, new {result=}")
-            return result
-        elif config.simulator == 'qiskit':
-            def expectation_function(params):
-                return energy_from_circuit(circuit, params, config.n_shots)
-            return minimize(expectation_function,parameters, method="COBYLA", tol=1e-4, options={'maxiter':config.optimize_energy_max_iter}).fun
-    else:
-        if config.simulator == 'qulacs':
-            instance = ising_1d_instance(config.n_qubits, 0)
-            # observable = classical_ising_hamilatonian(instance[0], instance[1])
-            observable = transverse_ising_hamilatonian(instance[0], instance[1])
-            # observable = Z(0, config.n_qubits)
-            return get_energy_qulacs(parameters, observable, [], circuit, config.n_qubits, 0, config.n_shots, config.phys_noise)
-        elif config.simulator == 'qiskit':
-            return energy_from_circuit(circuit, parameters, config.n_shots)
-    raise NotImplementedError(f"Simulator type {config.simulator} not implemented.")

@@ -17,8 +17,8 @@ class TestGene(unittest.TestCase):
     def test_get_distance(self):
         self.logger.debug("test_get_distance started")
         
-        gene1 = Gene(0, self.config)
-        gene2 = Gene(1, self.config)
+        gene1 = Gene(0, self.config, None) #TODO add problem
+        gene2 = Gene(1, self.config, None) #TODO add problem
         self.assertEqual(Gene.get_distance(gene1, gene2), (False, 0), 
                          "Distance between parameterless genes should equal 0 and not be included")
         
@@ -38,7 +38,7 @@ class TestGene(unittest.TestCase):
 
     def test_mutate_parameters(self):
         self.logger.debug("test_mutate_parameters started")
-        gene = Gene(0, self.config)
+        gene = Gene(0, self.config, None) #TODO add problem
 
         self.assertEqual(gene.mutate_parameters(), False)
 

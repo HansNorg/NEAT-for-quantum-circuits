@@ -11,6 +11,7 @@ from qulacs import ParametricQuantumCircuit
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig, Circuit
+    from quantumneat.problem import Problem
     from quantumneat.gene import Gene, GateGene
 
 class Genome(ABC):
@@ -19,7 +20,7 @@ class Genome(ABC):
     """
     logger = logging.getLogger("quantumNEAT.quantumneat.Genome")
     
-    def __init__(self, config:QuantumNEATConfig) -> None:
+    def __init__(self, config:QuantumNEATConfig, problem:Problem) -> None:
         """
         Initialise the Genome.
         
@@ -28,6 +29,7 @@ class Genome(ABC):
         - config: class with all the configuration settings of the algorithm.
         """
         self.config = config
+        self.problem = problem
         self._fitness = None
         self._update_fitness = True
         self._circuit = None
@@ -89,6 +91,7 @@ class Genome(ABC):
         """Update the fitness of the Genome."""
         # self.logger.debug("update_fitness")
         self._update_fitness = False
+        # self._fitness = self.problem.fitness(self)
         # self.logger.debug("fitness updated")
 
     def get_circuit(self) -> tuple[Circuit, int]:
@@ -187,12 +190,20 @@ class Genome(ABC):
 
     def evaluate(self, **kwargs) -> float:
         return 0.0
+    
+    def get_parameters(self) -> list[float]:
+        parameters = np.array([])
+        # self.logger.debug(f"{self.genes.values()=}")
+        for gene in self.genes:
+            # self.logger.debug(f"{gene.get_parameters()=}")
+            parameters = np.append(parameters, gene.get_parameters())
+        return parameters
 
 class CircuitGenome(Genome):
     """Genome consisting of GateGenes acting on qubit wires in a defined order."""
 
-    def __init__(self, config: QuantumNEATConfig) -> None:
-        super().__init__(config)
+    def __init__(self, config: QuantumNEATConfig, problem:Problem) -> None:
+        super().__init__(config, problem)
         self.genes:list[GateGene] = []
     
     def mutate(self):
@@ -211,7 +222,7 @@ class CircuitGenome(Genome):
             qubits = np.random.choice(range(self.config.n_qubits), 
                                         size = new_gene.n_qubits, replace=False).tolist()
             # self.logger.debug(f"{qubits=}")
-            new_gene = new_gene(innovation_number, config = self.config, 
+            new_gene = new_gene(innovation_number, config = self.config, problem = self.problem,
                                 qubits = qubits)
             if self.add_gene(new_gene):
                 break
@@ -232,19 +243,20 @@ class CircuitGenome(Genome):
 
     def update_fitness(self, **fitness_function_kwargs):
         super().update_fitness()
-        fitness_function = self.config.fitness_function
-        def default(**kwargs):
-            # self.logger.debug("Default fitness function")
-            gradient = self.get_gradient()
-            circuit_error = self.get_circuit_error()
-            energy = self.get_energy()
-            # return 1/(1+circuit_error)*gradient
-            return 1/(1+circuit_error)*(-energy)+gradient
-            # return 1/(1+circuit_error)-energy+gradient
-        if fitness_function == "Default":
-            self._fitness = default(**fitness_function_kwargs)
-        else:
-            self._fitness = fitness_function(self, **fitness_function_kwargs)
+        self._fitness = self.problem.fitness(self)
+        # fitness_function = self.config.fitness_function
+        # def default(**kwargs):
+        #     # self.logger.debug("Default fitness function")
+        #     gradient = self.get_gradient()
+        #     circuit_error = self.get_circuit_error()
+        #     energy = self.get_energy()
+        #     # return 1/(1+circuit_error)*gradient
+        #     return 1/(1+circuit_error)*(-energy)+gradient
+        #     # return 1/(1+circuit_error)-energy+gradient
+        # if fitness_function == "Default":
+        #     self._fitness = default(**fitness_function_kwargs)
+        # else:
+        #     self._fitness = fitness_function(self, **fitness_function_kwargs)
 
     # def update_gradient(self) -> float:
     #     super().update_gradient()
@@ -307,7 +319,7 @@ class CircuitGenome(Genome):
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
         # Genome.logger.debug("crossover")
-        child = config.Genome(genome1.config)
+        child = config.Genome(genome1.config, genome1.problem)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"
         elif genome1.get_fitness() < genome2.get_fitness():
@@ -369,11 +381,3 @@ class CircuitGenome(Genome):
                     Genome.logger.error("Child did not add gene of parent.")
 
         return child
-
-    def get_parameters(self) -> list[float]:
-        parameters = np.array([])
-        # self.logger.debug(f"{self.genes.values()=}")
-        for gene in self.genes:
-            # self.logger.debug(f"{gene.get_parameters()=}")
-            parameters = np.append(parameters, gene.get_parameters())
-        return parameters

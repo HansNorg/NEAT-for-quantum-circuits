@@ -7,15 +7,12 @@ from quantumneat.population import Population
 from quantumneat.species import Species
 from quantumneat.genome import Genome
 from quantumneat.gene import Gene
-from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber, get_gradient, get_energy
+from quantumneat.helper import GlobalInnovationNumber, GlobalSpeciesNumber
 
 if TYPE_CHECKING:
     from qiskit import QuantumCircuit
     from qulacs import ParametricQuantumCircuit
     Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
-
-def no_encoding(config, circuit):
-    pass 
 
 @dataclass
 class QuantumNEATConfig():
@@ -43,19 +40,18 @@ class QuantumNEATConfig():
     
     # Genome settings
     Genome = Genome
-    encoding_layer = no_encoding
     prob_weight_mutation:float = 0.8
     prob_weight_perturbation:float = 0.9
     perturbation_amplitude:float = 1
     prob_add_gene_mutation:float = 0.1
     max_add_gene_tries:int = 10
     simulator = 'qulacs' # 'qiskit'
-    fitness_function = "Default"
-    gradient_function = get_gradient
-    energy_function = get_energy
+
+    # Problem settings
     optimize_energy = False
     optimize_energy_max_iter = 100 # Ignored if optimize_energy == False
-
+    solution_margin = 10**-3
+    
     # Gene settings
     gene_types:list[Gene] = field(default_factory=list)
     parameter_amplitude: float = 2*np.pi
@@ -74,9 +70,4 @@ class QuantumNEATConfig():
         return self
 
     def __deepcopy__(self, memo):
-        # cls = self.__class__
-        # result = cls.__new__(cls)
-        # memo[id(self)] = result
-        # for k, v in self.__dict__.items():
-        #     setattr(result, k, copy.deepcopy(v, memo))
         return self

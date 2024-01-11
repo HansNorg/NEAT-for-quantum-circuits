@@ -4,17 +4,77 @@ from time import time
 from typing import TYPE_CHECKING
 
 import numpy as np
+from quantumneat.configuration import QuantumNEATConfig
+from quantumneat.genome import Genome
 from qulacs import QuantumState
 from qiskit.circuit import Parameter
 
 from quantumneat.quant_lib_np import dtype, sz, Id, Z
+from quantumneat.problem import Problem
 from quantumneat.problems.fox_in_a_hole_gym import FoxInAHolev2
-from quantumneat.problems.ising import add_encoding_layer as add_h_layer
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig, Circuit
-    from quantumneat.genome import CircuitGenome
 
+class FoxInTheHole(Problem):
+    def __init__(self, config: QuantumNEATConfig, n_holes = 5, len_state = 2, max_steps = 6, **kwargs) -> None:
+        super().__init__(config)
+        self.env = FoxInAHoleExact(n_holes, max_steps, len_state)
+
+    def fitness(self, genome:Genome) -> float:
+        circuit = genome.get_circuit()[0]
+        parameters = genome.get_parameters()
+        fitness = self.env.max_guesses - self.energy(circuit, parameters)
+        return fitness
+    
+    def energy(self, circuit:Circuit, parameters, no_optimization=False) -> float:
+        memory = self.env.reset()
+        done = False
+        while not done:
+            action = self.get_action(circuit, memory)
+            memory, avg_steps, done, _ = self.env.step(action)
+        return avg_steps
+    
+    def add_encoding_layer(self, circuit:Circuit):
+        if self.config.simulator == "qiskit":
+            circuit.rx(Parameter('enc_0'), 0)
+            circuit.rx(Parameter('enc_1'), 1)
+        elif self.config.simulator == "qulacs":
+            circuit.add_parametric_RX_gate(0, -1)
+            circuit.add_parametric_RX_gate(1, -1)
+    
+    def solution(self) -> float:
+        return brute_force_fith(self.env.n_holes, self.env.max_guesses)
+    
+    def get_action(self, circuit:Circuit, memory):
+        if self.config.simulator == 'qulacs':
+            for i, param in enumerate(memory):
+                circuit.set_parameter(i, param)
+
+            state = QuantumState(self.config.n_qubits)
+            circuit.update_quantum_state(state)
+            psi = state.get_vector()
+            # operator = Zs(n_holes, len_state)
+            # expval = (np.conj(psi).T @ operator @ psi).real
+            # print(expval)
+
+            expvals = []
+            for i in range(self.env.n_holes):
+            # for i in range(len_state, 0, -1):
+                operator = Z(i, self.config.n_qubits)
+                expval = (np.conj(psi).T @ operator @ psi).real
+                expvals.append(expval)
+
+            # print(expvals)
+            action = np.argmax(expvals)
+            return action
+        else:
+            raise NotImplementedError(f"Simulator type {self.config.simulator} not implemented.")
+
+class FoxInTheHoleNGates(FoxInTheHole):
+    def fitness(self, genome: Genome) -> float:
+        return super().fitness(genome)+1/(len(genome.genes)+1)
+    
 def Zs(n_Zs, n_qubits):
     U = np.array([1], dtype = dtype)
     for _ in range(n_Zs):
@@ -43,13 +103,6 @@ def get_multiple_returns(circuit, config, n_iterations = 100):
     for i in range(0, n_iterations):
         returns.append(run_episode(circuit, config))
     return returns
-
-def fitness(config, self:CircuitGenome, **kwargs):
-    # self.logger.debug("fith fitness used")
-    return 6-np.mean(get_multiple_returns(self.get_circuit()[0], self.config, 10))
-
-def energy(self, circuit, parameters, config, N = 100, **kwargs):
-    return np.mean(get_multiple_returns(circuit, config, N))
 
 def choose_action(circuit:Circuit, env:FoxInAHolev2, env_state, len_state, n_holes, n_qubits):
     for i, param in enumerate(env_state):
@@ -146,71 +199,6 @@ class FoxInAHoleExact:
         for action in actions:
             self._update_state(action)
         return self.avg_steps
-    
-def get_action(circuit:Circuit, memory, n_holes, n_qubits):
-    for i, param in enumerate(memory):
-        circuit.set_parameter(i, param)
-
-    state = QuantumState(n_qubits)
-    circuit.update_quantum_state(state)
-    psi = state.get_vector()
-    # operator = Zs(n_holes, len_state)
-    # expval = (np.conj(psi).T @ operator @ psi).real
-    # print(expval)
-
-    expvals = []
-    for i in range(n_holes):
-    # for i in range(len_state, 0, -1):
-        operator = Z(i, n_qubits)
-        expval = (np.conj(psi).T @ operator @ psi).real
-        expvals.append(expval)
-
-    # print(expvals)
-    action = np.argmax(expvals)
-    return action
-
-def new_fitness(config, self:CircuitGenome, **kwargs):
-    # self.logger.debug("fith new_fitness used")
-    n_qubits = self.config.n_qubits
-    n_holes = 5
-    len_state = 2
-    max_steps = 6
-    env = FoxInAHoleExact(n_holes, max_steps, len_state)
-    memory = env.reset()
-    circuit = self.get_circuit()[0]
-    done = False
-    while not done:
-        action = get_action(circuit, memory, n_holes, n_qubits)
-        memory, avg_steps, done, _ = env.step(action)
-    return max_steps-avg_steps+1
-
-def new_fitness_n_gates(config, self:CircuitGenome, **kwargs):
-    # self.logger.debug("fith new_fitness used")
-    n_qubits = self.config.n_qubits
-    n_holes = 5
-    len_state = 2
-    max_steps = 6
-    env = FoxInAHoleExact(n_holes, max_steps, len_state)
-    memory = env.reset()
-    circuit = self.get_circuit()[0]
-    done = False
-    while not done:
-        action = get_action(circuit, memory, n_holes, n_qubits)
-        memory, avg_steps, done, _ = env.step(action)
-    return max_steps-avg_steps+1+1/(len(self.genes)+1)
-
-def new_energy(self, circuit, parameters, config, **kwargs):
-    n_qubits = config.n_qubits
-    n_holes = 5
-    len_state = 2
-    max_steps = 6
-    env = FoxInAHoleExact(n_holes, max_steps, len_state)
-    memory = env.reset()
-    done = False
-    while not done:
-        action = get_action(circuit, memory, n_holes, n_qubits)
-        memory, avg_steps, done, _ = env.step(action)
-    return avg_steps
 
 def brute_force_fith(n_holes, max_guesses):
     def configurations(N):
@@ -240,6 +228,7 @@ def brute_force_fith(n_holes, max_guesses):
             min_configuration = configuration
     print(f"{max_guesses}: {min_performance:.2f} {min_configuration}, {runtime1:.4f}, {ind}")
     # print(f"{min_performance}")
+    return min_performance
 
 if __name__ == "__main__":
     brute_force_fith(5, 6)

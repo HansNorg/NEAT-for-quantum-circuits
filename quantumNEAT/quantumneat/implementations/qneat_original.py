@@ -15,6 +15,7 @@ from quantumneat.configuration import QuantumNEATConfig
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
     from quantumneat.implementations.qneat import QNEAT_Config
+    from quantumneat.problem import Problem
 
 class GlobalLayerNumber:
     '''
@@ -48,8 +49,8 @@ class InnovationTracker:            # Original: Gate/InnovTable
 
 class GateCNOT(GateGene):
     n_qubits = 2
-    def __init__(self, innovation_number: int, config: QuantumNEATConfig, qubits: list[int], **kwargs) -> None:
-        super().__init__(innovation_number, config, qubits, **kwargs)
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits: list[int], **kwargs) -> None:
+        super().__init__(innovation_number, config, problem, qubits, **kwargs)
         self.qubits = self.qubits%self.config.n_qubits
 
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
@@ -85,8 +86,8 @@ class GateROT(GateGene):
 class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
 
-    def __init__(self, config:QNEAT_Config, ind:int) -> None:
-        super().__init__(ind, config, qubits=[])
+    def __init__(self, config:QNEAT_Config, problem:Problem, ind:int) -> None:
+        super().__init__(ind, config, problem, qubits=[])
         self.genes:dict[object, list[GateGene]] = {GateROT:[], GateCNOT:[]}
         self.qubits:dict[object, list[int]] = {GateROT:[], GateCNOT:[]}
         self.ind = ind
@@ -141,13 +142,13 @@ class QNEAT_Genome(CircuitGenome):
             if gene_type == GateROT:
                 if layer.genes[GateCNOT]:
                     innovation_number = InnovationTracker.get_innovation(layer.ind, qubit, gene_type, self.config)
-                    new_gene = GateROT(innovation_number, self.config, [qubit])
+                    new_gene = GateROT(innovation_number, self.config, self.problem, [qubit])
                     gene_added = layer.add_gate(new_gene)
             elif gene_type == GateCNOT:
                 if layer.ind-1 in self.genes.keys():
                     if self.genes[layer.ind-1].genes[GateROT]:
                         innovation_number = InnovationTracker.get_innovation(layer.ind, qubit, gene_type, self.config)
-                        new_gene = GateCNOT(innovation_number, self.config, [qubit, qubit+1])
+                        new_gene = GateCNOT(innovation_number, self.config, self.problem, [qubit, qubit+1])
                         gene_added = layer.add_gate(new_gene)
         return gene_added
         
