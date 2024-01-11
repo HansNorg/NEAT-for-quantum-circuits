@@ -119,4 +119,14 @@ class GateGene(Gene):
         - Circuit: circuit the gate is added to.
         - int: amount of parameters in the circuit.
         """
-        return circuit, n_parameters        
+        return circuit, n_parameters    
+
+    def get_error(self) -> float:
+        """
+        Gives the error associated with the gate.
+
+        Returns
+        -------
+        - float: error associated with the gate.
+        """
+        return 0.2    

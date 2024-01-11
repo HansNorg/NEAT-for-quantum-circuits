@@ -151,7 +151,7 @@ class Genome(ABC):
         """
         # self.logger.debug("get_circuit_error")
         # self.logger.debug(len(self.genes)*0.2)
-        return len(self.genes)*0.2 #TODO
+        return sum((gene.get_error() for gene in self.genes))
 
     @staticmethod
     @abstractmethod
