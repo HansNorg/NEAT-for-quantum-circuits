@@ -111,7 +111,7 @@ class Population():
                     # self.logger.debug(f"new_population: {n_offspring=}; no crossover")
                     new_population.append(copy.deepcopy(random.choice(sorted_genomes))) # Possibility: choosing probability based on fitness , p = lambda genome: genome.get_fitness()))
                 # self.logger.debug(f"{new_population[-1]=}")
-                new_population[-1].mutate()#self.config.GlobalInnovationNumber, self.config.n_qubits)
+                new_population[-1].mutate()
             specie.empty()
         # print(n_offsprings)
         starttime = time.time()

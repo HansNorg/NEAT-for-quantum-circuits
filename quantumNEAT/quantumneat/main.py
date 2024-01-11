@@ -19,12 +19,6 @@ class QuantumNEAT:
 
         # For experimenting only
         self.best_fitnesses = [self.best_fitness]
-        # instance = ising_1d_instance(self.config.n_qubits, 0)
-        # optimal_energy, optimal_configuration = bruteforceLowestValue(instance[0], instance[1])
-        # self.logger.info(f"{optimal_energy=:.2f}, {optimal_configuration=}")
-        # hamiltonian = classical_ising_hamilatonian(instance[0], instance[1])
-        # hamiltonian = transverse_ising_hamilatonian(instance[0], instance[1])
-        # optimal_energy = exact_diagonalisation(hamiltonian)
         self.optimal_energy = self.problem.solution()
         self.logger.info(f"{self.optimal_energy=:.2f}")
         self.best_energies = [best_genome.get_energy()]
@@ -74,11 +68,3 @@ class QuantumNEAT:
         for genome in self.population.population:
             energies.append(genome.get_energy())
         return energies
-    
-# def main():
-#     settings = QuantumNEATConfig(3, 10)
-#     quantum_neat = QuantumNEAT(settings) #TODO add problem
-#     quantum_neat.run()
-
-# if __name__ == "__main__":
-#     main()

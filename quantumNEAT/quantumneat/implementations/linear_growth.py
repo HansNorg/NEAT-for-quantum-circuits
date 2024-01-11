@@ -108,7 +108,6 @@ class LinearGrowthGenome(CircuitGenome):
         elif self.config.simulator == "qulacs":
             circuit = ParametricQuantumCircuit(self.config.n_qubits)
             
-        # self.config.encoding_layer(circuit)
         self.problem.add_encoding_layer(circuit)
         for gene in self.genes:
             circuit, n_parameters = gene.add_to_circuit(circuit, n_parameters)
@@ -119,22 +118,14 @@ class LinearGrowthGenome(CircuitGenome):
         super().update_gradient()
         circuit, n_parameters = self.get_circuit()
         parameters = self.get_parameters()
-        # self.logger.debug(f"{n_parameters==len(parameters)=}; {parameters=}")
-        # self._gradient = self.config.gradient_function(circuit, n_parameters, 
-        #                                                parameters, self.config)
-        # self._energy = self.config.energy_function(circuit, parameters, self.config)
         self._gradient = self.problem.gradient(circuit,parameters,n_parameters)
         self._energy = self.problem.energy(circuit, parameters)
 
     def evaluate(self, N = 100, **kwargs):
         circuit, n_parameters = self.get_circuit()
         parameters = np.array([])
-        # self.logger.debug(f"{self.genes.values()=}")
         for gene in self.genes:
-            # self.logger.debug(f"{gene.get_parameters()=}")
             parameters = np.append(parameters, gene.get_parameters())
-        # return fith_energy(self.config, circuit, parameters, self.config, N=N)
-        # return self.config.energy_function(circuit, parameters, self.config, N=N)
         return self.problem.energy(circuit, parameters)
 
 @dataclass
@@ -146,7 +137,3 @@ class LinearGrowthConfig(QuantumNEATConfig):
 class LinearGrowthConfigSeparate(QuantumNEATConfig):
     gene_types:list[GateGene] = field(default_factory=lambda:[GateRx, GateRy, GateRz, GateCNOT])
     Genome = LinearGrowthGenome
-
-if __name__ == "__main__":
-    config = LinearGrowthConfig(5, 10)
-    LinearGrowthGenome(config) # TODO add problem

@@ -14,9 +14,6 @@ if TYPE_CHECKING:
     from qulacs import ParametricQuantumCircuit
     Circuit = TypeVar('Circuit', QuantumCircuit, ParametricQuantumCircuit)
 
-# def no_encoding(config, circuit):
-#     pass 
-
 @dataclass
 class QuantumNEATConfig():
     """
@@ -43,7 +40,6 @@ class QuantumNEATConfig():
     
     # Genome settings
     Genome = Genome
-    # encoding_layer = no_encoding
     prob_weight_mutation:float = 0.8
     prob_weight_perturbation:float = 0.9
     perturbation_amplitude:float = 1
@@ -74,9 +70,4 @@ class QuantumNEATConfig():
         return self
 
     def __deepcopy__(self, memo):
-        # cls = self.__class__
-        # result = cls.__new__(cls)
-        # memo[id(self)] = result
-        # for k, v in self.__dict__.items():
-        #     setattr(result, k, copy.deepcopy(v, memo))
         return self
