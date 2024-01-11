@@ -11,7 +11,6 @@ from qulacs import ParametricQuantumCircuit
 from quantumneat.configuration import QuantumNEATConfig
 from quantumneat.gene import GateGene
 from quantumneat.genome import CircuitGenome
-from quantumneat.problems.fox_in_the_hole import new_energy as fith_energy
 if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
     from quantumneat.problem import Problem
