@@ -200,7 +200,7 @@ class FoxInAHoleExact:
             self._update_state(action)
         return self.avg_steps
 
-def brute_force_fith(n_holes, max_guesses):
+def brute_force_fith(n_holes, max_guesses, do_print = False):
     def configurations(N):
         if N == 1:
             for i in range(n_holes):
@@ -215,18 +215,22 @@ def brute_force_fith(n_holes, max_guesses):
     env = FoxInAHoleExact(n_holes, max_guesses)
     for ind, guesses in enumerate(configurations(max_guesses)):
         avgs[ind] = env.multiple_steps(guesses)
-        if ind%10000 == 0:
+        if do_print and ind%10000 == 0:
             print(f"Strategy: {ind}", end="\r")
-    print(end="                                                                                                                   \r")
+    if do_print:
+        print(end="                                                                                                                       \r")
     runtime1 = time()-starttime1
     
-    min_performance = np.inf
-    min_configuration = []
-    for i, configuration in enumerate(configurations(max_guesses)):
-        if avgs[i] < min_performance:
-            min_performance = avgs[i]
-            min_configuration = configuration
-    print(f"{max_guesses}: {min_performance:.2f} {min_configuration}, {runtime1:.4f}, {ind}")
+    if do_print:
+        min_performance = np.inf
+        min_configuration = []
+        for i, configuration in enumerate(configurations(max_guesses)):
+            if avgs[i] < min_performance:
+                min_performance = avgs[i]
+                min_configuration = configuration
+        print(f"{max_guesses}: {min_performance:.2f} {min_configuration}, {runtime1:.4f}, {ind}")
+    else:
+        min_performance = min(avgs)
     # print(f"{min_performance}")
     return min_performance
 
