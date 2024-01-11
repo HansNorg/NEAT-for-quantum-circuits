@@ -86,12 +86,11 @@ class Genome(ABC):
             self.update_fitness()
         return self._fitness
     
-    @abstractmethod
     def update_fitness(self):
         """Update the fitness of the Genome."""
         # self.logger.debug("update_fitness")
         self._update_fitness = False
-        # self._fitness = self.problem.fitness(self)
+        self._fitness = self.problem.fitness(self)
         # self.logger.debug("fitness updated")
 
     def get_circuit(self) -> tuple[Circuit, int]:
@@ -228,44 +227,6 @@ class CircuitGenome(Genome):
                 break
         else:
             self.config.GlobalInnovationNumber.previous()
-
-    # def update_circuit(self):
-    #     super().update_circuit()
-    #     n_parameters = 0
-    #     if self.config.simulator == "qiskit":
-    #         circuit = QuantumCircuit(QuantumRegister(self.config.n_qubits))
-    #     elif self.config.simulator == "qulacs":
-    #         circuit = ParametricQuantumCircuit(self.config.n_qubits)
-    #     for gene in self.genes:
-    #         circuit, n_parameters = gene.add_to_circuit(circuit, n_parameters)
-    #     self._circuit = circuit
-    #     self._n_circuit_parameters = n_parameters
-
-    def update_fitness(self, **fitness_function_kwargs):
-        super().update_fitness()
-        self._fitness = self.problem.fitness(self)
-        # fitness_function = self.config.fitness_function
-        # def default(**kwargs):
-        #     # self.logger.debug("Default fitness function")
-        #     gradient = self.get_gradient()
-        #     circuit_error = self.get_circuit_error()
-        #     energy = self.get_energy()
-        #     # return 1/(1+circuit_error)*gradient
-        #     return 1/(1+circuit_error)*(-energy)+gradient
-        #     # return 1/(1+circuit_error)-energy+gradient
-        # if fitness_function == "Default":
-        #     self._fitness = default(**fitness_function_kwargs)
-        # else:
-        #     self._fitness = fitness_function(self, **fitness_function_kwargs)
-
-    # def update_gradient(self) -> float:
-    #     super().update_gradient()
-    #     circuit, n_parameters = self.get_circuit()
-    #     parameters = np.array([])
-    #     for gene in self.genes:
-    #         parameters = np.append(parameters, gene.parameters)
-    #     self._gradient = self.config.gradient_function(circuit, n_parameters, 
-    #                                                    parameters, self.config)
 
     @staticmethod
     def compatibility_distance(genome1:Genome, genome2:Genome, config:QuantumNEATConfig):
