@@ -46,10 +46,10 @@ class QuantumNEAT:
         self.average_fitnesses.append(self.population.average_fitness)
         self.population_sizes.append(len(self.population.population))
         self.number_of_species.append(len(self.population.species))
-        starttime = time()
+        # starttime = time()
         self.number_of_solutions.append(sum([genome.get_energy() == self.optimal_energy for genome in self.population.population]))
         self.min_energies.append(min([genome.get_energy() for genome in self.population.population]))
-        self.logger.debug(f"run_generation things {time()-starttime}")
+        # self.logger.debug(f"run_generation things {time()-starttime}")
         
     def run(self, max_generations:int = 10):
         self.logger.info(f"Started running for {max_generations-self.population.generation} generations.")

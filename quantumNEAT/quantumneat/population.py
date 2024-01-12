@@ -119,14 +119,17 @@ class Population():
         if (self.config.number_of_cpus is None) or (self.config.number_of_cpus > 0):
             p = mp.Pool(processes=self.config.number_of_cpus)
             chunks = len(new_population)/self.config.number_of_cpus
-            p.map_async(self.update_fitness, new_population, chunksize=int(chunks))
+            p.map_async(self.update_fitness, new_population, chunksize=int(np.ceil(chunks)))
             p.close()
         else:
             for pop in new_population:
                 pop.get_fitness()
         difference = time.time() - starttime
         self.logger.debug(f"Time to update fitnesses = {difference}")
-        return self.sort_genomes(new_population)
+        starttime2 = time.time()
+        sorted_genomes = self.sort_genomes(new_population)
+        self.logger.debug(f"Time to sort genomes = {time.time() - starttime2}")
+        return sorted_genomes
 
     def update_fitness(self, i:QuantumNEATConfig.Genome):
         i.get_fitness()
@@ -150,7 +153,9 @@ class Population():
                 self.species.pop(ind) # Empty species
 
     def next_generation(self):
+        starttime = time.time()
         self.population = self.generate_new_population()
+        self.logger.debug(f"generate_new_population runtime = {time.time() - starttime}")
         self.update_avg_fitness()
         self.speciate()
         self.generation += 1

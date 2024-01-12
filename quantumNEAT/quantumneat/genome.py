@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister
-from qulacs import ParametricQuantumCircuit
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig, Circuit
