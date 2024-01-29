@@ -46,6 +46,7 @@ class QuantumNEATConfig():
     prob_add_gene_mutation:float = 0.1
     max_add_gene_tries:int = 10
     simulator = 'qulacs' # 'qiskit'
+    prevent_gate_duplication = False
 
     # Problem settings
     optimize_energy = False

@@ -202,6 +202,23 @@ class CircuitGenome(Genome):
     def __init__(self, config: QuantumNEATConfig, problem:Problem) -> None:
         super().__init__(config, problem)
         self.genes:list[GateGene] = []
+
+    def add_gene(self, gene: GateGene) -> bool:
+        if not self.config.prevent_gate_duplication:
+            return super().add_gene(gene) 
+        self.logger.debug(f"Checking for gene addition of {gene.__class__}, {gene.qubits}")
+        for existing_gene in reversed(self.genes):
+            self.logger.debug(f"Checking against {existing_gene.__class__}, {existing_gene.qubits}")
+            if not any(map(lambda v: v in existing_gene.qubits, gene.qubits)):
+                continue
+            if not isinstance(gene, existing_gene.__class__):
+                break
+            if all(existing_gene.qubits == gene.qubits):
+                self.logger.debug("Gene addition prevented")
+                return False
+            break
+        self.logger.debug("Gene added")
+        return super().add_gene(gene) 
     
     def mutate(self):
         # super().mutate() # Don't change the parameters in case of unsuccesful mutation
