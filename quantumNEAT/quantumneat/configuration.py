@@ -34,6 +34,8 @@ class QuantumNEATConfig():
     prob_mutation_without_crossover:float = 0.25
     specie_champion_size:int = 5
     percentage_survivors:float = 0.5
+    normalise_fitness:bool = False
+    force_population_size:bool = True
 
     # Species settings
     Species = Species

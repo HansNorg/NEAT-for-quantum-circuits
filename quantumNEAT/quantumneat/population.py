@@ -48,7 +48,7 @@ class Population():
         starttime = time.time()
         if (self.config.number_of_cpus is None) or (self.config.number_of_cpus > 0):
             p = mp.Pool(processes=self.config.number_of_cpus)
-            p.map_async(self.update_fitness, population)
+            p.map_async(self._update_fitness, population)
             p.close()
         else:
             for pop in population:
@@ -83,15 +83,37 @@ class Population():
         """Generate the next generation of the population by mutation and crossover."""
         # self.logger.debug(f"{self.average_fitness =}")
         new_population:list[QuantumNEATConfig.Genome] = []
-        # n_offsprings = []
+        n_offsprings:list[float] = []
+        if self.config.normalise_fitness:
+            average_fitness = self.average_normalised_fitness
+            optional_normalisation = self.normalise
+        else:
+            average_fitness = self.average_fitness
+            def no_normalisation(fitnesses, update:bool = False):
+                return fitnesses
+            optional_normalisation = no_normalisation
         for specie in self.species:
+            specie_fitnesses = [genome.get_fitness() for genome in specie.genomes]
+            specie_fitnesses = optional_normalisation(specie_fitnesses)
+            specie_total_fitness = sum(specie_fitnesses)
+            n_offspring = specie_total_fitness/average_fitness
+            n_offsprings.append(n_offspring)
+        
+        if self.config.force_population_size:
+            n_offsprings = n_offsprings/sum(n_offsprings)*self.config.population_size
+        n_offsprings:list[int] = [int(x) for x in np.round(n_offsprings, decimals=0)]
+        self.logger.debug(f"Sum n_offsprings = {sum(n_offsprings)}")
+
+
+        # for specie in self.species:
+        for n_offspring, specie in zip(n_offsprings, self.species):
             # total_specie_fitness = np.sum([genome.get_fitness() for genome in specie.genomes])
             # n_offspring = round(total_specie_fitness/self.average_fitness)
             # print(f"{total_specie_fitness=}, {self.average_fitness=}, {n_offspring=}")
-            specie_fitnesses = [genome.get_fitness() for genome in specie.genomes]
-            specie_normalised_fitnesses = self.normalise(specie_fitnesses)
-            total_specie_normalised_fitness = np.sum(specie_normalised_fitnesses)
-            n_offspring = round(total_specie_normalised_fitness/self.average_normalised_fitness)
+            # specie_fitnesses = [genome.get_fitness() for genome in specie.genomes]
+            # specie_normalised_fitnesses = self.normalise(specie_fitnesses)
+            # total_specie_normalised_fitness = np.sum(specie_normalised_fitnesses)
+            # n_offspring = round(total_specie_normalised_fitness/self.average_normalised_fitness)
             # print(f"{total_specie_fitness=:.2f}, {self.average_fitness=:.2f}, {total_specie_normalised_fitness=:.2f}, {self.average_normalised_fitness=:.2f}, {n_offspring}")
             # n_offsprings.append(n_offspring)
             cutoff = int(np.ceil(self.config.percentage_survivors * len(specie.genomes)))
@@ -119,7 +141,7 @@ class Population():
         if (self.config.number_of_cpus is None) or (self.config.number_of_cpus > 0):
             p = mp.Pool(processes=self.config.number_of_cpus)
             chunks = len(new_population)/self.config.number_of_cpus
-            p.map_async(self.update_fitness, new_population, chunksize=int(np.ceil(chunks)))
+            p.map_async(self._update_fitness, new_population, chunksize=int(np.ceil(chunks)))
             p.close()
         else:
             for pop in new_population:
@@ -131,7 +153,7 @@ class Population():
         self.logger.debug(f"Time to sort genomes = {time.time() - starttime2}")
         return sorted_genomes
 
-    def update_fitness(self, i:QuantumNEATConfig.Genome):
+    def _update_fitness(self, i:QuantumNEATConfig.Genome):
         i.get_fitness()
     
     def speciate(self):
