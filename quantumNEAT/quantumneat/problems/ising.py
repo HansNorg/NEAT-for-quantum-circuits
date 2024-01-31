@@ -3,6 +3,8 @@ from __future__ import annotations
 from time import time
 from typing import TYPE_CHECKING
 from abc import abstractmethod
+import warnings
+warnings.filterwarnings("ignore", "Couldn't import `kahypar` - skipping from default hyper optimizer and using basic `labels` method instead.")
 
 import numpy as np
 from numpy import ndarray

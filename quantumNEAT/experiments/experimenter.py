@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore", "use_inf_as_na")
 
 from quantumneat.logger import default_logger
 from quantumneat.main import QuantumNEAT

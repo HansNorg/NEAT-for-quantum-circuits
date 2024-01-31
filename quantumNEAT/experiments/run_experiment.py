@@ -51,10 +51,17 @@ def main(args:Namespace, unknown:list[str]):
         config.optimize_energy_max_iter = args.optimizer_steps
         args.name += f"_{args.optimizer_steps}-optimizer-steps"
 
+    if "no-force" in args.extra_info:
+        config.force_population_size = False
+        args.name += "_no-forced-population"
+    if "normalise" in args.extra_info:
+        config.normalise_fitness = True
+        args.name += "_normalised-fitness"
+        
     print(args.name)
     if args.n_runs > 0:
         experimenter = MultipleRunExperimenter(args.name, config, problem, folder=".")
-        experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=True, do_plot_multiple=True, do_print=True)
+        experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=False, do_plot_multiple=True, do_print=True)
     else:
         experimenter = Experimenter(args.name, config, problem, folder=".")
         experimenter.run_default(args.generations, do_plot=True, do_print=True)
@@ -71,5 +78,6 @@ if __name__ == "__main__":
     argparser.add_argument("-R", "--n_runs",            type=int, default=0,                          help="number of runs (<= 0) means 1 run, but no aggregation of results")
     argparser.add_argument("-cpus", "--number_of_cpus", type=int, default=-1,                         help="number of cpus to use")
     argparser.add_argument("-gates", "--gate_set",      type=str, default="ROT-CNOT", choices=["ROT-CNOT", "R-CNOT"], help="which gateset to use")
+    argparser.add_argument("-X", "--extra_info",        type=str, default="",                         help="Extra settings")
     args, unknown = argparser.parse_known_args()
     main(args, unknown)
