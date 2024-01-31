@@ -81,6 +81,7 @@ class Experimenter:
                 final_energies = self.final_energies,
                 number_of_solutions = self.quantumneat.number_of_solutions,
                 min_energies = self.quantumneat.min_energies,
+                specie_sizes = self.quantumneat.specie_sizes,
                 )
         # pickle.dump(best_genomes, folder+"/results/"+name+"best_genomes")
     

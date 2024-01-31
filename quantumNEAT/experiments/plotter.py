@@ -48,6 +48,17 @@ class SingleRunPlotter:
             return
         plt.plot(y, label=label)
 
+    def plot_species_contour(self):
+        try:
+            specie_sizes = self.data["specie_sizes"]
+        except Exception as exc_info:
+            if self.error_verbose == 1:
+                print(f"specie_sizes data not found for {self.name}_run{self.run}")
+            elif self.error_verbose >= 1:
+                print(exc_info)
+            return
+        print(specie_sizes)
+
     def plot_all(self, show = False, save = False):
         for key, title, name in GENERATION_DATA:
             plt.figure()

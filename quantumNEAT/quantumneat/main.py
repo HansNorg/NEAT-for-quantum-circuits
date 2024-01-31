@@ -28,6 +28,7 @@ class QuantumNEAT:
         self.average_fitnesses = [self.population.average_fitness]
         self.population_sizes = [len(self.population.population)]
         self.number_of_species = [len(self.population.species)]
+        self.specie_sizes = [[(specie.key, len(specie.genomes)) for specie in self.population.species]]
 
     def run_generation(self):
         # if self.config.simulator == 'qiskit':
@@ -50,6 +51,7 @@ class QuantumNEAT:
         self.number_of_solutions.append(sum([genome.get_energy() == self.optimal_energy for genome in self.population.population]))
         self.min_energies.append(min([genome.get_energy() for genome in self.population.population]))
         # self.logger.debug(f"run_generation things {time()-starttime}")
+        self.specie_sizes.append([(specie.key, len(specie.genomes)) for specie in self.population.species])
         
     def run(self, max_generations:int = 10):
         self.logger.info(f"Started running for {max_generations-self.population.generation} generations.")

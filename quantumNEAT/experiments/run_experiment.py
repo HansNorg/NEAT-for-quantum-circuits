@@ -57,6 +57,9 @@ def main(args:Namespace, unknown:list[str]):
     if "normalise" in args.extra_info:
         config.normalise_fitness = True
         args.name += "_normalised-fitness"
+    if "remove-stagnant" in args.extra_info:
+        config.remove_stagnant_species = True
+        args.name += "_remove-stagnant"
         
     print(args.name)
     if args.n_runs > 0:

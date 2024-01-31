@@ -36,18 +36,24 @@ class Species:
         self.last_improved = generation
         self.genomes:list[QuantumNEATConfig.Genome] = []
         self.representative = None
+        self.best_fitness = None
 
-    def update(self, representative:QuantumNEATConfig.Genome, genomes:list[QuantumNEATConfig.Genome]):
+    def update(self, representative:QuantumNEATConfig.Genome, genomes:list[QuantumNEATConfig.Genome], generation):
         """
         Replace the representative and genomes of the species by the given ones.
 
         Parameters
         ----------
         - representative: New representative for the species.
-        - genomes: New list of genomes belonging to the species.
+        - genomes: New list of genomes belonging to the species. 
+            (assumed to be sorted by fitness)
         """
         self.representative = representative
         self.genomes = genomes
+        best_fitness = genomes[0].get_fitness()
+        if self.best_fitness is None or best_fitness > self.best_fitness:
+            self.best_fitness = best_fitness
+            self.last_improved = generation
 
     def empty(self):
         """Remove all member genomes from the species."""
@@ -60,10 +66,11 @@ class Species:
         Parameters
         ----------
         - genome: Genome to be added.
+            (assumed to have lower fitness than the existing genomes)
         """
         self.genomes.append(genome)
 
-    def update_representative(self) -> bool:
+    def update_representative(self, generation) -> bool:
         """
         Update the representative of the species.
         
@@ -75,4 +82,13 @@ class Species:
         if len(self.genomes) == 0:
             return False
         self.representative = self.genomes[0]
+        best_fitness = self.genomes[0].get_fitness()
+        if self.best_fitness is None or best_fitness > self.best_fitness:
+            self.best_fitness = best_fitness
+            self.last_improved = generation
         return True
+    
+    def check_stagnant(self, generation):
+        if self.last_improved + self.config.stagnant_generation <= generation:
+            return True
+        return False
