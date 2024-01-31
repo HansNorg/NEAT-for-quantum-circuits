@@ -61,7 +61,7 @@ def main(args:Namespace, unknown:list[str]):
     print(args.name)
     if args.n_runs > 0:
         experimenter = MultipleRunExperimenter(args.name, config, problem, folder=".")
-        experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=True, do_plot_multiple=True, do_print=True)
+        experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=False, do_plot_multiple=True, do_print=True)
     else:
         experimenter = Experimenter(args.name, config, problem, folder=".")
         experimenter.run_default(args.generations, do_plot=True, do_print=True)
