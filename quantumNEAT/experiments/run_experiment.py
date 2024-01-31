@@ -61,10 +61,10 @@ def main(args:Namespace, unknown:list[str]):
     print(args.name)
     if args.n_runs > 0:
         experimenter = MultipleRunExperimenter(args.name, config, problem, folder=".")
-        experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=False, do_plot_multiple=True, do_print=True)
+        experimenter.run_multiple_experiments(args.n_runs, args.generations, do_plot_individual=False, do_plot_multiple=args.plot, do_print=True)
     else:
         experimenter = Experimenter(args.name, config, problem, folder=".")
-        experimenter.run_default(args.generations, do_plot=True, do_print=True)
+        experimenter.run_default(args.generations, do_plot=args.plot, do_print=True)
     
 if __name__ == "__main__":
     argparser = ArgumentParser()
@@ -78,6 +78,7 @@ if __name__ == "__main__":
     argparser.add_argument("-R", "--n_runs",            type=int, default=0,                          help="number of runs (<= 0) means 1 run, but no aggregation of results")
     argparser.add_argument("-cpus", "--number_of_cpus", type=int, default=-1,                         help="number of cpus to use")
     argparser.add_argument("-gates", "--gate_set",      type=str, default="ROT-CNOT", choices=["ROT-CNOT", "R-CNOT"], help="which gateset to use")
+    argparser.add_argument("--plot",                    action="store_true",                          help="Whether to plot the results")
     argparser.add_argument("-X", "--extra_info",        type=str, default="",                         help="Extra settings")
     args, unknown = argparser.parse_known_args()
     main(args, unknown)
