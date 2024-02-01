@@ -26,10 +26,11 @@ GENERATION_DATA = [
     ]
 
 class SingleRunPlotter:
-    def __init__(self, name:str, run:int, folder:str = ".", error_verbose = 1) -> None:
+    def __init__(self, name:str, run:int, folder:str = ".", verbose=0, error_verbose = 1) -> None:
         self.name = name
         self.run = run
         self.folder = folder
+        self.verbose = verbose
         self.error_verbose = error_verbose
         self.load_data()
         
@@ -159,12 +160,14 @@ class MultipleExperimentPlotter:
     def add_experiment(self, name, runs, label):
         self.experiments.append((MultipleRunPlotter(name, runs, self.folder, self.verbose, self.error_verbose), label))
 
-    def add_experiments(self, experiments, runs):
-        for name, label in experiments:
+    def add_experiments(self, experiments):
+        for name, runs, label in experiments:
             self.add_experiment(name, runs, label)
         
     def plot_all(self, show=False, save=False):
         extra_title = f" multiple experiments"
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
         for key, title, name in GENERATION_DATA:
             plt.figure()
             for experiment, label in self.experiments:
@@ -175,7 +178,6 @@ class MultipleExperimentPlotter:
             if show:
                 plt.show()
             if save:
-                os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
                 plt.savefig(f"{self.folder}\\figures\\{self.name}\\{key}.png")
             plt.close()
 
@@ -186,11 +188,15 @@ if __name__ == "__main__":
     # argparser.add_argument("implementation",            type=str, choices=["linear_growth", "qneat"], help="which implementation was used")
     # argparser.add_argument("--name",                    type=str,                                     help="experiment name")
     argparser.add_argument("name", type=str, help="What to plot")
-    argparser.add_argument("run", help="Which run(s) to plot")
+    argparser.add_argument("run", action="extend", nargs="+", help="Which run(s) to plot")
+    argparser.add_argument("--cluster", dest='folder', nargs='?', default=".", const=".\\cluster")
+    argparser.add_argument('--verbose', '-v', action='count', default=0)
     args = argparser.parse_args()
-    if args.run.isdigit():
-        plotter = SingleRunPlotter(args.name, args.run, error_verbose=1)
-    else:
-        plotter = MultipleRunPlotter(args.name, args.run, error_verbose=1)
-        plotter.plot_all(show=True)            plotter.plot_species_contour()
+    for run in args.run:
+        if run.isdigit():
+            plotter = SingleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
+            # plotter.plot_all(show=True)
+            plotter.plot_species_contour()
         else:
+            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
+            plotter.plot_all(show=True)

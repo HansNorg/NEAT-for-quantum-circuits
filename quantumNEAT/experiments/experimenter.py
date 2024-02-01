@@ -69,6 +69,7 @@ class Experimenter:
 
     def save_results(self):
         self.logger.info("linear_growth_experiment finished")
+        print(self.quantumneat.specie_sizes)
         os.makedirs(f"{self.folder}/results", exist_ok=True)
         np.savez(f"{self.folder}/results/{self.name}_run{self.run}_results",
                 config = self.config,

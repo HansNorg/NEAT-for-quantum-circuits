@@ -167,7 +167,7 @@ class Population():
                     found = True
                     break
             if not found:
-                new_species = self.config.Species(self.generation, self.config.GlobalSpeciesNumber.next())
+                new_species = self.config.Species(self.generation, self.config, self.config.GlobalSpeciesNumber.next())
                 new_species.update(genome, [genome], self.generation)
                 self.species.append(new_species)
         for ind, specie in enumerate(self.species):
