@@ -60,18 +60,29 @@ class SingleRunPlotter:
         print(specie_sizes)
 
     def plot_all(self, show = False, save = False):
-        for key, title, name in GENERATION_DATA:
-            plt.figure()
-            self.plot_vs_generations(key)
-            plt.title(title)
-            plt.xlabel("Generations")
-            plt.ylabel(name)
-            if show:
-                plt.show()
-            if save:
-                os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-                plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
-            plt.close()
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+        # for key, title, name in GENERATION_DATA:
+        #     plt.figure()
+        #     self.plot_vs_generations(key)
+        #     plt.title(title)
+        #     plt.xlabel("Generations")
+        #     plt.ylabel(name)
+        #     if show:
+        #         plt.show()
+        #     if save:
+        #         plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
+        #     plt.close()
+        plt.figure()
+        self.plot_species_contour()
+        plt.title("Specie evolution over generations")
+        plt.xlabel("Specie")
+        plt.ylabel("Generations")
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_specie_contour.png")
+
 
 class MultipleRunPlotter:
     def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:
@@ -179,7 +190,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     if args.run.isdigit():
         plotter = SingleRunPlotter(args.name, args.run, error_verbose=1)
-        plotter.plot_all(show=True)
     else:
         plotter = MultipleRunPlotter(args.name, args.run, error_verbose=1)
-        plotter.plot_all(show=True)
+        plotter.plot_all(show=True)            plotter.plot_species_contour()
+        else:
