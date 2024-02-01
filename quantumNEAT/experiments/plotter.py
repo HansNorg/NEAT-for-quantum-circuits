@@ -58,7 +58,31 @@ class SingleRunPlotter:
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        print(specie_sizes)
+        matrix = np.zeros(shape=(100, 3))
+        for generation, specie, size in specie_sizes:
+            matrix[generation-1][specie] = size
+        # print(matrix)
+        # print(matrix.T)
+        # print(specie_sizes)
+        # plt.contour(specie_sizes)
+        # plt.show()
+        # plt.contour(matrix)
+        # plt.show()
+        # plt.contour(matrix.T)
+        # plt.show()
+        new_matrix = matrix.T
+        new_matrix[1] += matrix.T[0]
+        new_matrix[2] += matrix.T[1]
+        # for i in range(2):
+        #     plt.plot(new_matrix[i])
+        # plt.show()
+        # plt.contour(new_matrix)
+        # plt.show()
+        plt.fill_between(x=range(0,50), y1=np.zeros(50), y2= new_matrix[0][:50])
+        plt.fill_between(x=range(50,100), y1=np.zeros(50), y2= new_matrix[0][50:])
+        plt.fill_between(x=range(0,100), y1=new_matrix[0], y2= new_matrix[1])
+        plt.fill_between(x=range(0,100), y1=new_matrix[1], y2= new_matrix[2])
+        plt.show()
 
     def plot_all(self, show = False, save = False):
         if save:
