@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import os
+from time import time
+from tqdm import tqdm
 from pathlib import Path
 from typing import TYPE_CHECKING
 import warnings
 warnings.filterwarnings("ignore", "use_inf_as_na")
 
 import numpy as np
+import matplotlib as mpl
+import matplotlib.colors as mplc
 import matplotlib.pyplot as plt 
 import pandas as pd
 import seaborn as sns
@@ -37,8 +41,8 @@ class SingleRunPlotter:
     def load_data(self):
         self.data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_results.npz", allow_pickle=True))
         self.config:QuantumNEATConfig = self.data.pop("config")
-    
-    def plot_vs_generations(self, key:str, label:str = None):
+
+    def _plot_vs_generations(self, key:str, label:str = None):
         try:
             y = self.data[key]
         except Exception as exc_info:
@@ -49,65 +53,97 @@ class SingleRunPlotter:
             return
         plt.plot(y, label=label)
 
-    def plot_species_contour(self):
+    def plot_vs_generations(self, key:str, title:str, name:str, show=False, save=False):
+        plt.figure()
+        self._plot_vs_generations(key)
+        plt.title(title)
+        plt.xlabel("Generations")
+        plt.ylabel(name)
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
+        plt.close()
+        
+    def _plot_species_evolution(self, sizes, colorscheme, line_color, n_generations, population_size, n_species):        
+        if type(colorscheme) is str:
+            colorscheme = [[colorscheme for _ in range(n_generations)] for _ in range(n_species)]
+        
+        for specie_ind in range(len(sizes)-1):
+            for i in range(len(sizes[specie_ind])-1):
+                plt.fill_between(x=[i+1, i+2], y1 = [sizes[specie_ind][i],sizes[specie_ind][i+1]], y2=[sizes[specie_ind+1][i], sizes[specie_ind+1][i+1]], color=colorscheme[specie_ind][i])
+
+        for i in range(len(sizes)-1):
+            plt.plot(range(1, n_generations+1), sizes[i+1], color=line_color)
+        plt.title("Specie evolution over generations")
+        plt.xlim(1, n_generations)
+        plt.xlabel("Generation")
+        plt.ylim(0, population_size)
+        plt.ylabel("Number of genomes in species")
+    
+    def plot_species_evolution(self, show=False, save=False):
         try:
-            specie_sizes = self.data["specie_sizes"]
+            species_data = self.data["species_data"]
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"specie_sizes data not found for {self.name}_run{self.run}")
+                print(f"species_data data not found for {self.name}_run{self.run}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        matrix = np.zeros(shape=(100, 3))
-        for generation, specie, size in specie_sizes:
-            matrix[generation-1][specie] = size
-        # print(matrix)
-        # print(matrix.T)
-        # print(specie_sizes)
-        # plt.contour(specie_sizes)
-        # plt.show()
-        # plt.contour(matrix)
-        # plt.show()
-        # plt.contour(matrix.T)
-        # plt.show()
-        new_matrix = matrix.T
-        new_matrix[1] += matrix.T[0]
-        new_matrix[2] += matrix.T[1]
-        # for i in range(2):
-        #     plt.plot(new_matrix[i])
-        # plt.show()
-        # plt.contour(new_matrix)
-        # plt.show()
-        plt.fill_between(x=range(0,50), y1=np.zeros(50), y2= new_matrix[0][:50])
-        plt.fill_between(x=range(50,100), y1=np.zeros(50), y2= new_matrix[0][50:])
-        plt.fill_between(x=range(0,100), y1=new_matrix[0], y2= new_matrix[1])
-        plt.fill_between(x=range(0,100), y1=new_matrix[1], y2= new_matrix[2])
-        plt.show()
+        n_generations = int(species_data.T[0].max())
+        n_species = int(species_data.T[1].max()) + 1
+
+        sizes = np.zeros(shape=(n_generations, n_species+1))
+        avg_fitnesses = np.zeros(shape=(n_generations, n_species))
+        best_fitnesses = np.zeros(shape=(n_generations, n_species))
+        for generation, specie, size, avg_fitness, best_fitness in species_data:
+            sizes[int(generation)-1][int(specie)+1] = int(size)
+            avg_fitnesses[int(generation)-1][int(specie)] = avg_fitness
+            best_fitnesses[int(generation)-1][int(specie)] = best_fitness
+        print(sizes)
+        population_size = int(sum(sizes[0]))
+        sizes = sizes.T
+        avg_fitnesses = avg_fitnesses.T
+        best_fitnesses = best_fitnesses.T
+        for i in range(len(sizes)-1):
+            sizes[i+1] += sizes[i]
+
+        plt.figure()
+        self._plot_species_evolution(sizes, 'black', 'white', n_generations, population_size, n_species)
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution.png")
+        plt.close()
+
+        colormap = mpl.colormaps.get_cmap('gray')
+
+        plt.figure()
+        normalise = mplc.Normalize(vmin=avg_fitnesses.min(), vmax=avg_fitnesses.max())
+        colorscheme = colormap(normalise(avg_fitnesses))
+        self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_avg_fitness.png")
+        plt.close()
+
+        plt.figure()
+        normalise = mplc.Normalize(vmin=best_fitnesses.min(), vmax=best_fitnesses.max())
+        colorscheme = colormap(normalise(best_fitnesses))
+        self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_best_fitness.png")
+        plt.close()
 
     def plot_all(self, show = False, save = False):
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-        # for key, title, name in GENERATION_DATA:
-        #     plt.figure()
-        #     self.plot_vs_generations(key)
-        #     plt.title(title)
-        #     plt.xlabel("Generations")
-        #     plt.ylabel(name)
-        #     if show:
-        #         plt.show()
-        #     if save:
-        #         plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
-        #     plt.close()
-        plt.figure()
-        self.plot_species_contour()
-        plt.title("Specie evolution over generations")
-        plt.xlabel("Specie")
-        plt.ylabel("Generations")
-        if show:
-            plt.show()
-        if save:
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_specie_contour.png")
-
+        for key, title, name in GENERATION_DATA:
+            self.plot_vs_generations(key, title, name, show, save)
+        self.plot_species_evolution()        
 
 class MultipleRunPlotter:
     def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:
@@ -147,7 +183,7 @@ class MultipleRunPlotter:
         # print(self.data)
         # print(self.data[GENERATION_DATA[0][0]].head())
     
-    def plot_vs_generations(self, key:str, label:str=None):
+    def _plot_vs_generations(self, key:str, label:str=None):
         try:
             data:pd.DataFrame = self.data[key]
         except Exception as exc_info:
@@ -162,7 +198,7 @@ class MultipleRunPlotter:
         extra_title = f" averaged over {self.n_runs} runs"
         for key, title, name in GENERATION_DATA:
             plt.figure()
-            self.plot_vs_generations(key)
+            self._plot_vs_generations(key)
             plt.title(title+extra_title)
             plt.xlabel("Generations")
             plt.ylabel(name)
@@ -195,7 +231,7 @@ class MultipleExperimentPlotter:
         for key, title, name in GENERATION_DATA:
             plt.figure()
             for experiment, label in self.experiments:
-                experiment.plot_vs_generations(key, label=f"{label}: {experiment.n_runs}")
+                experiment._plot_vs_generations(key, label=f"{label}: {experiment.n_runs}")
             plt.title(title+extra_title)
             plt.xlabel("Generations")
             plt.ylabel(name)
@@ -220,7 +256,7 @@ if __name__ == "__main__":
         if run.isdigit():
             plotter = SingleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
             # plotter.plot_all(show=True)
-            plotter.plot_species_contour()
+            plotter.plot_species_evolution(show=True)
         else:
             plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
             plotter.plot_all(show=True)

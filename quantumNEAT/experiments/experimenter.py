@@ -69,7 +69,7 @@ class Experimenter:
 
     def save_results(self):
         self.logger.info("linear_growth_experiment finished")
-        print(self.quantumneat.specie_sizes)
+        print(self.quantumneat.species_data)
         os.makedirs(f"{self.folder}/results", exist_ok=True)
         np.savez(f"{self.folder}/results/{self.name}_run{self.run}_results",
                 config = self.config,
@@ -82,7 +82,7 @@ class Experimenter:
                 final_energies = self.final_energies,
                 number_of_solutions = self.quantumneat.number_of_solutions,
                 min_energies = self.quantumneat.min_energies,
-                specie_sizes = self.quantumneat.specie_sizes,
+                species_data = self.quantumneat.species_data,
                 )
         # pickle.dump(best_genomes, folder+"/results/"+name+"best_genomes")
     

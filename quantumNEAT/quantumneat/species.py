@@ -100,6 +100,9 @@ class Species:
         return False
 
     def get_fitness(self):
+        if len(self.genomes) == 0:
+            self.logger.error("Fitness of empty species is undefined")
+            return None
         if self._update_fitness:
             self._update_fitness = False
             self._fitness = sum([genome.get_fitness() for genome in self.genomes])/len(self.genomes)

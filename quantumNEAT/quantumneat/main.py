@@ -33,9 +33,9 @@ class QuantumNEAT:
         # self.specie_sizes = [[(specie.key, len(specie.genomes)) for specie in self.population.species]]
         # sizes = np.array([(specie.key, len(specie.genomes)) for specie in self.population.species], dtype=tuple)
         # self.specie_sizes = np.array(sizes, dtype=np.ndarray)
-        self.specie_sizes = []
+        self.species_data = []
         for specie in self.population.species:
-            self.specie_sizes.append((self.population.generation, specie.key, len(specie.genomes)))
+            self.species_data.append((self.population.generation, specie.key, len(specie.genomes), specie.get_fitness(), specie.best_fitness))
 
     def run_generation(self):
         # if self.config.simulator == 'qiskit':
@@ -62,7 +62,7 @@ class QuantumNEAT:
         # sizes = np.array([(specie.key, len(specie.genomes)) for specie in self.population.species], dtype=tuple)
         # self.specie_sizes = np.vstack((self.specie_sizes, sizes))
         for specie in self.population.species:
-            self.specie_sizes.append((self.population.generation, specie.key, len(specie.genomes)))
+            self.species_data.append((self.population.generation, specie.key, len(specie.genomes), specie.get_fitness(), specie.best_fitness))
         
     def run(self, max_generations:int = 10):
         self.logger.info(f"Started running for {max_generations-self.population.generation} generations.")
