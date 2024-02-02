@@ -170,8 +170,9 @@ class Population():
                 new_species = self.config.Species(self.generation, self.config, self.config.GlobalSpeciesNumber.next())
                 new_species.update(genome, [genome], self.generation)
                 self.species.append(new_species)
-        for ind, specie in enumerate(self.species):
+        for ind, specie in reversed(list(enumerate(self.species))):
             if not specie.update_representative(self.generation):
+                self.logger.debug(f"Popping species at {ind}")
                 self.species.pop(ind) # Empty species
 
     def remove_stagnant_species(self):
