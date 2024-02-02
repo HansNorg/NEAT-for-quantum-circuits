@@ -195,13 +195,13 @@ class Population():
             
             specie_fitnesses = []
             for ind, specie in enumerate(self.species):
-                fitness = sum([genome.get_fitness() for genome in specie.genomes])/len(specie.genomes)
+                fitness = specie.get_fitness()
                 specie_fitnesses.append((ind, fitness))
             specie_fitnesses.sort(key=lambda x: x[1], reverse=True)
             for i in range(self.config.all_stagnant_n_save):
                 remove_inds.remove(specie_fitnesses[i][0])
                 specie_fitnesses.remove(specie_fitnesses[i][1])
-        for ind in remove_inds:
+        for ind in reversed(remove_inds):
             self.species.pop(ind)
         self.update_avg_fitness()
 

@@ -37,6 +37,8 @@ class Species:
         self.genomes:list[QuantumNEATConfig.Genome] = []
         self.representative = None
         self.best_fitness = None
+        self._update_fitness = True
+        self._fitness = None
 
     def update(self, representative:QuantumNEATConfig.Genome, genomes:list[QuantumNEATConfig.Genome], generation):
         """
@@ -48,6 +50,7 @@ class Species:
         - genomes: New list of genomes belonging to the species. 
             (assumed to be sorted by fitness)
         """
+        self._update_fitness = True
         self.representative = representative
         self.genomes = genomes
         best_fitness = genomes[0].get_fitness()
@@ -57,6 +60,7 @@ class Species:
 
     def empty(self):
         """Remove all member genomes from the species."""
+        self._update_fitness = True
         self.genomes = []
 
     def add(self, genome:QuantumNEATConfig.Genome):
@@ -68,6 +72,7 @@ class Species:
         - genome: Genome to be added.
             (assumed to have lower fitness than the existing genomes)
         """
+        self._update_fitness = True
         self.genomes.append(genome)
 
     def update_representative(self, generation) -> bool:
@@ -81,6 +86,7 @@ class Species:
         """
         if len(self.genomes) == 0:
             return False
+        self._update_fitness = True
         self.representative = self.genomes[0]
         best_fitness = self.genomes[0].get_fitness()
         if self.best_fitness is None or best_fitness > self.best_fitness:
@@ -92,3 +98,9 @@ class Species:
         if self.last_improved + self.config.stagnant_generation <= generation:
             return True
         return False
+
+    def get_fitness(self):
+        if self._update_fitness:
+            self._update_fitness = False
+            self._fitness = sum([genome.get_fitness() for genome in self.genomes])/len(self.genomes)
+        return self._fitness
