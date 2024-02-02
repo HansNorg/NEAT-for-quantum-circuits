@@ -100,7 +100,6 @@ class SingleRunPlotter:
             sizes[int(generation)-1][int(specie)+1] = int(size)
             avg_fitnesses[int(generation)-1][int(specie)] = avg_fitness
             best_fitnesses[int(generation)-1][int(specie)] = best_fitness
-        print(sizes)
         population_size = int(sum(sizes[0]))
         sizes = sizes.T
         avg_fitnesses = avg_fitnesses.T
