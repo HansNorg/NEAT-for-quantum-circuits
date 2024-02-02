@@ -6,8 +6,8 @@ sbatch <<EOT
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"
 
-#SBATCH --partition=cpu-lorentz
-#SBATCH --account=cpu-lorentz
+#SBATCH --partition=cpu_lorentz
+#SBATCH --account=cpu_lorentz
 #SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
