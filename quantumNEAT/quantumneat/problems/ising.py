@@ -15,7 +15,7 @@ from quantumneat.problem import Problem
 from quantumneat.helper import get_energy_qulacs
 
 if TYPE_CHECKING:
-    from quantumneat.configuration import QuantumNEATConfig
+    from quantumneat.configuration import QuantumNEATConfig, Circuit
     from quantumneat.genome import Genome
 
 def ising_1d_instance(n_qubits, seed = None):
@@ -84,7 +84,7 @@ class Ising(Problem):
         hamiltonian = self.hamiltonian(instance)
         return q.eigh(hamiltonian, k=1)[0][0]
 
-    def add_encoding_layer(self, circuit):
+    def add_encoding_layer(self, circuit:Circuit):
         if self.config.simulator == "qiskit":
             for qubit in range(self.config.n_qubits):
                     circuit.h(qubit)
