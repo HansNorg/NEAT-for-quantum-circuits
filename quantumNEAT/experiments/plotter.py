@@ -259,5 +259,5 @@ if __name__ == "__main__":
             # plotter.plot_all(show=True)
             plotter.plot_species_evolution(show=args.show, save=args.save)
         else:
-            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1, show = args.show, save = args.save)
-            plotter.plot_all(show=True)
+            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
+            plotter.plot_all(show = args.show, save = args.save)
