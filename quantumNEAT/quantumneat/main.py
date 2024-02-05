@@ -24,8 +24,9 @@ class QuantumNEAT:
         self.optimal_energy = self.problem.solution()
         self.logger.info(f"{self.optimal_energy=:.2f}")
         self.best_energies = [best_genome.get_energy()]
-        self.number_of_solutions = [sum([energy == self.optimal_energy for energy in self.get_energies()])]
-        self.min_energies = [min(self.get_energies())]
+        energies = self.get_energies()
+        self.number_of_solutions = [sum([abs(energy-self.optimal_energy) <= self.config.solution_margin for energy in energies])]
+        self.min_energies = [min(energies)]
         self.best_genomes:list[tuple[int, self.config.Genome]] = [(self.population.generation, copy.deepcopy(best_genome))]
         self.average_fitnesses = [self.population.average_fitness]
         self.population_sizes = [len(self.population.population)]
@@ -55,8 +56,9 @@ class QuantumNEAT:
         self.population_sizes.append(len(self.population.population))
         self.number_of_species.append(len(self.population.species))
         # starttime = time()
-        self.number_of_solutions.append(sum([genome.get_energy() == self.optimal_energy for genome in self.population.population]))
-        self.min_energies.append(min([genome.get_energy() for genome in self.population.population]))
+        energies = self.get_energies()
+        self.number_of_solutions.append(sum([abs(energy-self.optimal_energy) <= self.config.solution_margin for energy in energies]))
+        self.min_energies.append(min(energies))
         # self.logger.debug(f"run_generation things {time()-starttime}")
         # self.specie_sizes.append([(specie.key, len(specie.genomes)) for specie in self.population.species])
         # sizes = np.array([(specie.key, len(specie.genomes)) for specie in self.population.species], dtype=tuple)
