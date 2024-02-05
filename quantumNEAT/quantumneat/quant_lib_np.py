@@ -1,4 +1,5 @@
 # Made by Onur Danaci
+# Edits by Hans Norg
 import numpy as np
 
 
@@ -73,7 +74,29 @@ def ZZ(targ_q, n_qubits = 4):
             
     return U
 
+def YY(targ_q, n_qubits = 4):
+    U = np.array([1], dtype = dtype)
+    for iq in range(n_qubits):
+        if iq == targ_q:
+            U = np.kron(U, sy)
+        elif iq == targ_q + 1:
+            U = np.kron(U,sy)
+        else:
+            U = np.kron(U, Id)
+            
+    return U
 
+def XX(targ_q, n_qubits = 4):
+    U = np.array([1], dtype = dtype)
+    for iq in range(n_qubits):
+        if iq == targ_q:
+            U = np.kron(U, sx)
+        elif iq == targ_q + 1:
+            U = np.kron(U,sx)
+        else:
+            U = np.kron(U, Id)
+            
+    return U
 
 def X(targ_q, n_qubits = 4):
     U = np.array([1], dtype = dtype)

@@ -145,6 +145,17 @@ class SingleRunPlotter:
             self.plot_vs_generations(key, title, name, show, save)
         self.plot_species_evolution(show, save)        
 
+    def _plot_min_energy_single_point(self, x, color = None):
+        try:
+            min_energy = min(self.data["min_energies"])
+        except Exception as exc_info:
+            if self.error_verbose == 1:
+                print(f"min_energies data not found for {self.name}_run{self.run}")
+            elif self.error_verbose >= 1:
+                print(exc_info)
+            return
+        plt.scatter(x, min_energy, c=color)
+
 class MultipleRunPlotter:
     def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:
         self.name = name
@@ -209,6 +220,17 @@ class MultipleRunPlotter:
                 os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
                 plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_{key}.png")
             plt.close()
+        
+    def _plot_min_energy_single_point(self, x, c = None, **plot_kwargs):
+        try:
+            min_energy = min(self.data["min_energies"][0])
+        except Exception as exc_info:
+            if self.error_verbose == 1:
+                print(f"min_energies data not found for {self.name}")
+            elif self.error_verbose >= 1:
+                print(exc_info)
+            return
+        plt.scatter(x, min_energy, c=c, **plot_kwargs)
 
 class MultipleExperimentPlotter:
     def __init__(self,name:str, folder:str = ".", verbose = 0, error_verbose = 1) -> None:
@@ -242,6 +264,22 @@ class MultipleExperimentPlotter:
             if save:
                 plt.savefig(f"{self.folder}\\figures\\{self.name}\\{key}.png")
             plt.close()
+
+    def _plot_min_energy_single_point(self, X, color = None, **plot_kwargs):
+        for i, (experiment, label) in enumerate(self.experiments):
+            experiment._plot_min_energy_single_point(X[i], color, **plot_kwargs)
+    
+    def plot_min_energy(self, X, title = None, show = False, save = False, **plot_kwargs):
+        self._plot_min_energy_single_point(X, "b", **plot_kwargs)
+        plt.title(title)
+        plt.grid()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Ground state energy (a.u.)")
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\energy_vs_R.png")
+        plt.close()
 
 if __name__ == "__main__":
     from argparse import ArgumentParser

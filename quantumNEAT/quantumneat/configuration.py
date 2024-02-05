@@ -56,7 +56,9 @@ class QuantumNEATConfig():
     # Problem settings
     optimize_energy = False
     optimize_energy_max_iter = 100 # Ignored if optimize_energy == False
-    solution_margin = 10**-3
+    solution_margin = 10**-3 # epsilon
+
+    h2_distance = None
     
     # Gene settings
     gene_types:list[Gene] = field(default_factory=list)

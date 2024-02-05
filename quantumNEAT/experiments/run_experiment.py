@@ -39,6 +39,12 @@ def main(args:Namespace, unknown:list[str]):
         else:
             from quantumneat.problems.fox_in_the_hole import FoxInTheHole
             problem = FoxInTheHole(config)
+    elif "h2" in problem_arg or "hydrogen" in problem_arg:
+        from quantumneat.problems.hydrogen import Hydrogen
+        if "r_" in problem_arg:
+            distance = float(problem_arg.split("r_")[-1])
+            config.h2_distance = distance
+        problem = Hydrogen(config)
     else:
         raise NotImplementedError(f"Problem {problem_arg} not found.")
     

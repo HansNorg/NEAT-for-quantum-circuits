@@ -1,4 +1,5 @@
 from experiments.plotter import MultipleExperimentPlotter
+from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution
 
 def constant_population_size(folder, verbose, show = False, save = False):
     plotter = MultipleExperimentPlotter("constant_population_size", folder=folder, verbose=verbose)
@@ -49,6 +50,15 @@ def optimizer_steps(folder, verbose, show = False, save = False):
     plotter.add_experiments(experiments)
     plotter.plot_all(show, save)
 
+def hydrogen_atom(folder, verbose, show = False, save = False):
+    plotter = MultipleExperimentPlotter("hydrogen_atom", folder=folder, verbose=verbose)
+    distances = [0.2, 0.35, 0.45, 1.5, 2.8]
+    experiments = [(f"h2_r_{R}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[1]", f"R = {R}") for R in distances]
+    plotter.add_experiments(experiments)
+    plotter.plot_all(show, save)
+    plot_h2_solution(color="r")
+    plotter.plot_min_energy(distances, "Hydrogen atom", show, save, marker="x")
+
 if __name__ == "__main__":
     from argparse import ArgumentParser
     argparser = ArgumentParser()
@@ -65,3 +75,5 @@ if __name__ == "__main__":
         stagnant_experiment(args.folder, args.verbose, show=args.show, save=args.save)
     if args.experiment == "optimizer_steps" or args.experiment == "all":
         optimizer_steps(args.folder, args.verbose, show=args.show, save=args.save)
+    if args.experiment == "hydrogen_atom" or args.experiment == "all":
+        hydrogen_atom(args.folder, args.verbose, show=args.show, save=args.save)

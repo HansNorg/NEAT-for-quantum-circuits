@@ -8,7 +8,7 @@ sbatch <<EOT
 
 #SBATCH --partition=cpu_lorentz
 #SBATCH --account=cpu_lorentz
-#SBATCH --time=1-00:00:00
+#SBATCH --time=01:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=1G
