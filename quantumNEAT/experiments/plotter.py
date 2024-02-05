@@ -250,12 +250,14 @@ if __name__ == "__main__":
     argparser.add_argument("run", action="extend", nargs="+", help="Which run(s) to plot")
     argparser.add_argument("--cluster", dest='folder', nargs='?', default=".", const=".\\cluster")
     argparser.add_argument('--verbose', '-v', action='count', default=0)
+    argparser.add_argument('--show', action="store_true")
+    argparser.add_argument('--save', action="store_true")
     args = argparser.parse_args()
     for run in args.run:
         if run.isdigit():
             plotter = SingleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
             # plotter.plot_all(show=True)
-            plotter.plot_species_evolution(show=True)
+            plotter.plot_species_evolution(show=args.show, save=args.save)
         else:
-            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
+            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1, show = args.show, save = args.save)
             plotter.plot_all(show=True)
