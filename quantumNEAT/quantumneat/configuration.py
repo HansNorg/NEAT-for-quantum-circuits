@@ -39,6 +39,9 @@ class QuantumNEATConfig():
 
     # Species settings
     Species = Species
+    remove_stagnant_species = False
+    stagnant_generation = 15
+    all_stagnant_n_save = 2 # How many species are preserved if all species are stagnant
     
     # Genome settings
     Genome = Genome

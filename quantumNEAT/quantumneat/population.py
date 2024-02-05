@@ -167,15 +167,48 @@ class Population():
                     found = True
                     break
             if not found:
-                new_species = self.config.Species(self.generation, self.config.GlobalSpeciesNumber.next())
-                new_species.update(genome, [genome])
+                new_species = self.config.Species(self.generation, self.config, self.config.GlobalSpeciesNumber.next())
+                new_species.update(genome, [genome], self.generation)
                 self.species.append(new_species)
-        for ind, specie in enumerate(self.species):
-            if not specie.update_representative():
+        for ind, specie in reversed(list(enumerate(self.species))):
+            if not specie.update_representative(self.generation):
+                self.logger.debug(f"Popping species at {ind}")
                 self.species.pop(ind) # Empty species
+
+    def remove_stagnant_species(self):
+        update = False
+        remove_inds = []
+        for ind, specie in enumerate(self.species):
+            if specie.check_stagnant(self.generation):
+                remove_inds.append(ind)
+                update = True
+        
+        if not update:
+            return
+        
+        if len(remove_inds) == len(self.species):
+            # All species are stagnant, refocus to two strongest species
+            if len(self.species) <= self.config.all_stagnant_n_save:
+                self.logger.debug("All species stagnant")
+                return
+            self.logger.warning("All species stagnant, selecting survivors")
+            
+            specie_fitnesses = []
+            for ind, specie in enumerate(self.species):
+                fitness = specie.get_fitness()
+                specie_fitnesses.append((ind, fitness))
+            specie_fitnesses.sort(key=lambda x: x[1], reverse=True)
+            for i in range(self.config.all_stagnant_n_save):
+                remove_inds.remove(specie_fitnesses[i][0])
+                specie_fitnesses.remove(specie_fitnesses[i][1])
+        for ind in reversed(remove_inds):
+            self.species.pop(ind)
+        self.update_avg_fitness()
 
     def next_generation(self):
         starttime = time.time()
+        if self.config.remove_stagnant_species:
+            self.remove_stagnant_species()
         self.population = self.generate_new_population()
         self.logger.debug(f"generate_new_population runtime = {time.time() - starttime}")
         self.update_avg_fitness()

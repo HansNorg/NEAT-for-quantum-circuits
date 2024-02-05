@@ -2,6 +2,8 @@ import logging
 import copy
 from time import time
 
+import numpy as np
+
 from quantumneat.configuration import QuantumNEATConfig
 from quantumneat.problem import Problem
 
@@ -28,6 +30,12 @@ class QuantumNEAT:
         self.average_fitnesses = [self.population.average_fitness]
         self.population_sizes = [len(self.population.population)]
         self.number_of_species = [len(self.population.species)]
+        # self.specie_sizes = [[(specie.key, len(specie.genomes)) for specie in self.population.species]]
+        # sizes = np.array([(specie.key, len(specie.genomes)) for specie in self.population.species], dtype=tuple)
+        # self.specie_sizes = np.array(sizes, dtype=np.ndarray)
+        self.species_data = []
+        for specie in self.population.species:
+            self.species_data.append((self.population.generation, specie.key, len(specie.genomes), specie.get_fitness(), specie.best_fitness))
 
     def run_generation(self):
         # if self.config.simulator == 'qiskit':
@@ -50,6 +58,11 @@ class QuantumNEAT:
         self.number_of_solutions.append(sum([genome.get_energy() == self.optimal_energy for genome in self.population.population]))
         self.min_energies.append(min([genome.get_energy() for genome in self.population.population]))
         # self.logger.debug(f"run_generation things {time()-starttime}")
+        # self.specie_sizes.append([(specie.key, len(specie.genomes)) for specie in self.population.species])
+        # sizes = np.array([(specie.key, len(specie.genomes)) for specie in self.population.species], dtype=tuple)
+        # self.specie_sizes = np.vstack((self.specie_sizes, sizes))
+        for specie in self.population.species:
+            self.species_data.append((self.population.generation, specie.key, len(specie.genomes), specie.get_fitness(), specie.best_fitness))
         
     def run(self, max_generations:int = 10):
         self.logger.info(f"Started running for {max_generations-self.population.generation} generations.")

@@ -7,7 +7,6 @@ import warnings
 warnings.filterwarnings("ignore", "Couldn't import `kahypar` - skipping from default hyper optimizer and using basic `labels` method instead.")
 
 import numpy as np
-from numpy import ndarray
 from scipy.optimize import minimize
 import quimb as q
 
@@ -112,7 +111,7 @@ class TransverseIsing(Ising):
         super().__init__(config, **kwargs)
         self.g = g
 
-    def get_instance(self, seed=None) -> tuple[ndarray]:
+    def get_instance(self, seed=None) -> tuple[np.ndarray]:
         return self.config.n_qubits, self.g
 
     @staticmethod
