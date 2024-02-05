@@ -57,6 +57,7 @@ class SingleRunPlotter:
         plt.figure()
         self._plot_vs_generations(key)
         plt.title(title)
+        plt.grid()
         plt.xlabel("Generations")
         plt.ylabel(name)
         if show:
@@ -142,7 +143,7 @@ class SingleRunPlotter:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
         for key, title, name in GENERATION_DATA:
             self.plot_vs_generations(key, title, name, show, save)
-        self.plot_species_evolution()        
+        self.plot_species_evolution(show, save)        
 
 class MultipleRunPlotter:
     def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:
@@ -199,6 +200,7 @@ class MultipleRunPlotter:
             plt.figure()
             self._plot_vs_generations(key)
             plt.title(title+extra_title)
+            plt.grid()
             plt.xlabel("Generations")
             plt.ylabel(name)
             if show:
@@ -232,6 +234,7 @@ class MultipleExperimentPlotter:
             for experiment, label in self.experiments:
                 experiment._plot_vs_generations(key, label=f"{label}: {experiment.n_runs}")
             plt.title(title+extra_title)
+            plt.grid()
             plt.xlabel("Generations")
             plt.ylabel(name)
             if show:
@@ -256,8 +259,8 @@ if __name__ == "__main__":
     for run in args.run:
         if run.isdigit():
             plotter = SingleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
-            # plotter.plot_all(show=True)
-            plotter.plot_species_evolution(show=args.show, save=args.save)
+            plotter.plot_all(show=args.show, save=args.save)
+            # plotter.plot_species_evolution(show=args.show, save=args.save)
         else:
             plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
             plotter.plot_all(show = args.show, save = args.save)
