@@ -60,10 +60,10 @@ class SingleRunPlotter:
         plt.grid()
         plt.xlabel("Generations")
         plt.ylabel(name)
-        if show:
-            plt.show()
         if save:
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
+        if show:
+            plt.show()
         plt.close()
         
     def _plot_species_evolution(self, sizes, colorscheme, line_color, n_generations, population_size, n_species):        
@@ -110,10 +110,10 @@ class SingleRunPlotter:
 
         plt.figure()
         self._plot_species_evolution(sizes, 'black', 'white', n_generations, population_size, n_species)
-        if show:
-            plt.show()
         if save:
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution.png")
+        if show:
+            plt.show()
         plt.close()
 
         colormap = mpl.colormaps.get_cmap('gray')
@@ -122,20 +122,20 @@ class SingleRunPlotter:
         normalise = mplc.Normalize(vmin=avg_fitnesses.min(), vmax=avg_fitnesses.max())
         colorscheme = colormap(normalise(avg_fitnesses))
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
-        if show:
-            plt.show()
         if save:
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_avg_fitness.png")
+        if show:
+            plt.show()
         plt.close()
 
         plt.figure()
         normalise = mplc.Normalize(vmin=best_fitnesses.min(), vmax=best_fitnesses.max())
         colorscheme = colormap(normalise(best_fitnesses))
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
-        if show:
-            plt.show()
         if save:
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_best_fitness.png")
+        if show:
+            plt.show()
         plt.close()
 
     def plot_all(self, show = False, save = False):
@@ -214,11 +214,11 @@ class MultipleRunPlotter:
             plt.grid()
             plt.xlabel("Generations")
             plt.ylabel(name)
-            if show:
-                plt.show()
             if save:
                 os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
                 plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_{key}.png")
+            if show:
+                plt.show()
             plt.close()
         
     def _plot_min_energy_single_point(self, x, c = None, **plot_kwargs):
@@ -259,10 +259,10 @@ class MultipleExperimentPlotter:
             plt.grid()
             plt.xlabel("Generations")
             plt.ylabel(name)
-            if show:
-                plt.show()
             if save:
                 plt.savefig(f"{self.folder}\\figures\\{self.name}\\{key}.png")
+            if show:
+                plt.show()
             plt.close()
 
     def _plot_min_energy_single_point(self, X, color = None, **plot_kwargs):
@@ -275,10 +275,10 @@ class MultipleExperimentPlotter:
         plt.grid()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
         plt.ylabel("Ground state energy (a.u.)")
-        if show:
-            plt.show()
         if save:
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\energy_vs_R.png")
+        if show:
+            plt.show()
         plt.close()
 
 if __name__ == "__main__":
