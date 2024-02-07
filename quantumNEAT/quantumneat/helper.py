@@ -209,6 +209,48 @@ def get_energy_qulacs(angles, observable,
 
     return expval + shot_noise + energy_shift
 
+def get_energy_qulacs_encoded(enc_angles, angles, observable, 
+                      weights,circuit:ParametricQuantumCircuit, n_qubits, 
+                      energy_shift, n_shots,
+                      phys_noise = False 
+                      ):
+    """"
+    Function for Qiskit energy minimization using Qulacs
+    
+    Input:
+    angles                [array]      : list of trial angles for ansatz
+    observable            [Observable] : Qulacs observable (Hamiltonian)
+    circuit               [circuit]    : ansatz circuit
+    n_qubits              [int]        : number of qubits
+    energy_shift          [float]      : energy shift for Qiskit Hamiltonian after freezing+removing orbitals
+    n_shots               [int]        : Statistical noise, number of samples taken from QC
+    phys_noise            [bool]       : Whether quantum error channels are available (DM simulation) 
+    
+    Output:
+    expval [float] : expectation value 
+    
+    """
+        
+    # parameter_count_qulacs = circuit.get_parameter_count()
+    # param_qulacs = [circuit.get_parameter(ind) for ind in range(parameter_count_qulacs)]    
+
+    
+    # for i, j in enumerate(np.arange(parameter_count_qulacs)):
+        # circuit.set_parameter(j, angles[i])
+    i = 0
+    for angle in enc_angles:
+        circuit.set_parameter(i, angle)
+        i += 1
+    for angle in angles:
+        circuit.set_parameter(i, angle)
+        i += 1
+
+    expval = get_exp_val(n_qubits,circuit,observable, phys_noise)
+    
+    shot_noise = get_shot_noise(weights, n_shots) 
+
+    return expval + shot_noise + energy_shift
+
 def get_shot_noise(weights, n_shots):
     
     shot_noise = 0

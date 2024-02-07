@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from time import time
+from quantumneat.problems.hydrogen import plot_solution, plot_solution_2
 from tqdm import tqdm
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -144,6 +145,7 @@ class SingleRunPlotter:
         for key, title, name in GENERATION_DATA:
             self.plot_vs_generations(key, title, name, show, save)
         self.plot_species_evolution(show, save)        
+        self.plot_evaluation(show, save)
 
     def _plot_min_energy_single_point(self, x, color = None):
         try:
@@ -155,6 +157,24 @@ class SingleRunPlotter:
                 print(exc_info)
             return
         plt.scatter(x, min_energy, c=color)
+
+    def plot_evaluation(self, show = False, save = False):
+        try:
+            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_evaluation.npz", allow_pickle=True))
+        except Exception as exc_info:
+            if self.error_verbose == 1:
+                print(f"evaluation data not found for {self.name}_run{self.run}")
+            elif self.error_verbose >= 1:
+                print(exc_info)
+            return
+        plot_solution(color="r", linewidth=1)
+        plot_solution_2(color="r", linewidth=1)
+        plt.scatter(data["distances"], data["energies"])
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_evaluation.png")
+        if show:
+            plt.show()
+        plt.close()
 
 class MultipleRunPlotter:
     def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:

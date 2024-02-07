@@ -49,9 +49,25 @@ class Ising(Problem):
         # self.logger.debug(f"{gradient=},{circuit_error=},{energy=}, {fitness=}")
         return 1/(1+circuit_error)-energy+gradient
 
-    def energy(self, circuit, parameters, no_optimization = False) -> float:
-        # self.logger.debug("Ising energy called", stacklevel=2)
+    def gradient(self, circuit, parameters, n_parameters) -> float:
+        if n_parameters == 0:
+            return 0 # Prevent division by 0
         instance = self.get_instance()
+        total_gradient = 0
+        for ind in range(n_parameters):
+            temp = parameters[ind]
+            parameters[ind] += self.config.epsilon/2
+            partial_gradient = self.energy(circuit, parameters, True, instance)
+            parameters[ind] -= self.config.epsilon
+            partial_gradient -= self.energy(circuit, parameters, True, instance)
+            parameters[ind] = temp # Return the parameter to original value
+            total_gradient += partial_gradient**2
+        return total_gradient/n_parameters
+    
+    def energy(self, circuit, parameters, no_optimization = False, instance = None) -> float:
+        # self.logger.debug("Ising energy called", stacklevel=2)
+        if instance is None:
+            instance = self.get_instance()
         hamiltonian = self.hamiltonian(instance)
         solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':

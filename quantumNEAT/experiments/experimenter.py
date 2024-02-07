@@ -57,6 +57,9 @@ class Experimenter:
         self.run_generations(n_generations)
         self.final_energies = self.quantumneat.get_energies()
         self.save_results()
+        self.save_best_circuit()
+        if self.config.evaluate:
+            self.evaluate()
         if do_plot:
             self.plot_results()
         if do_print:
@@ -86,6 +89,19 @@ class Experimenter:
                 )
         # pickle.dump(best_genomes, folder+"/results/"+name+"best_genomes")
     
+    def save_best_circuit(self):
+        circuit = self.quantumneat.best_genomes[-1][1].get_circuit()[0]
+        parameters = self.quantumneat.best_genomes[-1][1].get_parameters()
+        with open(f"{self.folder}/results/{self.name}_run{self.run}_circuit.pickle", 'wb') as f:
+            pickle.dump(circuit, f)
+        np.save(f"{self.folder}/results/{self.name}_run{self.run}_circuit-parameters.npy", parameters)
+    
+    def evaluate(self):
+        circuit = self.quantumneat.best_genomes[-1][1].get_circuit()[0]
+        parameters = self.quantumneat.best_genomes[-1][1].get_parameters()
+        distances, energies = self.quantumneat.problem.evaluate(circuit, parameters)
+        np.savez(f"{self.folder}/results/{self.name}_run{self.run}_evaluation.npz", distances=distances, energies=energies)
+
     def plot_results(self):
         os.makedirs(f"{self.folder}/figures", exist_ok=True)
         plt.plot(self.quantumneat.best_fitnesses)

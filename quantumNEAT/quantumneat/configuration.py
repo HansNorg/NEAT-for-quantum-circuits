@@ -27,7 +27,8 @@ class QuantumNEATConfig():
 
     # Main QNEAT settings
     number_of_cpus:int = -1 # Number of cpu's to use for multiprocessing. If < 0 no multiprocessing is used.
-
+    evaluate = True
+    
     # Population settings
     Population = Population
     compatibility_threshold:float = 3

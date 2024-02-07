@@ -42,6 +42,9 @@ class Problem(ABC):
     def add_encoding_layer(self, circuit):
         pass
 
+    def evaluate(self, circuit, parameters, N:int=1000):
+        return []
+    
     def __copy__(self):
         return self
 

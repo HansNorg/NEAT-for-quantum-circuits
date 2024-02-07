@@ -40,11 +40,28 @@ def main(args:Namespace, unknown:list[str]):
             from quantumneat.problems.fox_in_the_hole import FoxInTheHole
             problem = FoxInTheHole(config)
     elif "h2" in problem_arg or "hydrogen" in problem_arg:
-        from quantumneat.problems.hydrogen import Hydrogen
         if "r_" in problem_arg:
             distance = float(problem_arg.split("r_")[-1])
             config.h2_distance = distance
-        problem = Hydrogen(config)
+        if "test" in problem_arg:
+            if "encoded" in problem_arg:
+                from quantumneat.problems.hydrogen import EncodedHydrogen_2
+                config.evaluate = True
+                problem = EncodedHydrogen_2(config)
+            else:
+                from quantumneat.problems.hydrogen import Hydrogen_2
+                problem = Hydrogen_2(config)
+        else:
+            if "encoded" in problem_arg:
+                from quantumneat.problems.hydrogen import EncodedHydrogen
+                config.evaluate = True
+                problem = EncodedHydrogen(config)
+            else:
+                from quantumneat.problems.hydrogen import Hydrogen
+                problem = Hydrogen(config)
+        if "no-identity" in problem_arg:
+            from quantumneat.problems.hydrogen import no_identity_hamiltonian
+            problem.hamiltonian = no_identity_hamiltonian
     else:
         raise NotImplementedError(f"Problem {problem_arg} not found.")
     
