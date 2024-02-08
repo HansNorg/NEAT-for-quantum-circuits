@@ -28,12 +28,24 @@ def exact_diagonalisation(H):
     return el[0]
 
 H2_DATA = pd.read_csv('H2.csv', index_col=0, sep=',')
+# print(H2_DATA.index)
 H2_DATA_2 = H2_DATA.copy()
 correction = 1.5
 H2_DATA_2.iloc[0, 0] -= correction
 H2_DATA_2.iloc[1, 0] -= correction
 H2_DATA_2.iloc[2, 0] -= correction
 H2_DATA_2.iloc[3, 0] -= correction
+
+H2_DATA:pd.DataFrame = pd.read_pickle("h2_hamiltonian.pkl")
+new_index = []
+for index in H2_DATA.index:
+    new_index.append(np.round(index, 2))
+H2_DATA.insert(0, "R", new_index)
+H2_DATA.reset_index()
+# print(H2_DATA)
+H2_DATA.set_index("R", inplace=True)
+# print(H2_DATA)
+# print(H2_DATA.index)
 
 def h2_instance(distance = None):
     if distance == None:
@@ -53,7 +65,8 @@ def plot_solution(show = False, **plot_kwargs):
     # print(x)
     y = np.zeros(len(x))
     for ind, i in enumerate(x):
-        y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(h2_instance(i)))
+        instance = h2_instance(i)
+        y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["repulsion"]
     # plt.scatter(x, y)
     plt.plot(x,y, **plot_kwargs)
     if show:
@@ -101,11 +114,12 @@ class Hydrogen(Problem):
             total_gradient += partial_gradient**2
         return total_gradient/n_parameters
 
-    def energy(self, circuit, parameters, no_optimization = False, instance = None) -> float:
+    def energy(self, circuit, parameters, no_optimization = False, instance = None, no_solution = False) -> float:
         # self.logger.debug("H2 energy called", stacklevel=2)
         if instance is None:
             instance = self.get_instance(self.config.h2_distance)
         hamiltonian = self.hamiltonian(instance)
+        correction = instance.loc["repulsion"]
         solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
@@ -123,20 +137,26 @@ class Hydrogen(Problem):
                 ).fun
         else:
             expectation = expectation_function(parameters)
-        return expectation
-        # self.logger.debug(f"Expectation {expectation}, solution {solution}")
-        # return expectation - solution
+        if no_solution:
+            return expectation + correction
+        return expectation - solution
 
     @staticmethod
     def hamiltonian(instance:pd.DataFrame) -> list:
         # print("hamiltonian")
         # print(instance)
-        H = instance.loc["1"]*I(0, 2) + \
-            instance.loc["Z0"]*Z(0, 2) + \
-            instance.loc["Z1"]*Z(1, 2) + \
-            instance.loc["Z0Z1"]*ZZ(0, 2) + \
-            instance.loc["Y0Y1"]*YY(0, 2) + \
-            instance.loc["X0X1"]*XX(0, 2)
+        # H = instance.loc["1"]*I(0, 2) + \
+        #     instance.loc["Z0"]*Z(0, 2) + \
+        #     instance.loc["Z1"]*Z(1, 2) + \
+        #     instance.loc["Z0Z1"]*ZZ(0, 2) + \
+        #     instance.loc["Y0Y1"]*YY(0, 2) + \
+        #     instance.loc["X0X1"]*XX(0, 2)
+        
+        H = instance.loc["II"]*I(0, 2) + \
+            instance.loc["ZI"]*Z(0, 2) + \
+            instance.loc["IZ"]*Z(1, 2) + \
+            instance.loc["ZZ"]*ZZ(0, 2) + \
+            instance.loc["XX"]*XX(0, 2)
         # print(H)
         return H
 
@@ -156,7 +176,23 @@ class Hydrogen(Problem):
     
     # def add_encoding_layer(self, circuit:Circuit):
     #     pass
-
+    def evaluate(self, circuit:Circuit, parameters, N = 1000):
+        max_iter = self.config.optimize_energy_max_iter
+        self.config.optimize_energy_max_iter = N
+        
+        if self.config.h2_distance is None:
+            energies = []
+            distances = H2_DATA.index
+            for distance in distances:
+                instance = self.get_instance(distance)
+                energies.append(self.energy(circuit, parameters, instance=instance, no_solution=True))
+        else:
+            distances = [self.config.h2_distance]
+            instance = self.get_instance(self.config.h2_distance)
+            energies = [self.energy(circuit, parameters, instance=instance, no_solution=True)]
+        self.config.optimize_energy_max_iter = max_iter
+        return distances, energies
+    
 class EncodedHydrogen(Hydrogen):
     def get_instance(self, distance=None) -> tuple[ndarray]:
         if distance == None:
@@ -175,6 +211,7 @@ class EncodedHydrogen(Hydrogen):
             instance = self.get_instance(self.config.h2_distance)
         instance, enc_params = instance
         hamiltonian = self.hamiltonian(instance)
+        correction = instance.loc["repulsion"]
         solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
@@ -195,7 +232,7 @@ class EncodedHydrogen(Hydrogen):
         
         # self.logger.debug(f"Expectation {expectation}, solution {solution}")
         if no_solution:
-            return expectation
+            return expectation + correction
         return expectation - solution
 
     def add_encoding_layer(self, circuit:Circuit):
@@ -238,5 +275,5 @@ class EncodedHydrogen_2(EncodedHydrogen):
     
 if __name__ == "__main__":
     plot_solution(True, marker="o")
-    plot_solution_2(True, marker="o")
+    # plot_solution_2(True, marker="o")
     

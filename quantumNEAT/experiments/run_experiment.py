@@ -43,10 +43,10 @@ def main(args:Namespace, unknown:list[str]):
         if "r_" in problem_arg:
             distance = float(problem_arg.split("r_")[-1])
             config.h2_distance = distance
+        config.evaluate = True
         if "test" in problem_arg:
             if "encoded" in problem_arg:
                 from quantumneat.problems.hydrogen import EncodedHydrogen_2
-                config.evaluate = True
                 problem = EncodedHydrogen_2(config)
             else:
                 from quantumneat.problems.hydrogen import Hydrogen_2
@@ -54,7 +54,6 @@ def main(args:Namespace, unknown:list[str]):
         else:
             if "encoded" in problem_arg:
                 from quantumneat.problems.hydrogen import EncodedHydrogen
-                config.evaluate = True
                 problem = EncodedHydrogen(config)
             else:
                 from quantumneat.problems.hydrogen import Hydrogen

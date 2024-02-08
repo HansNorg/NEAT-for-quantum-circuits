@@ -168,7 +168,7 @@ class SingleRunPlotter:
                 print(exc_info)
             return
         plot_solution(color="r", linewidth=1)
-        plot_solution_2(color="r", linewidth=1)
+        # plot_solution_2(color="r", linewidth=1)
         plt.scatter(data["distances"], data["energies"])
         if save:
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_evaluation.png")
