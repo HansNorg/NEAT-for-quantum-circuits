@@ -129,8 +129,8 @@ class LayerGene(GateGene):
                 yield gate
 
 class QNEAT_Genome(CircuitGenome):
-    def __init__(self, config:QNEAT_Config) -> None:
-        super().__init__(config)
+    def __init__(self, config:QNEAT_Config, problem:Problem) -> None:
+        super().__init__(config, problem)
         self.config:QNEAT_Config
         self.genes:dict[int,LayerGene] = {}
 
@@ -166,7 +166,7 @@ class QNEAT_Genome(CircuitGenome):
         if ind == self.config.GlobalLayerNumber.current():
             self.config.GlobalLayerNumber.next()
         if ind not in self.genes.keys():
-            new_layer = LayerGene(self.config, ind)
+            new_layer = LayerGene(self.config, self.problem, ind)
             self.genes[ind] = new_layer
         gene_added = self.genes[ind].add_gate(gene)
         if gene_added:
@@ -203,9 +203,24 @@ class QNEAT_Genome(CircuitGenome):
             # self.logger.debug(f"{gene.get_parameters()=}")
             parameters = np.append(parameters, gene.get_parameters())
         # self.logger.debug(f"{n_parameters==len(parameters)=}; {parameters=}")
-        self._gradient = self.config.gradient_function(circuit, n_parameters, 
-                                                       parameters, self.config)
-        self._energy = self.config.energy_function(circuit, parameters, self.config)
+        self._gradient = self.problem.gradient(circuit, parameters, n_parameters)
+        self._energy = self.problem.energy(circuit, parameters)
+
+    def get_parameters(self) -> list[float]:
+        parameters = np.array([])
+        # self.logger.debug(f"{self.genes.values()=}")
+        for gene in self.genes.values():
+            # self.logger.debug(f"{gene.get_parameters()=}")
+            parameters = np.append(parameters, gene.get_parameters())
+        return parameters
+    
+    def get_circuit_error(self) -> float:
+        """
+        Get the error of the circuit of the Genome.
+        """
+        # self.logger.debug("get_circuit_error")
+        # self.logger.debug(len(self.genes)*0.2)
+        return sum((gene.get_error() for gene in self.genes.values()))
     
     @staticmethod
     def compatibility_distance(genome1:QNEAT_Genome, genome2:QNEAT_Genome, config:QuantumNEATConfig):
@@ -266,7 +281,7 @@ class QNEAT_Genome(CircuitGenome):
         # Assumes genome1.genes, genome2.genes are sorted by innovation_number 
         # and equal genes have equal innovation_number.
         # QNEAT_Genome.logger.debug("crossover")
-        child = config.Genome(genome1.config)
+        child = config.Genome(genome1.config, genome1.problem)
         if genome1.get_fitness() > genome2.get_fitness():
             better = "genome1"
         elif genome1.get_fitness() < genome2.get_fitness():
@@ -344,7 +359,7 @@ class QNEAT_Population(Population):
         initial_layers = {}
         for _ in range(self.config.initial_layers):
             layer_number = self.config.GlobalLayerNumber.next() - 1
-            new_layer = LayerGene(self.config, layer_number)
+            new_layer = LayerGene(self.config, self.problem, layer_number)
             for qubit in range(self.config.n_qubits):
                 innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'rot', self.config)
                 new_rot = GateROT(innovation_number, self.config, qubits=[qubit])
@@ -355,7 +370,7 @@ class QNEAT_Population(Population):
                 new_layer.add_gate(new_cnot)
             initial_layers[layer_number] = new_layer
         for _ in range(self.config.population_size):
-            genome = self.config.Genome(self.config)
+            genome = self.config.Genome(self.config, self.problem)
             # Add self.config.initial_layers amount of full layers initially
             genome.set_layers(initial_layers)
             population.append(genome)

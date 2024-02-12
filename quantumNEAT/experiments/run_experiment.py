@@ -40,27 +40,52 @@ def main(args:Namespace, unknown:list[str]):
             from quantumneat.problems.fox_in_the_hole import FoxInTheHole
             problem = FoxInTheHole(config)
     elif "h2" in problem_arg or "hydrogen" in problem_arg:
+        error_in_fitness = True
+        if "errorless" in problem_arg:
+            error_in_fitness = False
         if "r_" in problem_arg:
             distance = float(problem_arg.split("r_")[-1])
             config.h2_distance = distance
         config.evaluate = True
-        if "test" in problem_arg:
-            if "encoded" in problem_arg:
-                from quantumneat.problems.hydrogen import EncodedHydrogen_2
-                problem = EncodedHydrogen_2(config)
+        if "all" in problem_arg:
+            if "no-solution" in problem_arg:
+                from quantumneat.problems.hydrogen import NoSolutionAllHydrogen
+                problem = NoSolutionAllHydrogen(config, error_in_fitness=error_in_fitness)
             else:
-                from quantumneat.problems.hydrogen import Hydrogen_2
-                problem = Hydrogen_2(config)
+                from quantumneat.problems.hydrogen import AllHydrogen
+                problem = AllHydrogen(config, error_in_fitness=error_in_fitness)
         else:
             if "encoded" in problem_arg:
                 from quantumneat.problems.hydrogen import EncodedHydrogen
-                problem = EncodedHydrogen(config)
+                problem = EncodedHydrogen(config, error_in_fitness=error_in_fitness)
             else:
                 from quantumneat.problems.hydrogen import Hydrogen
-                problem = Hydrogen(config)
+                problem = Hydrogen(config, error_in_fitness=error_in_fitness)
         if "no-identity" in problem_arg:
             from quantumneat.problems.hydrogen import no_identity_hamiltonian
             problem.hamiltonian = no_identity_hamiltonian
+    elif "h6" in problem_arg:
+        if "r_" in problem_arg:
+            distance = float(problem_arg.split("r_")[-1])
+            config.h2_distance = distance
+        config.evaluate = True
+        if "all" in problem_arg:
+            from quantumneat.problems.hydrogen_6 import AllHydrogen6
+            problem = AllHydrogen6(config)
+        else:
+            from quantumneat.problems.hydrogen_6 import Hydrogen6
+            problem = Hydrogen6(config)
+    elif "lih" in problem_arg or "lithium_hydride" in problem_arg:
+        if "r_" in problem_arg:
+            distance = float(problem_arg.split("r_")[-1])
+            config.h2_distance = distance
+        config.evaluate = True
+        if "all" in problem_arg:
+            from quantumneat.problems.lithium_hydride import AllLithiumHydride
+            problem = AllLithiumHydride(config)
+        else:
+            from quantumneat.problems.lithium_hydride import LithiumHydride
+            problem = LithiumHydride(config)
     else:
         raise NotImplementedError(f"Problem {problem_arg} not found.")
     

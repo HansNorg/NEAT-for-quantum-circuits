@@ -129,4 +129,5 @@ class GateGene(Gene):
         -------
         - float: error associated with the gate.
         """
-        return 0.2    
+        return 0.2 
+        # return 0   

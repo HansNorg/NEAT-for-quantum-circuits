@@ -1,7 +1,7 @@
 import numpy as np
 
 from experiments.plotter import MultipleExperimentPlotter
-from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution
+from quantumneat.problems.hydrogen import get_solutions, plot_solution as plot_h2_solution
 
 def constant_population_size(folder, verbose, show = False, save = False):
     if verbose >= 1:
@@ -58,14 +58,14 @@ def optimizer_steps(folder, verbose, show = False, save = False):
     plotter.add_experiments(experiments)
     plotter.plot_all(show, save)
 
-def hydrogen_atom(folder, verbose, show = False, save = False):
+def hydrogen_atom_separate(folder, verbose, show = False, save = False):
     if verbose >= 1:
         print("Hydrogen atom")
-    plotter = MultipleExperimentPlotter("hydrogen_atom", folder=folder, verbose=verbose)
+    plotter = MultipleExperimentPlotter("hydrogen_atom_separate", folder=folder, verbose=verbose, error_verbose=verbose)
     # distances = [0.2, 0.35, 0.45, 1.5, 2.8]
     # experiments = [(f"h2_r_{R}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[1]", f"R = {R}") for R in distances]
     distances = np.arange(0.2, 2.90, 0.05)
-    experiments = [(f"h2_r_{R:.2f}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[0]", f"R = {R:.2f}") for R in distances]
+    experiments = [(f"h2_r_{R:.2f}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[1]", f"R = {R:.2f}") for R in distances]
     # print(experiments)
     plotter.add_experiments(experiments)
     plotter.plot_all(show, save)
@@ -73,7 +73,26 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     plotter.plot_min_energy(distances, "Hydrogen atom", show, save, marker="x")
     # plotter.plot_min_energy(distances, "Hydrogen atom", show, save, marker="x", zorder=2)
 
-if __name__ == "__main__":
+def hydrogen_atom(folder, verbose, show = False, save = False):
+    if verbose >= 1:
+        print("Hydrogen atom")
+    plotter = MultipleExperimentPlotter("hydrogen_atom", folder=folder, verbose=verbose, error_verbose=verbose)
+    # distances = [0.2, 0.35, 0.45, 1.5, 2.8]
+    # experiments = [(f"h2_r_{R}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[1]", f"R = {R}") for R in distances]
+    distances = np.arange(0.2, 2.90, 0.05)
+    experiments = [
+        ("h2_all_linear_growth_ROT-CNOT_2-qubits_100-population_200-optimizer-steps", "[1]", "Linear growth"),
+        ("h2_all_qneat_ROT-CNOT_2-qubits_100-population_200-optimizer-steps", "[9]", "qneat")
+    ]
+    # print(experiments)
+    plotter.add_experiments(experiments)
+    plotter.plot_all(show, save)
+    plot_h2_solution(color="r", linewidth=1)
+    plotter.plot_evaluation("Evaluation", show, save, marker = "x")
+    plotter.plot_delta_evaluation(get_solutions, "Difference from solution", show, save, marker="x")
+    plotter.plot_delta_evaluation_log(get_solutions, "Difference from solution", show, save, marker="x")
+
+if __name__ == "__main__": 
     from argparse import ArgumentParser
     argparser = ArgumentParser()
     argparser.add_argument("experiment", type=str, help = "Which experiment to plot.")

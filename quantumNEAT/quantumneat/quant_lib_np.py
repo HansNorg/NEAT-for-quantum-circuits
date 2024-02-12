@@ -61,6 +61,21 @@ def get_Ising_J_term(J, n_qubits):
 def get_Ising(h, j, n_qubits):
     return get_Ising_h_term(h, n_qubits) + get_Ising_J_term(J, n_qubits)
     
+def from_string(string):
+    U = np.array([1], dtype = dtype)
+    for el in string:
+        if el == "I":
+            U = np.kron(U, Id)
+        elif el == "X":
+            U = np.kron(U, sx)
+        elif el == "Y":
+            U = np.kron(U, sy)
+        elif el == "Z":
+            U = np.kron(U, sz)
+        else:
+            raise ValueError("Pauli identifier " + el + " not found")
+            
+    return U
 
 def ZZ(targ_q, n_qubits = 4):
     U = np.array([1], dtype = dtype)

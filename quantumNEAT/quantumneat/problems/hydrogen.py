@@ -59,17 +59,31 @@ def h2_instance_2(distance = None):
     # print(H2_DATA.loc[distance])
     return  H2_DATA_2.loc[distance]
 
-def plot_solution(show = False, **plot_kwargs):
-    import matplotlib.pyplot as plt
+def get_solution():
     x = np.array(H2_DATA.index)
     # print(x)
     y = np.zeros(len(x))
     for ind, i in enumerate(x):
         instance = h2_instance(i)
         y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["repulsion"]
-    # plt.scatter(x, y)
+    return x, y
+
+def get_solutions(X):
+    Y = np.zeros(len(X))
+    for ind, i in enumerate(X):
+        instance = h2_instance(i)
+        Y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["repulsion"]
+    return Y
+
+def plot_solution(show = False, **plot_kwargs):
+    import matplotlib.pyplot as plt
+    x, y = get_solution()
     plt.plot(x,y, **plot_kwargs)
     if show:
+        plt.title("Hydrogen molecule")
+        plt.ylabel("Energy (a.u.)")
+        plt.xlabel("Distance (Angstrom)")
+        plt.grid()
         plt.show()
 
 def plot_solution_2(show = False, **plot_kwargs):
@@ -85,8 +99,9 @@ def plot_solution_2(show = False, **plot_kwargs):
         plt.show()
 
 class Hydrogen(Problem):
-    def __init__(self, config:QuantumNEATConfig, **kwargs) -> None:
+    def __init__(self, config:QuantumNEATConfig, error_in_fitness = True, **kwargs) -> None:
         self.config = config
+        self.error_in_fitness = error_in_fitness
 
     def get_instance(self, distance = None) -> tuple[np.ndarray]:
         return h2_instance(distance)
@@ -95,7 +110,10 @@ class Hydrogen(Problem):
         circuit, n_parameters = genome.get_circuit()
         parameters = genome.get_parameters()
         gradient = self.gradient(circuit, parameters, n_parameters)
-        circuit_error = genome.get_circuit_error()
+        if self.error_in_fitness:
+            circuit_error = genome.get_circuit_error()
+        else:
+            circuit_error = 0
         energy = genome.get_energy()
         return 1/(1+circuit_error)-energy+gradient
     
@@ -272,7 +290,31 @@ class EncodedHydrogen_2(EncodedHydrogen):
         if distance == None:
             distance = np.random.choice(H2_DATA.index)
         return (h2_instance_2(distance), [distance])
+
+class AllHydrogen(Hydrogen):
+    def energy(self, circuit, parameters, no_optimization=False, instance=None, no_solution=False) -> float:
+        if instance is not None:
+            return super().energy(circuit, parameters, no_optimization, instance, no_solution)
+        mean_squared_energy = 0
+        distances = H2_DATA.index
+        for distance in distances:
+            instance = self.get_instance(distance)
+            energy = super().energy(circuit, parameters, no_optimization)
+            mean_squared_energy += energy**2
+        return mean_squared_energy/len(distances)
     
+class NoSolutionAllHydrogen(Hydrogen):
+    def energy(self, circuit, parameters, no_optimization=False, instance=None, no_solution=False) -> float:
+        if instance is not None:
+            return super().energy(circuit, parameters, no_optimization, instance, no_solution=True)
+        mean_squared_energy = 0
+        distances = H2_DATA.index
+        for distance in distances:
+            instance = self.get_instance(distance)
+            energy = super().energy(circuit, parameters, no_optimization, no_solution=True)
+            mean_squared_energy += energy**2
+        return mean_squared_energy/len(distances)
+
 if __name__ == "__main__":
     plot_solution(True, marker="o")
     # plot_solution_2(True, marker="o")
