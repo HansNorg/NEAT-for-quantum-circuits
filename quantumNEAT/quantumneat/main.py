@@ -21,8 +21,11 @@ class QuantumNEAT:
 
         # For experimenting only
         self.best_fitnesses = [self.best_fitness]
-        self.optimal_energy = self.problem.solution()
-        self.logger.info(f"{self.optimal_energy=:.2f}")
+        if self.config.calculate_solution:
+            self.optimal_energy = self.problem.solution()
+            self.logger.info(f"{self.optimal_energy=:.2f}")
+        else:
+            self.optimal_energy = 0
         self.best_energies = [best_genome.get_energy()]
         energies = self.get_energies()
         self.number_of_solutions = [sum([abs(energy-self.optimal_energy) <= self.config.solution_margin for energy in energies])]

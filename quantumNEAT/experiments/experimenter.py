@@ -52,7 +52,7 @@ class Experimenter:
         np.save(f"{self.folder}/experiments/run_cache/{self.name}_run_number", [new_number], allow_pickle=False)
 
     def run_default(self, n_generations, do_plot = False, do_print = True):
-        self.logger.info(f"Running experiment {self.name}")
+        self.logger.info(f"Running experiment {self.name} run {self.run}")
         starttime = time()
         self.run_generations(n_generations)
         self.final_energies = self.quantumneat.get_energies()
