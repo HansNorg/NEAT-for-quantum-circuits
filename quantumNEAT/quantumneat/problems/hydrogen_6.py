@@ -68,8 +68,9 @@ def plot_solution(show = False, **plot_kwargs):
         plt.show()
 
 class Hydrogen6(Problem):
-    def __init__(self, config:QuantumNEATConfig, **kwargs) -> None:
+    def __init__(self, config:QuantumNEATConfig, error_in_fitness = True, **kwargs) -> None:
         self.config = config
+        self.error_in_fitness = error_in_fitness
 
     def get_instance(self, distance = None) -> tuple[np.ndarray]:
         return h6_instance(distance)
@@ -78,7 +79,10 @@ class Hydrogen6(Problem):
         circuit, n_parameters = genome.get_circuit()
         parameters = genome.get_parameters()
         gradient = self.gradient(circuit, parameters, n_parameters)
-        circuit_error = genome.get_circuit_error()
+        if self.error_in_fitness:
+            circuit_error = genome.get_circuit_error()
+        else:
+            circuit_error = 0
         energy = genome.get_energy()
         return 1/(1+circuit_error)-energy+gradient
     
@@ -103,7 +107,6 @@ class Hydrogen6(Problem):
             instance = self.get_instance(self.config.h2_distance)
         hamiltonian = self.hamiltonian(instance)
         correction = instance.loc["repulsion"]
-        solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
@@ -122,6 +125,7 @@ class Hydrogen6(Problem):
             expectation = expectation_function(parameters)
         if no_solution:
             return expectation + correction
+        solution = exact_diagonalisation(hamiltonian)
         return expectation - solution
 
     @staticmethod
@@ -178,6 +182,18 @@ class AllHydrogen6(Hydrogen6):
             mean_squared_energy += energy**2
         return mean_squared_energy/len(distances)
     
+class NoSolutionAllHydrogen6(Hydrogen6):
+    def energy(self, circuit, parameters, no_optimization=False, instance=None, no_solution=False) -> float:
+        if instance is not None:
+            return super().energy(circuit, parameters, no_optimization, instance, no_solution=True)
+        mean_squared_energy = 0
+        distances = DATA.index
+        for distance in distances:
+            instance = self.get_instance(distance)
+            energy = super().energy(circuit, parameters, no_optimization, no_solution=True)
+            mean_squared_energy += energy**2
+        return mean_squared_energy/len(distances)
+
 if __name__ == "__main__":
     print(DATA.columns)
     plot_solution(True, marker="o")

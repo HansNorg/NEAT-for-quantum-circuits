@@ -65,24 +65,36 @@ def main(args:Namespace, unknown:list[str]):
             from quantumneat.problems.hydrogen import no_identity_hamiltonian
             problem.hamiltonian = no_identity_hamiltonian
     elif "h6" in problem_arg:
+        if "errorless" in problem_arg:
+            error_in_fitness = False
         if "r_" in problem_arg:
             distance = float(problem_arg.split("r_")[-1])
             config.h2_distance = distance
         config.evaluate = True
         if "all" in problem_arg:
-            from quantumneat.problems.hydrogen_6 import AllHydrogen6
-            problem = AllHydrogen6(config)
+            if "no-solution" in problem_arg:
+                from quantumneat.problems.hydrogen_6 import NoSolutionAllHydrogen6
+                problem = NoSolutionAllHydrogen6(config, error_in_fitness=error_in_fitness)
+            else:
+                from quantumneat.problems.hydrogen_6 import AllHydrogen6
+                problem = AllHydrogen6(config)
         else:
             from quantumneat.problems.hydrogen_6 import Hydrogen6
             problem = Hydrogen6(config)
     elif "lih" in problem_arg or "lithium_hydride" in problem_arg:
+        if "errorless" in problem_arg:
+            error_in_fitness = False
         if "r_" in problem_arg:
             distance = float(problem_arg.split("r_")[-1])
             config.h2_distance = distance
         config.evaluate = True
         if "all" in problem_arg:
-            from quantumneat.problems.lithium_hydride import AllLithiumHydride
-            problem = AllLithiumHydride(config)
+            if "no-solution" in problem_arg:
+                from quantumneat.problems.lithium_hydride import NoSolutionAllLithiumHydride
+                problem = NoSolutionAllLithiumHydride(config, error_in_fitness=error_in_fitness)
+            else:
+                from quantumneat.problems.lithium_hydride import AllLithiumHydride
+                problem = AllLithiumHydride(config)
         else:
             from quantumneat.problems.lithium_hydride import LithiumHydride
             problem = LithiumHydride(config)

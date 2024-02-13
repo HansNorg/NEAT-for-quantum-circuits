@@ -230,7 +230,6 @@ class EncodedHydrogen(Hydrogen):
         instance, enc_params = instance
         hamiltonian = self.hamiltonian(instance)
         correction = instance.loc["repulsion"]
-        solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs_encoded(enc_params,
@@ -251,6 +250,7 @@ class EncodedHydrogen(Hydrogen):
         # self.logger.debug(f"Expectation {expectation}, solution {solution}")
         if no_solution:
             return expectation + correction
+        solution = exact_diagonalisation(hamiltonian)
         return expectation - solution
 
     def add_encoding_layer(self, circuit:Circuit):
