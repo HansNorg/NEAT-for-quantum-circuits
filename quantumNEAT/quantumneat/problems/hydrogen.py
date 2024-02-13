@@ -78,13 +78,38 @@ def get_solutions(X):
 def plot_solution(show = False, **plot_kwargs):
     import matplotlib.pyplot as plt
     x, y = get_solution()
-    plt.plot(x,y, **plot_kwargs)
+    plt.plot(x,y, label="Exact diagonalisation", **plot_kwargs)
     if show:
         plt.title("Hydrogen molecule")
         plt.ylabel("Energy (a.u.)")
         plt.xlabel("Distance (Angstrom)")
         plt.grid()
         plt.show()
+
+def plot_UCCSD_result(**plot_kwargs):
+    import matplotlib.pyplot as plt
+    try:
+        energies = np.load("UCCSD_H2.npy")
+    except:
+        print("UCCSD data not found")
+        return
+    distances = np.array(H2_DATA.index)
+    for ind, distance in enumerate(distances):
+        energies[ind] += h2_instance(distance)["repulsion"]
+    plt.scatter(distances, energies, label ="UCCSD", **plot_kwargs)
+
+def plot_UCCSD_diff(**plot_kwargs):
+    import matplotlib.pyplot as plt
+    try:
+        energies = np.load("UCCSD_H2.npy")
+    except:
+        print("UCCSD data not found")
+        return
+    solution = get_solution()[1]
+    distances = np.array(H2_DATA.index)
+    for ind, distance in enumerate(distances):
+        energies[ind] += h2_instance(distance)["repulsion"] - solution[ind]
+    plt.scatter(distances, energies, label ="UCCSD", **plot_kwargs)
 
 def plot_solution_2(show = False, **plot_kwargs):
     import matplotlib.pyplot as plt
@@ -316,6 +341,10 @@ class NoSolutionAllHydrogen(Hydrogen):
         return mean_squared_energy/len(distances)
 
 if __name__ == "__main__":
-    plot_solution(True, marker="o")
+    import matplotlib.pyplot as plt
+    plot_UCCSD_result()
+    plot_solution(True)
+    # plot_solution(True, marker="o")
     # plot_solution_2(True, marker="o")
-    
+    plot_UCCSD_diff()
+    plt.show()

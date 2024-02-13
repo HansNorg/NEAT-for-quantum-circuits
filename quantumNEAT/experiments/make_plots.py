@@ -1,7 +1,7 @@
 import numpy as np
 
 from experiments.plotter import MultipleExperimentPlotter
-from quantumneat.problems.hydrogen import get_solutions, plot_solution as plot_h2_solution
+from quantumneat.problems.hydrogen import get_solutions, plot_solution as plot_h2_solution, plot_UCCSD_diff, plot_UCCSD_result
 
 def constant_population_size(folder, verbose, show = False, save = False):
     if verbose >= 1:
@@ -86,10 +86,13 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     ]
     # print(experiments)
     plotter.add_experiments(experiments)
-    plotter.plot_all(show, save)
+    # plotter.plot_all(show, save)
     plot_h2_solution(color="r", linewidth=1)
+    plot_UCCSD_result(color="black", marker="x")
     plotter.plot_evaluation("Evaluation", show, save, marker = "x")
+    plot_UCCSD_diff(color="black",  marker="x")
     plotter.plot_delta_evaluation(get_solutions, "Difference from solution", show, save, marker="x")
+    plot_UCCSD_diff(color="black", label ="UCCSD", marker="x")
     plotter.plot_delta_evaluation_log(get_solutions, "Difference from solution", show, save, marker="x")
 
 if __name__ == "__main__": 
