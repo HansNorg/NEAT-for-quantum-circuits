@@ -8,9 +8,9 @@ sbatch <<EOT
 
 #SBATCH --partition=cpu_lorentz
 #SBATCH --account=cpu_lorentz
-#SBATCH --time=1:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=20
 #SBATCH --mem=1G
 
 module load Python/3.10.8-GCCcore-12.2.0
