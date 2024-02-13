@@ -95,6 +95,14 @@ def main(args:Namespace, unknown:list[str]):
             else:
                 from quantumneat.problems.lithium_hydride import AllLithiumHydride
                 problem = AllLithiumHydride(config)
+        if "part" in problem_arg:
+            if "no-solution" in problem_arg:
+                from quantumneat.problems.lithium_hydride import NoSolutionPartLithiumHydride
+                problem = NoSolutionPartLithiumHydride(config, error_in_fitness=error_in_fitness)
+            else:
+                # from quantumneat.problems.lithium_hydride import AllLithiumHydride
+                # problem = AllLithiumHydride(config)
+                raise NotImplementedError(f"Problem {problem_arg} not implemented.")
         else:
             from quantumneat.problems.lithium_hydride import LithiumHydride
             problem = LithiumHydride(config)
