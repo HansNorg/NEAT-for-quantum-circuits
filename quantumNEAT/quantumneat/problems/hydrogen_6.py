@@ -179,21 +179,33 @@ class AllHydrogen6(Hydrogen6):
         for distance in distances:
             instance = self.get_instance(distance)
             energy = super().energy(circuit, parameters, no_optimization)
-            mean_squared_energy += energy**2
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
     
 class NoSolutionAllHydrogen6(Hydrogen6):
     def energy(self, circuit, parameters, no_optimization=False, instance=None, no_solution=False) -> float:
         if instance is not None:
-            return super().energy(circuit, parameters, no_optimization, instance, no_solution=True)
+            return super().energy(circuit, parameters, no_optimization, instance, no_solution)
         mean_squared_energy = 0
         distances = DATA.index
         for distance in distances:
             instance = self.get_instance(distance)
-            energy = super().energy(circuit, parameters, no_optimization, no_solution=True)
-            mean_squared_energy += energy**2
+            energy = super().energy(circuit, parameters, no_optimization, instance, no_solution)
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
-
+    
+class PartHydrogen6(Hydrogen6):
+    def energy(self, circuit, parameters, no_optimization=False, instance=None, no_solution=False) -> float:
+        if instance is not None:
+            return super().energy(circuit, parameters, no_optimization, instance, no_solution=no_solution)
+        mean_squared_energy = 0
+        distances = [DATA.index[i] for i in [0, 10, 20, 30, 40, 50]]
+        for distance in distances:
+            instance = self.get_instance(distance)
+            energy = super().energy(circuit, parameters, no_optimization, instance, no_solution=no_solution)
+            mean_squared_energy += energy
+        return mean_squared_energy/len(distances)
+    
 if __name__ == "__main__":
     print(DATA.columns)
     plot_solution(True, marker="o")

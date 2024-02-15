@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import os
 from time import time
-from quantumneat.problems.hydrogen import plot_solution, get_solution, get_solutions
+from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution, get_solution as get_h2_solution, get_solutions as get_h2_solutions
+from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution, get_solution as get_h6_solution, get_solutions as get_h6_solutions
 from tqdm import tqdm
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -148,7 +149,9 @@ class SingleRunPlotter:
         self.plot_species_evolution(show, save)        
         self.plot_evaluation(show, save)
         if "h2" in self.name:
-            self.plot_delta_evaluation(get_solutions, show, save)
+            self.plot_delta_evaluation(get_h2_solutions, show, save)
+        elif "h6" in self.name:
+            self.plot_delta_evaluation(get_h6_solutions, show, save)
 
     def _plot_min_energy_single_point(self, x, color = None):
         try:
@@ -182,8 +185,10 @@ class SingleRunPlotter:
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        plot_solution(color="r", linewidth=1)
-        # plot_solution_2(color="r", linewidth=1)
+        if "h2" in self.name:
+            plot_h2_solution(color="r", linewidth=1)
+        elif "h6" in self.name:
+            plot_h6_solution(color="r", linewidth=1)
         plt.scatter(data["distances"], data["energies"])
         plt.title("Evaluation of best final circuit")
         plt.xlabel("Distance (Angstrom)")
@@ -264,7 +269,8 @@ class MultipleRunPlotter:
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        sns.lineplot(data=data, x=data.index, y=data[0], label=label)
+        y = np.real(data[0])
+        sns.lineplot(data=data, x=data.index, y=y, label=label)
 
     def plot_all(self, show = False, save = False):
         extra_title = f" averaged over {self.n_runs} runs"
@@ -281,6 +287,9 @@ class MultipleRunPlotter:
             if show:
                 plt.show()
             plt.close()
+        self.plot_evaluation(show, save)
+        self.plot_delta_evaluation(show, save)
+        self.plot_delta_evaluation(show, save, logarithmic=True)
         
     def _plot_min_energy_single_point(self, x, c = None, **plot_kwargs):
         if self.runs == "*":
@@ -349,6 +358,21 @@ class MultipleRunPlotter:
                     print(exc_info)
                 return
             plt.scatter(data["distances"], data["energies"], **plot_kwargs)
+    
+    def plot_evaluation(self, show=False, save=False, **plot_kwargs):
+        if "h2" in self.name:
+            plot_h2_solution(color="r", linewidth=1)
+        elif "h6" in self.name:
+            plot_h6_solution(color="r", linewidth=1)
+        self._plot_evaluation(**plot_kwargs)
+        plt.title("Evaluation of best final circuit")
+        plt.xlabel("Distance (Angstrom)")
+        plt.ylabel("Energy (a.u.)")
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_evaluation.png")
+        if show:
+            plt.show()
+        plt.close()
 
     def _plot_delta_evaluation(self, solution_func, **plot_kwargs):
         if self.runs == "*":
@@ -371,6 +395,26 @@ class MultipleRunPlotter:
                 return
             solutions = solution_func(data["distances"])
             plt.scatter(data["distances"], data["energies"]-solutions, **plot_kwargs)
+
+    def plot_delta_evaluation(self, show=False, save=False, logarithmic=False, **plot_kwargs):
+        if "h2" in self.name:
+            self._plot_delta_evaluation(get_h2_solutions, **plot_kwargs)
+        elif "h6" in self.name:
+            self._plot_delta_evaluation(get_h6_solutions, **plot_kwargs)
+        else:
+            return
+        logname = ""
+        if logarithmic:
+            plt.yscale("log")
+            logname = "_logarithmic"
+        plt.title("Evaluation of best final circuit")
+        plt.xlabel("Distance (Angstrom)")
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_delta_evaluation{logname}.png")
+        if show:
+            plt.show()
+        plt.close()
 
 class MultipleExperimentPlotter:
     def __init__(self,name:str, folder:str = ".", verbose = 0, error_verbose = 1) -> None:
@@ -405,7 +449,7 @@ class MultipleExperimentPlotter:
                 plt.show()
             plt.close()
         if "h2" in self.name:
-            X, solutions = get_solution()
+            X, solutions = get_h2_solution()
             self.plot_diff_energy(X, solutions, "Difference from solution", show, save)
 
     def _plot_min_energy_single_point(self, X, color = None, **plot_kwargs):

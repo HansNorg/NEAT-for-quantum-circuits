@@ -180,7 +180,7 @@ class AllLithiumHydride(LithiumHydride):
         for distance in distances:
             instance = self.get_instance(distance)
             energy = super().energy(circuit, parameters, no_optimization)
-            mean_squared_energy += energy**2
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
     
 class NoSolutionAllLithiumHydride(LithiumHydride):
@@ -191,8 +191,8 @@ class NoSolutionAllLithiumHydride(LithiumHydride):
         distances = DATA.index
         for distance in distances:
             instance = self.get_instance(distance)
-            energy = super().energy(circuit, parameters, no_optimization, no_solution=True)
-            mean_squared_energy += energy**2
+            energy = super().energy(circuit, parameters, no_optimization, instance, no_solution=True)
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
 
 class NoSolutionPartLithiumHydride(LithiumHydride):
@@ -203,8 +203,8 @@ class NoSolutionPartLithiumHydride(LithiumHydride):
         distances = [DATA.index[i] for i in [0, 10, 20, 30, 40, 50]]
         for distance in distances:
             instance = self.get_instance(distance)
-            energy = super().energy(circuit, parameters, no_optimization, no_solution=True)
-            mean_squared_energy += energy**2
+            energy = super().energy(circuit, parameters, no_optimization, instance, no_solution=True)
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
 
 if __name__ == "__main__":

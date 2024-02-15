@@ -324,8 +324,8 @@ class AllHydrogen(Hydrogen):
         distances = H2_DATA.index
         for distance in distances:
             instance = self.get_instance(distance)
-            energy = super().energy(circuit, parameters, no_optimization)
-            mean_squared_energy += energy**2
+            energy = super().energy(circuit, parameters, no_optimization, instance, no_solution)
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
     
 class NoSolutionAllHydrogen(Hydrogen):
@@ -336,8 +336,8 @@ class NoSolutionAllHydrogen(Hydrogen):
         distances = H2_DATA.index
         for distance in distances:
             instance = self.get_instance(distance)
-            energy = super().energy(circuit, parameters, no_optimization, no_solution=True)
-            mean_squared_energy += energy**2
+            energy = super().energy(circuit, parameters, no_optimization, instance, no_solution=True)
+            mean_squared_energy += energy
         return mean_squared_energy/len(distances)
 
 if __name__ == "__main__":
