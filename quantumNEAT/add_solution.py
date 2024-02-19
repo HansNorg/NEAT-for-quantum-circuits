@@ -26,7 +26,7 @@ def get_solution(data:pd.DataFrame):
     solutions = []
     for _, instance in data.iterrows():
         H = GroundStateEnergy.hamiltonian(instance)
-        solutions.append(exact_diagonalisation(H))
+        solutions.append(exact_diagonalisation(H)+instance["repulsion"])
     return solutions
 
 def add_solution(molecule:str, save = True):

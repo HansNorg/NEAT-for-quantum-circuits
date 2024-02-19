@@ -28,15 +28,15 @@ def exact_diagonalisation(H):
     return el[0]
 
 DATA:pd.DataFrame = pd.read_pickle("h6_hamiltonian.pkl")
-new_index = []
-for index in DATA.index:
-    new_index.append(np.round(index, 2))
-DATA.insert(0, "R", new_index)
-DATA.reset_index()
-# print(H2_DATA)
-DATA.set_index("R", inplace=True)
-# print(H2_DATA)
-# print(H2_DATA.index)
+# new_index = []
+# for index in DATA.index:
+#     new_index.append(np.round(index, 2))
+# DATA.insert(0, "R", new_index)
+# DATA.reset_index()
+# # print(H2_DATA)
+# DATA.set_index("R", inplace=True)
+# # print(H2_DATA)
+# # print(H2_DATA.index)
 
 def h6_instance(distance = None):
     if distance == None:
