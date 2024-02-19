@@ -27,7 +27,7 @@ def exact_diagonalisation(H):
     el, ev = q.eigh(H, k=1)
     return el[0]
 
-DATA:pd.DataFrame = pd.read_pickle("LiH_hamiltonian.pkl")
+DATA:pd.DataFrame = pd.read_pickle("lih_hamiltonian.pkl")
 new_index = []
 for index in DATA.index:
     new_index.append(np.round(index, 2))

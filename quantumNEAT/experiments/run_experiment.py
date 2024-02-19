@@ -39,6 +39,19 @@ def main(args:Namespace, unknown:list[str]):
         else:
             from quantumneat.problems.fox_in_the_hole import FoxInTheHole
             problem = FoxInTheHole(config)
+    elif "gs" in problem_arg:
+        config.evaluate = True
+        error_in_fitness = True
+        if "errorless" in problem_arg:
+            error_in_fitness = False
+        if "h2" in problem_arg:
+            molecule = "h2"
+        elif "h6" in problem_arg:
+            molecule = "h6"
+        elif "lih" in problem_arg:
+            molecule = "lih"
+        from quantumneat.problems.chemistry import GroundStateEnergy
+        problem = GroundStateEnergy(config, molecule, error_in_fitness=error_in_fitness)
     elif "h2" in problem_arg or "hydrogen" in problem_arg:
         error_in_fitness = True
         if "errorless" in problem_arg:

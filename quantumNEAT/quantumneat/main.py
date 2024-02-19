@@ -18,6 +18,7 @@ class QuantumNEAT:
         self.population = self.config.Population(self.config, self.problem)
         best_genome = self.population.get_best_genome()
         self.best_fitness = best_genome.get_fitness()
+        self.best_length = len(best_genome.genes)
 
         # For experimenting only
         self.best_fitnesses = [self.best_fitness]
@@ -52,6 +53,7 @@ class QuantumNEAT:
         best_genome = self.population.get_best_genome()
         if best_genome.get_fitness() > self.best_fitness:
             self.best_fitness = best_genome.get_fitness()
+            self.best_length = len(best_genome.genes)
             self.best_genomes.append((self.population.generation, copy.deepcopy(self.population.get_best_genome())))
         self.best_fitnesses.append(self.best_fitness)
         self.best_energies.append(best_genome.get_energy())
@@ -73,9 +75,9 @@ class QuantumNEAT:
         self.logger.info(f"Started running for {max_generations-self.population.generation} generations.")
 
         while self.population.generation < max_generations:
-            self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
+            self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}, best length: {self.best_length:4}")
             self.run_generation()
-        self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}")
+        self.logger.info(f"Generation {self.population.generation:8}, population size: {len(self.population.population):8}, number of species: {len(self.population.species):4}, best fitness: {self.best_fitness:8.3f}, best length: {self.best_length:4}")
         best_circuit_performance = self.best_genomes[-1][1].evaluate(N=1000)
         self.logger.info(f"Best circuit performance: {best_circuit_performance}")
         self.logger.debug(f"Best circuit parameters: {self.best_genomes[-1][1].get_parameters()}")

@@ -37,13 +37,13 @@ H2_DATA_2.iloc[2, 0] -= correction
 H2_DATA_2.iloc[3, 0] -= correction
 
 H2_DATA:pd.DataFrame = pd.read_pickle("h2_hamiltonian.pkl")
-new_index = []
-for index in H2_DATA.index:
-    new_index.append(np.round(index, 2))
-H2_DATA.insert(0, "R", new_index)
-H2_DATA.reset_index()
-# print(H2_DATA)
-H2_DATA.set_index("R", inplace=True)
+# new_index = []
+# for index in H2_DATA.index:
+#     new_index.append(np.round(index, 2))
+# H2_DATA.insert(0, "R", new_index)
+# H2_DATA.reset_index()
+# # print(H2_DATA)
+# H2_DATA.set_index("R", inplace=True)
 # print(H2_DATA)
 # print(H2_DATA.index)
 
