@@ -50,7 +50,10 @@ def main(args:Namespace, unknown:list[str]):
             molecule = "h6"
         elif "lih" in problem_arg:
             molecule = "lih"
-        from quantumneat.problems.chemistry import GroundStateEnergy
+        if "saveh" in problem_arg:
+            from quantumneat.problems.chemistry import GroundStateEnergySavedHamiltonian as GroundStateEnergy
+        else:
+            from quantumneat.problems.chemistry import GroundStateEnergy
         problem = GroundStateEnergy(config, molecule, error_in_fitness=error_in_fitness)
     elif "h2" in problem_arg or "hydrogen" in problem_arg:
         error_in_fitness = True

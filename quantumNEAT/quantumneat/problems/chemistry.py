@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
+from quantumneat.configuration import QuantumNEATConfig
 
 from quantumneat.problem import Problem
 from quantumneat.helper import get_energy_qulacs
@@ -35,6 +36,7 @@ class GroundStateEnergy(Problem):
             self.data.insert(0, "R", new_index)
             self.data.reset_index()
             self.data.set_index("R", inplace=True)
+        # print(f"Hamiltonian data: {self.data.keys()} \n {self.data.head()}")
     
     def add_encoding_layer(self, circuit:Circuit):
         if self.config.simulator == "qiskit":
@@ -128,6 +130,26 @@ class GroundStateEnergy(Problem):
             import matplotlib.pyplot as plt
             plt.show()
 
+class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
+    def __init__(self, config: QuantumNEATConfig, molecule: str, error_in_fitness=True, **kwargs) -> None:
+        super().__init__(config, molecule, error_in_fitness, **kwargs)
+        self._add_hamiltonian_to_data()
+
+    def _add_hamiltonian_to_data(self):
+        hamiltonians = []
+        for _, instance in self.data.iterrows():
+            hamiltonians.append(super().hamiltonian(instance))
+        self.data["hamiltonian"] = hamiltonians
+        # print(np.shape(hamiltonians))
+    
+    @staticmethod
+    def hamiltonian(instance):
+        return instance["hamiltonian"]
+
 if __name__ == "__main__":
-    problem = GroundStateEnergy(None, "h2")
+    # problem = GroundStateEnergy(None, "h2")
+    problem = GroundStateEnergySavedHamiltonian(None, "h2")
     print(problem.data.head())
+    for _, instance in problem.data.iterrows():
+        print(problem.hamiltonian(instance))
+        break

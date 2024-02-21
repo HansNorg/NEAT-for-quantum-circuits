@@ -81,7 +81,8 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     # experiments = [(f"h2_r_{R}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[1]", f"R = {R}") for R in distances]
     distances = np.arange(0.2, 2.90, 0.05)
     experiments = [
-        ("h2_all_linear_growth_ROT-CNOT_2-qubits_100-population_200-optimizer-steps", "[1]", "Linear growth"),
+        # ("h2_all_linear_growth_ROT-CNOT_2-qubits_100-population_200-optimizer-steps", "[1]", "Linear growth"),
+        ("gs_h2_errorless_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[0]", "Linear growth"),
         ("h2_all_qneat_ROT-CNOT_2-qubits_100-population_200-optimizer-steps", "[9]", "qneat")
     ]
     # print(experiments)
@@ -90,9 +91,9 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     plot_h2_solution(color="r", linewidth=1)
     plot_UCCSD_result(color="black", marker="x")
     plotter.plot_evaluation("Evaluation", show, save, marker = "x")
-    plot_UCCSD_diff(color="black",  marker="x")
+    plot_UCCSD_diff(color="black", marker="x")
     plotter.plot_delta_evaluation(get_solutions, "Difference from solution", show, save, marker="x")
-    plot_UCCSD_diff(color="black", label ="UCCSD", marker="x")
+    plot_UCCSD_diff(color="black", marker="x")
     plotter.plot_delta_evaluation_log(get_solutions, "Difference from solution", show, save, marker="x")
 
 if __name__ == "__main__": 

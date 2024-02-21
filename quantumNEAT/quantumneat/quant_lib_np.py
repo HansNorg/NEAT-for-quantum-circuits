@@ -1,6 +1,7 @@
 # Made by Onur Danaci
 # Edits by Hans Norg
 import numpy as np
+from numba import njit
 
 
 dtype = np.complex64
@@ -40,27 +41,47 @@ ry = lambda x: np.array([[np.cos(x/2),-np.sin(x/2)],[np.sin(x/2),np.cos(x/2)]], 
 
 rz = lambda x: np.array([[np.exp(-1j*x/2),0],[0,np.exp(+1j*x/2)]], dtype=dtype)
 
-def get_Ising_h_term(h, n_qubits):
-    M = len(h)
+# def get_Ising_h_term(h, n_qubits):
+#     M = len(h)
     
-    H = 0
-    for ih in range(M):
-        H += h[ih]*Z(ih, n_qubits)
+#     H = 0
+#     for ih in range(M):
+#         H += h[ih]*Z(ih, n_qubits)
         
-    return H
+#     return H
 
-def get_Ising_J_term(J, n_qubits):
-    M = len(J)
+# def get_Ising_J_term(J, n_qubits):
+#     M = len(J)
     
-    H = 0
-    for ij in range(0,M,2):
-        H += J[ih]*ZZ(ij, n_qubits)
+#     H = 0
+#     for ij in range(0,M,2):
+#         H += J[ih]*ZZ(ij, n_qubits)
         
-    return H
+#     return H
 
-def get_Ising(h, j, n_qubits):
-    return get_Ising_h_term(h, n_qubits) + get_Ising_J_term(J, n_qubits)
+# def get_Ising(h, j, n_qubits):
+#     return get_Ising_h_term(h, n_qubits) + get_Ising_J_term(J, n_qubits)
     
+@njit
+def from_string_test(string):
+    # U = np.array([[1, 0], [0, 1]], dtype=dtype)
+    for ind, el in enumerate(string):
+        if el == "I":
+            op = Id
+        elif el == "X":
+            op = sx
+        elif el == "Y":
+            op = sy
+        elif el == "Z":
+            op = sz
+        else:
+            raise ValueError("Pauli identifier " + el + " not found")            
+        if ind == 0:
+            U = op.copy()
+        else:
+            U = np.kron(U, op)
+    return U
+
 def from_string(string):
     U = np.array([1], dtype = dtype)
     for el in string:
@@ -329,3 +350,22 @@ def apply_cptp(K_list, rho):
 #         return K_list_fn
 
 
+if __name__ == "__main__":
+    from time import time
+    for string in ["IIZY", "ZYZYZYZYZYZXX", "IZYXYZYXZYZIYZXIYZXYIZXIYZXIYZXIYZIIZXYIZXYIZ"]:
+        starttime = time()
+        original = from_string(string)
+        print("original", time()-starttime)
+        starttime = time()
+        test = from_string_test(string)
+        print("test", time()-starttime)
+        print(original.all()==test.all())
+        N = 10
+        starttime = time()
+        for i in range(N):
+            from_string(string)
+        print("original", time()-starttime)
+        starttime = time()
+        for i in range(N):
+            from_string_test(string)
+        print("test", time()-starttime)
