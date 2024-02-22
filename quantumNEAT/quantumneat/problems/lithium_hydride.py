@@ -50,14 +50,14 @@ def get_solution():
     y = np.zeros(len(x))
     for ind, i in enumerate(x):
         instance = li_h_instance(i)
-        y[ind] = exact_diagonalisation(LithiumHydride.hamiltonian(instance)) + instance["repulsion"]
+        y[ind] = exact_diagonalisation(LithiumHydride.hamiltonian(instance)) + instance["correction"]
     return x, y
 
 def get_solutions(X):
     Y = np.zeros(len(X))
     for ind, i in enumerate(X):
         instance = li_h_instance(i)
-        Y[ind] = exact_diagonalisation(LithiumHydride.hamiltonian(instance)) + instance["repulsion"]
+        Y[ind] = exact_diagonalisation(LithiumHydride.hamiltonian(instance)) + instance["correction"]
     return Y
 
 def plot_solution(show = False, **plot_kwargs):
@@ -106,7 +106,7 @@ class LithiumHydride(Problem):
         if instance is None:
             instance = self.get_instance(self.config.h2_distance)
         hamiltonian = self.hamiltonian(instance)
-        correction = instance.loc["repulsion"]
+        correction = instance.loc["correction"]
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
@@ -132,7 +132,7 @@ class LithiumHydride(Problem):
     def hamiltonian(instance:pd.DataFrame) -> list:
         H = 0
         for string, const in instance.items():
-            if string == "repulsion":
+            if string == "correction" or string == "solution":
                 continue
             H += from_string(string)*const
         return H

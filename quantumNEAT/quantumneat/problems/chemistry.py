@@ -25,7 +25,7 @@ class GroundStateEnergy(Problem):
 
     def _load_data(self, fix_index = False):
         try:
-            self.data:pd.DataFrame = pd.read_pickle(f"{self.molecule}_hamiltonian.pkl")
+            self.data:pd.DataFrame = pd.read_pickle(f"hamiltonians/{self.molecule}_hamiltonian.pkl")
         except FileNotFoundError as exc:
             self.logger.exception(f"Hamiltonian data for {self.molecule} not found.")
             raise exc
@@ -81,7 +81,7 @@ class GroundStateEnergy(Problem):
 
     def instance_energy(self, instance, circuit, parameters, no_optimization = False):
         hamiltonian = self.hamiltonian(instance)
-        correction = instance.loc["repulsion"]
+        correction = instance.loc["correction"]
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
@@ -104,7 +104,7 @@ class GroundStateEnergy(Problem):
     def hamiltonian(instance:pd.DataFrame) -> list:
         H = 0
         for string, const in instance.items():
-            if string == "repulsion" or string == "solution":
+            if string == "correction" or string == "solution":
                 continue
             H += from_string(string)*const
         return H
@@ -148,7 +148,7 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
 
 if __name__ == "__main__":
     # problem = GroundStateEnergy(None, "h2")
-    problem = GroundStateEnergySavedHamiltonian(None, "h2")
+    problem = GroundStateEnergySavedHamiltonian(None, "lih")
     print(problem.data.head())
     for _, instance in problem.data.iterrows():
         print(problem.hamiltonian(instance))

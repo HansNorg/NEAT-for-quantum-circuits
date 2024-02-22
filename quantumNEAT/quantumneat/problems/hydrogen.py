@@ -36,7 +36,7 @@ H2_DATA_2.iloc[1, 0] -= correction
 H2_DATA_2.iloc[2, 0] -= correction
 H2_DATA_2.iloc[3, 0] -= correction
 
-H2_DATA:pd.DataFrame = pd.read_pickle("h2_hamiltonian.pkl")
+H2_DATA:pd.DataFrame = pd.read_pickle("hamiltonians/h2_hamiltonian.pkl")
 # new_index = []
 # for index in H2_DATA.index:
 #     new_index.append(np.round(index, 2))
@@ -65,14 +65,14 @@ def get_solution():
     y = np.zeros(len(x))
     for ind, i in enumerate(x):
         instance = h2_instance(i)
-        y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["repulsion"]
+        y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["correction"]
     return x, y
 
 def get_solutions(X):
     Y = np.zeros(len(X))
     for ind, i in enumerate(X):
         instance = h2_instance(i)
-        Y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["repulsion"]
+        Y[ind] = exact_diagonalisation(Hydrogen.hamiltonian(instance)) + instance["correction"]
     return Y
 
 def plot_solution(show = False, **plot_kwargs):
@@ -95,7 +95,7 @@ def plot_UCCSD_result(**plot_kwargs):
         return
     distances = np.array(H2_DATA.index)
     for ind, distance in enumerate(distances):
-        energies[ind] += h2_instance(distance)["repulsion"]
+        energies[ind] += h2_instance(distance)["correction"]
     plt.scatter(distances, energies, label ="UCCSD", **plot_kwargs)
 
 def plot_UCCSD_diff(**plot_kwargs):
@@ -108,7 +108,7 @@ def plot_UCCSD_diff(**plot_kwargs):
     solution = get_solution()[1]
     distances = np.array(H2_DATA.index)
     for ind, distance in enumerate(distances):
-        energies[ind] += h2_instance(distance)["repulsion"] - solution[ind]
+        energies[ind] += h2_instance(distance)["correction"] - solution[ind]
     plt.scatter(distances, energies, label ="UCCSD", **plot_kwargs)
 
 def plot_solution_2(show = False, **plot_kwargs):
@@ -162,7 +162,7 @@ class Hydrogen(Problem):
         if instance is None:
             instance = self.get_instance(self.config.h2_distance)
         hamiltonian = self.hamiltonian(instance)
-        correction = instance.loc["repulsion"]
+        correction = instance.loc["correction"]
         solution = exact_diagonalisation(hamiltonian)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
@@ -254,7 +254,7 @@ class EncodedHydrogen(Hydrogen):
             instance = self.get_instance(self.config.h2_distance)
         instance, enc_params = instance
         hamiltonian = self.hamiltonian(instance)
-        correction = instance.loc["repulsion"]
+        correction = instance.loc["correction"]
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs_encoded(enc_params,
