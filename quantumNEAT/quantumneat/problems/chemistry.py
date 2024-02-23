@@ -125,7 +125,7 @@ class GroundStateEnergy(Problem):
     
     def plot_solution(self, show = False, **plot_kwargs):
         import seaborn as sns
-        sns.lineplot(self.data, y="solution", **plot_kwargs)
+        sns.lineplot(self.data, x="R", y="solution", **plot_kwargs)
         if show:
             import matplotlib.pyplot as plt
             plt.show()

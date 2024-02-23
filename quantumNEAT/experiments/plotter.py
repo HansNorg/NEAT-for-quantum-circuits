@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from time import time
+from quantumneat.problems.chemistry import GroundStateEnergy
 from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution, get_solution as get_h2_solution, get_solutions as get_h2_solutions
 from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution, get_solution as get_h6_solution, get_solutions as get_h6_solutions
 from tqdm import tqdm
@@ -152,6 +153,7 @@ class SingleRunPlotter:
             self.plot_delta_evaluation(get_h2_solutions, show, save)
         elif "h6" in self.name:
             self.plot_delta_evaluation(get_h6_solutions, show, save)
+        self.plot_delta_evaluation_new(show, save)
 
     def _plot_min_energy_single_point(self, x, color = None):
         try:
@@ -185,7 +187,19 @@ class SingleRunPlotter:
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        if "h2" in self.name:
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+            if molecule:
+                gse = GroundStateEnergy(self.config, molecule)
+                gse.plot_solution(color="r", linewidth=1)
+        elif "h2" in self.name:
             plot_h2_solution(color="r", linewidth=1)
         elif "h6" in self.name:
             plot_h6_solution(color="r", linewidth=1)
@@ -210,9 +224,42 @@ class SingleRunPlotter:
             return
         solutions = solution_func(data["distances"])
         plt.scatter(data["distances"], data["energies"]-solutions, **plot_kwargs)
+
+    def _plot_delta_evaluation_new(self, **plot_kwargs):
+        try:
+            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_evaluation.npz", allow_pickle=True))
+        except Exception as exc_info:
+            if self.error_verbose == 1:
+                print(f"evaluation data not found for {self.name}_run{self.run}")
+            elif self.error_verbose >= 1:
+                print(exc_info)
+            return
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+            if molecule:
+                gse = GroundStateEnergy(self.config, molecule)
+                plt.scatter(data["distances"], data["energies"]-gse.data["solution"], **plot_kwargs)
         
     def plot_delta_evaluation(self, solution_func, show = False, save = False):
         self._plot_delta_evaluation(solution_func)
+        plt.title("Evaluation of best final circuit")
+        plt.xlabel("Distance (Angstrom)")
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
+        if show:
+            plt.show()
+        plt.close()
+
+    def plot_delta_evaluation_new(self, show = False, save = False):
+        self._plot_delta_evaluation_new()
         plt.title("Evaluation of best final circuit")
         plt.xlabel("Distance (Angstrom)")
         plt.ylabel("Delta energy (a.u.)")
