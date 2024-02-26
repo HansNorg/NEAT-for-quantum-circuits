@@ -129,6 +129,25 @@ class GroundStateEnergy(Problem):
         if show:
             import matplotlib.pyplot as plt
             plt.show()
+    
+    def plot_UCCSD_result(self, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_UCCSD.npy")
+        except:
+            print("UCCSD data not found")
+            return
+        plt.scatter(self.data.index, energies, label ="UCCSD", **plot_kwargs)
+
+    def plot_UCCSD_diff(self, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_UCCSD.npy")
+        except:
+            print("UCCSD data not found")
+            return
+        difference = energies - self.data["solution"]
+        plt.scatter(self.data.index, difference, label ="UCCSD", **plot_kwargs)
 
 class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
     def __init__(self, config: QuantumNEATConfig, molecule: str, error_in_fitness=True, **kwargs) -> None:
@@ -147,6 +166,7 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
         return instance["hamiltonian"]
 
 if __name__ == "__main__":
+    # plot_UCCSD_result("h2")
     # problem = GroundStateEnergy(None, "h2")
     problem = GroundStateEnergySavedHamiltonian(None, "lih")
     print(problem.data.head())

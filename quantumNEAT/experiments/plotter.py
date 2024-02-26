@@ -65,6 +65,7 @@ class SingleRunPlotter:
         plt.xlabel("Generations")
         plt.ylabel(name)
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
         if show:
             plt.show()
@@ -115,6 +116,7 @@ class SingleRunPlotter:
         plt.figure()
         self._plot_species_evolution(sizes, 'black', 'white', n_generations, population_size, n_species)
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution.png")
         if show:
             plt.show()
@@ -127,6 +129,7 @@ class SingleRunPlotter:
         colorscheme = colormap(normalise(avg_fitnesses))
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_avg_fitness.png")
         if show:
             plt.show()
@@ -137,6 +140,7 @@ class SingleRunPlotter:
         colorscheme = colormap(normalise(best_fitnesses))
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_best_fitness.png")
         if show:
             plt.show()
@@ -198,16 +202,17 @@ class SingleRunPlotter:
                 molecule = None
             if molecule:
                 gse = GroundStateEnergy(self.config, molecule)
-                gse.plot_solution(color="r", linewidth=1)
+                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
         elif "h2" in self.name:
-            plot_h2_solution(color="r", linewidth=1)
+            plot_h2_solution(color="r", linewidth=1, label="Solution (ED)")
         elif "h6" in self.name:
-            plot_h6_solution(color="r", linewidth=1)
+            plot_h6_solution(color="r", linewidth=1, label="Solution (ED)")
         plt.scatter(data["distances"], data["energies"])
         plt.title("Evaluation of best final circuit")
         plt.xlabel("Distance (Angstrom)")
         plt.ylabel("Energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_evaluation.png")
         if show:
             plt.show()
@@ -225,6 +230,18 @@ class SingleRunPlotter:
         solutions = solution_func(data["distances"])
         plt.scatter(data["distances"], data["energies"]-solutions, **plot_kwargs)
 
+    def plot_delta_evaluation(self, solution_func, show = False, save = False):
+        self._plot_delta_evaluation(solution_func)
+        plt.title("Evaluation of best final circuit")
+        plt.xlabel("Distance (Angstrom)")
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
+        if show:
+            plt.show()
+        plt.close()
+        
     def _plot_delta_evaluation_new(self, **plot_kwargs):
         try:
             data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_evaluation.npz", allow_pickle=True))
@@ -246,17 +263,6 @@ class SingleRunPlotter:
             if molecule:
                 gse = GroundStateEnergy(self.config, molecule)
                 plt.scatter(data["distances"], data["energies"]-gse.data["solution"], **plot_kwargs)
-        
-    def plot_delta_evaluation(self, solution_func, show = False, save = False):
-        self._plot_delta_evaluation(solution_func)
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
 
     def plot_delta_evaluation_new(self, show = False, save = False):
         self._plot_delta_evaluation_new()
@@ -264,6 +270,7 @@ class SingleRunPlotter:
         plt.xlabel("Distance (Angstrom)")
         plt.ylabel("Delta energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
         if show:
             plt.show()
@@ -306,6 +313,28 @@ class MultipleRunPlotter:
             self.data[key] = key_data
         # print(self.data)
         # print(self.data[GENERATION_DATA[0][0]].head())
+
+        evaluation_data = []
+        if self.runs == "*":
+            files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_evaluation.npz")
+        else:
+            files = [
+                f"{self.folder}\\results\\{self.name}_run{run}_evaluation.npz"
+                for run in eval(self.runs)
+                ]
+        for file in files:
+            if self.verbose >= 1:
+                print(file)
+            try:
+                data = dict(np.load(file, allow_pickle=True))
+            except Exception as exc_info:
+                if self.error_verbose == 1:
+                    print(f"evaluation data not found for {self.name}_run{run}")
+                elif self.error_verbose >= 1:
+                    print(exc_info)
+                continue
+            evaluation_data.append(data)
+        self.evaluation_data = evaluation_data
     
     def _plot_vs_generations(self, key:str, label:str=None):
         try:
@@ -339,107 +368,50 @@ class MultipleRunPlotter:
         self.plot_delta_evaluation(show, save, logarithmic=True)
         
     def _plot_min_energy_single_point(self, x, c = None, **plot_kwargs):
-        if self.runs == "*":
-            files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_evaluation.npz")
-        else:
-            files = [
-                f"{self.folder}\\results\\{self.name}_run{run}_evaluation.npz"
-                for run in eval(self.runs)
-                ]
-        for file in files:
-            if self.verbose >= 1:
-                print(file)
-            try:
-                # min_energy = min(self.data["min_energies"][0])
-                data = dict(np.load(file, allow_pickle=True))
-                min_energy = data["energies"][0]
-                # distances = data["distances"]
-            except Exception as exc_info:
-                if self.error_verbose == 1:
-                    print(f"min_energies data not found for {self.name}")
-                elif self.error_verbose >= 1:
-                    print(exc_info)
-                return
+        for data in self.evaluation_data:
+            min_energy = data["energies"][0]
             plt.scatter(x, min_energy, c=c, **plot_kwargs)
 
     def _plot_diff_energy_single_point(self, x, solution, c = None, **plot_kwargs):
-        if self.runs == "*":
-            files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_evaluation.npz")
-        else:
-            files = [
-                f"{self.folder}\\results\\{self.name}_run{run}_evaluation.npz"
-                for run in eval(self.runs)
-                ]
-        for file in files:
-            if self.verbose >= 1:
-                print(file)
-            try:
-                data = dict(np.load(file, allow_pickle=True))
-                min_energy = data["energies"][0]
-            except Exception as exc_info:
-                if self.error_verbose == 1:
-                    print(f"min_energies data not found for {self.name}")
-                elif self.error_verbose >= 1:
-                    print(exc_info)
-                return
+        for data in self.evaluation_data:
+            min_energy = data["energies"][0]
             diff_energy = min_energy - solution
             plt.scatter(x, diff_energy, c=c, **plot_kwargs)
 
     def _plot_evaluation(self, **plot_kwargs):
-        if self.runs == "*":
-            files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_evaluation.npz")
-        else:
-            files = [
-                f"{self.folder}\\results\\{self.name}_run{run}_evaluation.npz"
-                for run in eval(self.runs)
-                ]
-        for file in files:
-            if self.verbose >= 1:
-                print(file)
-            try:
-                data = dict(np.load(file, allow_pickle=True))
-            except Exception as exc_info:
-                if self.error_verbose == 1:
-                    print(f"evaluation data not found for {self.name}_run{run}")
-                elif self.error_verbose >= 1:
-                    print(exc_info)
-                return
+        for data in self.evaluation_data:
             plt.scatter(data["distances"], data["energies"], **plot_kwargs)
     
     def plot_evaluation(self, show=False, save=False, **plot_kwargs):
-        if "h2" in self.name:
-            plot_h2_solution(color="r", linewidth=1)
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+            if molecule:
+                gse = GroundStateEnergy(self.config, molecule)
+                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+        elif "h2" in self.name:
+            plot_h2_solution(color="r", linewidth=1, label="Solution (ED)")
         elif "h6" in self.name:
-            plot_h6_solution(color="r", linewidth=1)
+            plot_h6_solution(color="r", linewidth=1, label="Solution (ED)")
         self._plot_evaluation(**plot_kwargs)
         plt.title("Evaluation of best final circuit")
         plt.xlabel("Distance (Angstrom)")
         plt.ylabel("Energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_evaluation.png")
         if show:
             plt.show()
         plt.close()
 
     def _plot_delta_evaluation(self, solution_func, **plot_kwargs):
-        if self.runs == "*":
-            files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_evaluation.npz")
-        else:
-            files = [
-                f"{self.folder}\\results\\{self.name}_run{run}_evaluation.npz"
-                for run in eval(self.runs)
-                ]
-        for file in files:
-            if self.verbose >= 1:
-                print(file)
-            try:
-                data = dict(np.load(file, allow_pickle=True))
-            except Exception as exc_info:
-                if self.error_verbose == 1:
-                    print(f"evaluation data not found for {self.name}_run{run}")
-                elif self.error_verbose >= 1:
-                    print(exc_info)
-                return
+        for data in self.evaluation_data:
             solutions = solution_func(data["distances"])
             plt.scatter(data["distances"], data["energies"]-solutions, **plot_kwargs)
 
@@ -458,7 +430,35 @@ class MultipleRunPlotter:
         plt.xlabel("Distance (Angstrom)")
         plt.ylabel("Delta energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_delta_evaluation{logname}.png")
+        if show:
+            plt.show()
+        plt.close()
+
+    def _plot_delta_evaluation_new(self, **plot_kwargs):
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+        for data in self.evaluation_data:
+            if molecule:
+                gse = GroundStateEnergy(self.config, molecule)
+                plt.scatter(data["distances"], data["energies"]-gse.data["solution"], **plot_kwargs)
+
+    def plot_delta_evaluation_new(self, show = False, save = False):
+        self._plot_delta_evaluation_new()
+        plt.title("Evaluation of best final circuit")
+        plt.xlabel("Distance (Angstrom)")
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
         if show:
             plt.show()
         plt.close()
@@ -495,9 +495,9 @@ class MultipleExperimentPlotter:
             if show:
                 plt.show()
             plt.close()
-        if "h2" in self.name:
-            X, solutions = get_h2_solution()
-            self.plot_diff_energy(X, solutions, "Difference from solution", show, save)
+        # if "h2" in self.name:
+        #     X, solutions = get_h2_solution()
+        #     self.plot_diff_energy(X, solutions, "Difference from solution", show, save)
 
     def _plot_min_energy_single_point(self, X, color = None, **plot_kwargs):
         for i, (experiment, label) in enumerate(self.experiments):
@@ -510,6 +510,7 @@ class MultipleExperimentPlotter:
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
         plt.ylabel("Ground state energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\energy_vs_R.png")
         if show:
             plt.show()
@@ -526,6 +527,7 @@ class MultipleExperimentPlotter:
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
         plt.ylabel("Ground state energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\delta_energy_vs_R.png")
         if show:
             plt.show()
@@ -543,6 +545,7 @@ class MultipleExperimentPlotter:
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
         plt.ylabel("Ground state energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\evaluation.png")
         if show:
             plt.show()
@@ -560,6 +563,25 @@ class MultipleExperimentPlotter:
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
         plt.ylabel("Delta energy (a.u.)")
         if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\{savename}.png")
+        if show:
+            plt.show()
+        plt.close()
+
+    def _plot_delta_evaluation_new(self, **plot_kwargs):
+        for i, (experiment, label) in enumerate(self.experiments):
+            experiment._plot_delta_evaluation_new(label = label, **plot_kwargs)
+
+    def plot_delta_evaluation_new(self, title = None, show = False, save = False, savename = "delta_evaluation", **plot_kwargs):
+        self._plot_delta_evaluation_new(**plot_kwargs)
+        plt.title(title)
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}\\figures\\{self.name}\\{savename}.png")
         if show:
             plt.show()
@@ -568,6 +590,10 @@ class MultipleExperimentPlotter:
     def plot_delta_evaluation_log(self, solution_func, title = None, show = False, save = False, **plot_kwargs):
         plt.yscale("log")
         self.plot_delta_evaluation(solution_func, title, show, save, "delta_evaluation_log", **plot_kwargs)
+
+    def plot_delta_evaluation_new_log(self, title = None, show = False, save = False, **plot_kwargs):
+        plt.yscale("log")
+        self.plot_delta_evaluation_new(title, show, save, "delta_evaluation_log", **plot_kwargs)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser

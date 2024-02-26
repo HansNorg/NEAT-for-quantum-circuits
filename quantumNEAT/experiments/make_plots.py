@@ -1,7 +1,8 @@
 import numpy as np
 
 from experiments.plotter import MultipleExperimentPlotter
-from quantumneat.problems.hydrogen import get_solutions, plot_solution as plot_h2_solution, plot_UCCSD_diff, plot_UCCSD_result
+from quantumneat.problems.chemistry import GroundStateEnergy
+from quantumneat.problems.hydrogen import get_solutions, plot_solution as plot_h2_solution, plot_UCCSD_diff as plot_UCCSD_diff_h2, plot_UCCSD_result as plot_UCCSD_result_h2
 
 def constant_population_size(folder, verbose, show = False, save = False):
     if verbose >= 1:
@@ -78,8 +79,8 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
         print("Hydrogen atom")
     plotter = MultipleExperimentPlotter("hydrogen_atom", folder=folder, verbose=verbose, error_verbose=verbose)
     # distances = [0.2, 0.35, 0.45, 1.5, 2.8]
+    # distances = np.arange(0.2, 2.90, 0.05)
     # experiments = [(f"h2_r_{R}_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[1]", f"R = {R}") for R in distances]
-    distances = np.arange(0.2, 2.90, 0.05)
     experiments = [
         # ("h2_all_linear_growth_ROT-CNOT_2-qubits_100-population_200-optimizer-steps", "[1]", "Linear growth"),
         ("gs_h2_errorless_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps", "[0]", "Linear growth"),
@@ -89,12 +90,36 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     plotter.add_experiments(experiments)
     # plotter.plot_all(show, save)
     plot_h2_solution(color="r", linewidth=1)
-    plot_UCCSD_result(color="black", marker="x")
+    plot_UCCSD_result_h2(color="black", marker="x")
     plotter.plot_evaluation("Evaluation", show, save, marker = "x")
-    plot_UCCSD_diff(color="black", marker="x")
+    plot_UCCSD_diff_h2(color="black", marker="x")
     plotter.plot_delta_evaluation(get_solutions, "Difference from solution", show, save, marker="x")
-    plot_UCCSD_diff(color="black", marker="x")
+    plot_UCCSD_diff_h2(color="black", marker="x")
     plotter.plot_delta_evaluation_log(get_solutions, "Difference from solution", show, save, marker="x")
+
+def new_results(folder, verbose, show = False, save = False):
+    if verbose >= 1:
+        print("New results")
+    for molecule, n_qubits in [("H2", 2), ("H6",6), ("LiH",8)]:
+        plotter = MultipleExperimentPlotter(f"{molecule}_comparisons", folder=folder, verbose=verbose, error_verbose=verbose)
+        experiments = [
+            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Linear growth, no optimization"),
+            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Linear growth, 100 steps"),
+            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Linear growth, 200 steps"),
+            (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Qneat, no optimization"),
+            (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Qneat, 100 steps"),
+            (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Qneat, 200 steps"),
+        ]
+        plotter.add_experiments(experiments)
+        plotter.plot_all(show, save)
+        gse = GroundStateEnergy(None, molecule.lower())
+        gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+        gse.plot_UCCSD_result(color="black", marker="x")
+        plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
+        gse.plot_UCCSD_diff(color="black", marker="x")
+        plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x")
+        gse.plot_UCCSD_diff(color="black", marker="x")
+        plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x")
 
 if __name__ == "__main__": 
     from argparse import ArgumentParser
@@ -114,3 +139,5 @@ if __name__ == "__main__":
         optimizer_steps(args.folder, args.verbose, show=args.show, save=args.save)
     if args.experiment == "hydrogen_atom" or args.experiment == "all":
         hydrogen_atom(args.folder, args.verbose, show=args.show, save=args.save)
+    if args.experiment == "new" or args.experiment == "all":
+        new_results(args.folder, args.verbose, args.show, args.save)
