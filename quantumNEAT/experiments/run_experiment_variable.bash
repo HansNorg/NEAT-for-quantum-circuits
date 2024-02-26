@@ -20,6 +20,6 @@ module load ALICE/default
 module load Python/3.10.8-GCCcore-12.2.0
 source "/home/s3727599/.cache/pypoetry/virtualenvs/quantumneat-gXCYO08V-py3.10/bin/activate"
 echo "#### Starting Python test at $(date)"
-python ./experiments/run_experiment.py $@ --number_of_cpus \$SLURM_CPUS_ON_NODE
+python ./experiments/run_experiment.py $@
 echo "#### Finished Test at $(date)."
 EOT
