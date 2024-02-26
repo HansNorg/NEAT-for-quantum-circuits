@@ -159,7 +159,6 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
         for _, instance in self.data.iterrows():
             hamiltonians.append(super().hamiltonian(instance))
         self.data["hamiltonian"] = hamiltonians
-        # print(np.shape(hamiltonians))
     
     @staticmethod
     def hamiltonian(instance):
@@ -168,8 +167,21 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
 if __name__ == "__main__":
     # plot_UCCSD_result("h2")
     # problem = GroundStateEnergy(None, "h2")
-    problem = GroundStateEnergySavedHamiltonian(None, "lih")
+    for molecule in ["h2", "h6", "lih"]:
+        problem = GroundStateEnergySavedHamiltonian(None, molecule)
+        instance = problem.data.iloc[0]
+        hamiltonian = instance["hamiltonian"]
+        non_zero = np.count_nonzero(hamiltonian)
+        total = np.prod(np.shape(hamiltonian))
+        print(f"{molecule}: {non_zero} non zero elements out of {total} elements. {non_zero/total*100:.2f}%")
+
+    exit()
+    # problem = GroundStateEnergySavedHamiltonian(None, "h2")
+    problem = GroundStateEnergySavedHamiltonian(None, "h6")
+    # problem = GroundStateEnergySavedHamiltonian(None, "lih")
     print(problem.data.head())
     for _, instance in problem.data.iterrows():
-        print(problem.hamiltonian(instance))
+        # print(problem.hamiltonian(instance))
+        print(np.count_nonzero(instance["hamiltonian"]))
+        print(len(instance["hamiltonian"])*len(instance["hamiltonian"][0]))
         break
