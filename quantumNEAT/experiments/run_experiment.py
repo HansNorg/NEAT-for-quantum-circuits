@@ -136,7 +136,8 @@ def main(args:Namespace, unknown:list[str]):
         config.optimize_energy_max_iter = args.optimizer_steps
         args.name += f"_{args.optimizer_steps}-optimizer-steps"
 
-    config.n_shots = cluster_n_shots[args.n_shots]
+    args.n_shots = cluster_n_shots[args.n_shots]
+    config.n_shots = args.n_shots
     args.name += f"_{args.n_shots}-shots"
     config.phys_noise = args.phys_noise
     if args.phys_noise:
