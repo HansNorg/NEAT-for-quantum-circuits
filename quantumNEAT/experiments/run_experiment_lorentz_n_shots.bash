@@ -13,7 +13,7 @@ sbatch <<EOT
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
 
-#SBATCH --array=0,1,2,4,8,16,32,64,128,256,1024,2048
+#SBATCH --array=0-12
 
 module load ALICE/default
 module load Python/3.10.8-GCCcore-12.2.0

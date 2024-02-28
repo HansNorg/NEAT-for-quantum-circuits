@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 from experiments.experimenter import Experimenter, MultipleRunExperimenter
 
+cluster_n_shots = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+
 def main(args:Namespace, unknown:list[str]):
     implementation = args.implementation.lower()
     if "linear_growth" in implementation:
@@ -134,7 +136,7 @@ def main(args:Namespace, unknown:list[str]):
         config.optimize_energy_max_iter = args.optimizer_steps
         args.name += f"_{args.optimizer_steps}-optimizer-steps"
 
-    config.n_shots = args.n_shots
+    config.n_shots = cluster_n_shots[args.n_shots]
     args.name += f"_{args.n_shots}-shots"
     config.phys_noise = args.phys_noise
     if args.phys_noise:
