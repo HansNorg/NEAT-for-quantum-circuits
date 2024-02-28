@@ -78,10 +78,8 @@ class Population():
         # fitnesses = fitnesses/self._max_fitness
         # self.logger.debug(f"{fitnesses=}")        
         return fitnesses
-
-    def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
-        """Generate the next generation of the population by mutation and crossover."""
-        # self.logger.debug(f"{self.average_fitness =}")
+    
+    def _generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
         new_population:list[QuantumNEATConfig.Genome] = []
         n_offsprings:list[float] = []
         if self.config.normalise_fitness:
@@ -135,6 +133,12 @@ class Population():
                 # self.logger.debug(f"{new_population[-1]=}")
                 new_population[-1].mutate()
             specie.empty()
+        return new_population
+
+    def generate_new_population(self) -> list[QuantumNEATConfig.Genome]:
+        """Generate the next generation of the population by mutation and crossover."""
+        # self.logger.debug(f"{self.average_fitness =}")
+        new_population = self._generate_new_population()
         # print(n_offsprings)
         starttime = time.time()
         # self.logger.info(f"{starttime=}")

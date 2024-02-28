@@ -49,7 +49,8 @@ class GroundStateEnergy(Problem):
     def fitness(self, genome:Genome) -> float:
         circuit, n_parameters = genome.get_circuit()
         parameters = genome.get_parameters()
-        gradient = self.gradient(circuit, parameters, n_parameters)
+        # gradient = self.gradient(circuit, parameters, n_parameters)
+        gradient = genome.get_gradient()
         if self.error_in_fitness:
             circuit_error = genome.get_circuit_error()
         else:
@@ -163,6 +164,13 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
     @staticmethod
     def hamiltonian(instance):
         return instance["hamiltonian"]
+    
+    def energy_new(self, data):
+        return self.energy(data[0], data[1])
+
+    def gradient_new(self, data):
+        return self.gradient(data[0], data[1], data[2])
+
 
 if __name__ == "__main__":
     # plot_UCCSD_result("h2")

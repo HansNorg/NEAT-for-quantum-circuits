@@ -134,6 +134,12 @@ def main(args:Namespace, unknown:list[str]):
         config.optimize_energy_max_iter = args.optimizer_steps
         args.name += f"_{args.optimizer_steps}-optimizer-steps"
 
+    config.n_shots = args.n_shots
+    args.name += f"_{args.n_shots}-shots"
+    config.phys_noise = args.phys_noise
+    if args.phys_noise:
+        args.name += "_phys-noise"
+
     if "no-force" in args.extra_info:
         config.force_population_size = False
         args.name += "_no-forced-population"
@@ -162,9 +168,11 @@ if __name__ == "__main__":
     argparser.add_argument("-P", "--population_size",   type=int, default=100,                        help="population size")
     argparser.add_argument("-G", "--generations",       type=int, default=100,                        help="amount of generations")
     argparser.add_argument("-R", "--n_runs",            type=int, default=0,                          help="number of runs (<= 0) means 1 run, but no aggregation of results")
-    argparser.add_argument("-cpus", "--number_of_cpus", type=int, default=-1,                         help="number of cpus to use")
+    argparser.add_argument("-cpus", "--number_of_cpus", type=int, default=-1,                         help="number of cpus to use for explicit multiprocessing. (-1 means no multiprocessing)")
     argparser.add_argument("-gates", "--gate_set",      type=str, default="ROT-CNOT", choices=["ROT-CNOT", "R-CNOT"], help="which gateset to use")
     argparser.add_argument("--plot",                    action="store_true",                          help="Whether to plot the results")
+    argparser.add_argument("--phys_noise",              action="store_true",                          help="Whether to add physical noise in the simulation")
+    argparser.add_argument("--n_shots",                 type=int, default=-1,                         help="How many shots are taken for shot noise. (-1 means no shot noise)")
     argparser.add_argument("-X", "--extra_info",        type=str, default="",                         help="Extra settings")
     args, unknown = argparser.parse_known_args()
     main(args, unknown)

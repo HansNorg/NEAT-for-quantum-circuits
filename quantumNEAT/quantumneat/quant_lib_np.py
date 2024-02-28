@@ -352,13 +352,15 @@ def apply_cptp(K_list, rho):
 
 if __name__ == "__main__":
     from time import time
-    for string in ["IIZY", "ZYZYZYZYZYZXX", "IZYXYZYXZYZIYZXIYZXYIZXIYZXIYZXIYZIIZXYIZXYIZ"]:
+    for string in ["XIZY", "ZYZIZYXXZY", "IZYXYZYXZYZI"]:
+        print()
+        print(string)
         starttime = time()
         original = from_string(string)
         print("original", time()-starttime)
         starttime = time()
         test = from_string_test(string)
-        print("test", time()-starttime)
+        print("test    ", time()-starttime)
         print(original.all()==test.all())
         N = 10
         starttime = time()
@@ -368,4 +370,4 @@ if __name__ == "__main__":
         starttime = time()
         for i in range(N):
             from_string_test(string)
-        print("test", time()-starttime)
+        print("test    ", time()-starttime)
