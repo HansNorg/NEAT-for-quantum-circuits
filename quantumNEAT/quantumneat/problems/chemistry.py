@@ -36,7 +36,22 @@ class GroundStateEnergy(Problem):
             self.data.insert(0, "R", new_index)
             self.data.reset_index()
             self.data.set_index("R", inplace=True)
+    
+    def print_hamiltonian(self):
         # print(f"Hamiltonian data: {self.data.keys()} \n {self.data.head()}")
+        print("&\Ham(R) = ", end="\\\\&")
+        for ind, key in enumerate(self.data.keys()):
+            if key == "solution" or key == "correction" or key == "hamiltonian":
+                continue
+            if ind != 0:
+                print(f" + ", end="")
+                if ind % 5 == 0:
+                    print("\\\\&", end="")
+            print("c_{" + str(ind) + "}(R) ", end="")
+            for qubit, op in enumerate(key):
+                if op != "I":
+                    print("\\"+str(op)+"_{"+ str(qubit)+"}", end="")
+        print()
     
     def add_encoding_layer(self, circuit:Circuit):
         if self.config.simulator == "qiskit":
@@ -175,6 +190,9 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
 if __name__ == "__main__":
     # plot_UCCSD_result("h2")
     # problem = GroundStateEnergy(None, "h2")
+    # problem = GroundStateEnergySavedHamiltonian(None, "h6")
+    # problem.print_hamiltonian()
+    # exit()
     for molecule in ["h2", "h6", "lih"]:
         problem = GroundStateEnergySavedHamiltonian(None, molecule)
         instance = problem.data.iloc[0]

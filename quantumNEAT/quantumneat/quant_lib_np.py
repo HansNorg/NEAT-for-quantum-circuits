@@ -2,7 +2,7 @@
 # Edits by Hans Norg
 import numpy as np
 from numba import njit
-
+import scipy.sparse as sp
 
 dtype = np.complex64
 
@@ -93,6 +93,44 @@ def from_string(string):
             U = np.kron(U, sy)
         elif el == "Z":
             U = np.kron(U, sz)
+        else:
+            raise ValueError("Pauli identifier " + el + " not found")
+            
+    return U
+
+def from_string_sparse(string) -> sp.csr_array:
+    U = sp.csr_array([1], dtype=dtype)
+    for el in string:
+        if el == "I":
+            U = sp.kron(U, Id)
+        elif el == "X":
+            U = sp.kron(U, sx)
+        elif el == "Y":
+            U = sp.kron(U, sy)
+        elif el == "Z":
+            U = sp.kron(U, sz)
+        else:
+            raise ValueError("Pauli identifier " + el + " not found")
+            
+    return U
+
+sx_sparse = sp.csr_array([[0,1],[1,0]], dtype = dtype)
+sy_sparse = sp.csr_array([[0,-1j],[1j,0]], dtype = dtype)
+sz_sparse = sp.csr_array([[1,0],[0,-1]], dtype = dtype)
+
+Id_sparse = sp.csr_array([[1,0],[0,1]], dtype=dtype)
+
+def from_string_sparse_test(string) -> sp.csr_array:
+    U = sp.csr_array([1], dtype=dtype)
+    for el in string:
+        if el == "I":
+            U = sp.kron(U, Id_sparse)
+        elif el == "X":
+            U = sp.kron(U, sx_sparse)
+        elif el == "Y":
+            U = sp.kron(U, sy_sparse)
+        elif el == "Z":
+            U = sp.kron(U, sz_sparse)
         else:
             raise ValueError("Pauli identifier " + el + " not found")
             
@@ -352,7 +390,7 @@ def apply_cptp(K_list, rho):
 
 if __name__ == "__main__":
     from time import time
-    for string in ["XIZY", "ZYZIZYXXZY", "IZYXYZYXZYZI"]:
+    for string in []:# ["XIZY", "ZYZIZYXXZY", "IZYXYZYXZYZI"]:
         print()
         print(string)
         starttime = time()
@@ -362,6 +400,14 @@ if __name__ == "__main__":
         test = from_string_test(string)
         print("test    ", time()-starttime)
         print(original.all()==test.all())
+        starttime = time()
+        sparse = from_string_sparse(string)
+        print("sparse  ", time()-starttime)
+        print(original.all()==sparse.toarray().all())
+        starttime = time()
+        sparsetest = from_string_sparse_test(string)
+        print("sparsetest", time()-starttime)
+        print(original.all()==sparsetest.toarray().all())
         N = 10
         starttime = time()
         for i in range(N):
@@ -371,3 +417,25 @@ if __name__ == "__main__":
         for i in range(N):
             from_string_test(string)
         print("test    ", time()-starttime)
+        starttime = time()
+        for i in range(N):
+            from_string_sparse(string)
+        print("sparse  ", time()-starttime)
+        starttime = time()
+        for i in range(N):
+            from_string_sparse_test(string)
+        print("sparsetest", time()-starttime)
+
+    print()
+    string = "ZXYIZXYIZYXIYZ"
+    starttime = time()
+    sparse = from_string_sparse_test(string)
+    print("sparsetest_14", time()-starttime)
+    hamiltonian = sparse.toarray()
+    non_zero = np.count_nonzero(hamiltonian)
+    total = np.prod(np.shape(hamiltonian))
+    print(f"{non_zero} non zero elements out of {total} elements. {non_zero/total*100:.2f}%")
+    
+    starttime = time()
+    sparse = from_string_sparse(string)
+    print("sparse_14", time()-starttime)
