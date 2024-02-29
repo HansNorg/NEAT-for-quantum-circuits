@@ -3,6 +3,7 @@ import numpy as np
 from experiments.plotter import MultipleExperimentPlotter
 from quantumneat.problems.chemistry import GroundStateEnergy
 from quantumneat.problems.hydrogen import get_solutions, plot_solution as plot_h2_solution, plot_UCCSD_diff as plot_UCCSD_diff_h2, plot_UCCSD_result as plot_UCCSD_result_h2
+from experiments.run_experiment import cluster_n_shots
 
 def constant_population_size(folder, verbose, show = False, save = False):
     if verbose >= 1:
@@ -121,6 +122,33 @@ def new_results(folder, verbose, show = False, save = False):
         gse.plot_UCCSD_diff(color="black", marker="x")
         plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x")
 
+def noise(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("noise")
+    for molecule, n_qubits in [("H2", 2), ("H6", 6)]:
+        for method, method_name in [("linear_growth", "Linear growth"), ("qneat", "Qneat")]:
+            for phys_noise, phys_noise_name in [("", ""), ("_phys-noise", ", physical noise")]:
+                plotter = MultipleExperimentPlotter(f"{molecule.lower()}_noise_{method}{phys_noise}", folder=folder, verbose=verbose, error_verbose=verbose)
+                experiments = []
+                for n_shots in range(0, 13):
+                    experiments.append((
+                        f"gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_{n_shots}-shots{phys_noise}",
+                        "[0]",
+                        f"{cluster_n_shots[n_shots]}"
+                        ))
+                plotter.add_experiments(experiments)
+                plotter.plot_all(show, save)
+                gse = GroundStateEnergy(None, molecule.lower())
+                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+                gse.plot_UCCSD_result(color="black", marker="x")
+                plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
+                gse.plot_UCCSD_diff(color="black", marker="x")
+                plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x")
+                gse.plot_UCCSD_diff(color="black", marker="x")
+                plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x")
+                plotter.plot_box("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
+                plotter.plot_box_log("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
+
 if __name__ == "__main__": 
     from argparse import ArgumentParser
     argparser = ArgumentParser()
@@ -141,3 +169,5 @@ if __name__ == "__main__":
         hydrogen_atom(args.folder, args.verbose, show=args.show, save=args.save)
     if args.experiment == "new" or args.experiment == "all":
         new_results(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "noise" or args.experiment == "all":
+        noise(args.folder, args.verbose, args.show, args.save)

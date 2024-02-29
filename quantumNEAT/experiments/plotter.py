@@ -463,6 +463,29 @@ class MultipleRunPlotter:
             plt.show()
         plt.close()
 
+    def get_energies(self) -> pd.DataFrame:
+        energies = pd.DataFrame()
+        for data in self.evaluation_data:
+            energies = pd.concat((energies, pd.DataFrame(data["energies"], index=data["distances"])))
+        return energies
+    
+    def get_delta_energies(self) -> pd.DataFrame:
+        energies = pd.DataFrame()
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+        for data in self.evaluation_data:
+            if molecule:
+                gse = GroundStateEnergy(self.config, molecule)
+                energies = pd.concat((energies, pd.DataFrame(data["energies"]-gse.data["solution"], index=data["distances"])))
+        return energies
+
 class MultipleExperimentPlotter:
     def __init__(self,name:str, folder:str = ".", verbose = 0, error_verbose = 1) -> None:
         self.name = name
@@ -594,6 +617,35 @@ class MultipleExperimentPlotter:
     def plot_delta_evaluation_new_log(self, title = None, show = False, save = False, **plot_kwargs):
         plt.yscale("log")
         self.plot_delta_evaluation_new(title, show, save, "delta_evaluation_log", **plot_kwargs)
+
+    def get_energies(self):
+        energies = pd.DataFrame()
+        for experiment, name in self.experiments:
+            energies[name] = experiment.get_energies()
+        return energies
+    
+    def get_delta_energies(self):
+        energies = pd.DataFrame()
+        for experiment, name in self.experiments:
+            energies[name] = experiment.get_delta_energies()
+        return energies
+    
+    def plot_box(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
+        energies = self.get_delta_energies()
+        sns.boxplot(energies, **plot_kwargs)
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel("Delta energy")
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\delta_energy_boxplot{savename}.png")
+        if show:
+            plt.show()
+        plt.close()
+
+    def plot_box_log(self, xlabel, title = None, show=False, save=False, **plot_kwargs):
+        plt.yscale("log")
+        self.plot_box(xlabel, title = title, show=show, save=save, savename="_log", **plot_kwargs)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
