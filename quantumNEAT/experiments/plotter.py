@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 GENERATION_DATA = [
         ("fitness_record", "Best fitness per generation", "Fitness (a.u.)"),
+        ("best_length", "Length of best circuit per generation", "#gates"),
         ("population_size", "Population size per generation", "Population"),
         ("number_of_species", "Number of species per generation", "Species"),
         ("average_fitnesses", "Average fitness per generation", "Fitness (a.u.)"),
@@ -298,18 +299,37 @@ class MultipleRunPlotter:
         for file in files:
             if self.verbose >= 1:
                 print(file)
-            data = dict(np.load(file, allow_pickle=True))
+            try:
+                data = dict(np.load(file, allow_pickle=True))
+            except FileNotFoundError as exc_info:
+                if self.error_verbose < 2:
+                    print(f"{file} not found.")
+                else:
+                    print(exc_info)
+                continue
             config:QuantumNEATConfig = data.pop("config")
             data_multiple.append(data)
-        self.config = config # All configs should be the same, so we can take only the last
         self.n_runs = len(data_multiple)
+        if self.n_runs == 0:
+            print(f"No files found for {self.name} runs {self.runs}")
+            config = None
+        self.config = config # All configs should be the same, so we can take only the last
 
         for key, _, _ in GENERATION_DATA:
             key_data = pd.DataFrame()
-            for data in data_multiple:
-                # print(data[key])
-                data = pd.DataFrame(data[key])
+            for i, data in enumerate(data_multiple):
+                try:
+                    # print(data[key])
+                    data = pd.DataFrame(data[key])
+                except KeyError as exc_info:
+                    if self.error_verbose == 1:
+                        print(f"{key} data not found for the {i}th run of {self.name} runs: {self.runs}")
+                    elif self.error_verbose >= 1:
+                        print(exc_info)
+                    continue
                 key_data = pd.concat((key_data, data))
+            if len(key_data) == 0:
+                continue
             self.data[key] = key_data
         # print(self.data)
         # print(self.data[GENERATION_DATA[0][0]].head())
@@ -327,9 +347,9 @@ class MultipleRunPlotter:
                 print(file)
             try:
                 data = dict(np.load(file, allow_pickle=True))
-            except Exception as exc_info:
+            except FileNotFoundError as exc_info:
                 if self.error_verbose == 1:
-                    print(f"evaluation data not found for {self.name}_run{run}")
+                    print(f"{file} not found")
                 elif self.error_verbose >= 1:
                     print(exc_info)
                 continue
@@ -446,10 +466,11 @@ class MultipleRunPlotter:
                 molecule = "lih"
             else:
                 molecule = None
+        if not molecule:
+            return
+        gse = GroundStateEnergy(self.config, molecule)
         for data in self.evaluation_data:
-            if molecule:
-                gse = GroundStateEnergy(self.config, molecule)
-                plt.scatter(data["distances"], data["energies"]-gse.data["solution"], **plot_kwargs)
+            plt.scatter(data["distances"], data["energies"]-gse.data["solution"], **plot_kwargs)
 
     def plot_delta_evaluation_new(self, show = False, save = False):
         self._plot_delta_evaluation_new()
@@ -480,10 +501,11 @@ class MultipleRunPlotter:
                 molecule = "lih"
             else:
                 molecule = None
+        if not molecule:
+            return energies
+        gse = GroundStateEnergy(self.config, molecule)
         for data in self.evaluation_data:
-            if molecule:
-                gse = GroundStateEnergy(self.config, molecule)
-                energies = pd.concat((energies, pd.DataFrame(data["energies"]-gse.data["solution"], index=data["distances"])))
+            energies = pd.concat((energies, pd.DataFrame(data["energies"]-gse.data["solution"], index=data["distances"])))
         return energies
 
 class MultipleExperimentPlotter:
@@ -556,7 +578,13 @@ class MultipleExperimentPlotter:
             plt.show()
         plt.close()
 
-    def _plot_evaluation(self, **plot_kwargs):
+    def _plot_evaluation(self, colormap = None, **plot_kwargs):
+        if colormap:
+            n_experiments = len(self.experiments)
+            colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_evaluation(label = label, color=colormap(i/n_experiments), **plot_kwargs)    
+            return
         for i, (experiment, label) in enumerate(self.experiments):
             experiment._plot_evaluation(label = label, **plot_kwargs)
 
@@ -592,7 +620,13 @@ class MultipleExperimentPlotter:
             plt.show()
         plt.close()
 
-    def _plot_delta_evaluation_new(self, **plot_kwargs):
+    def _plot_delta_evaluation_new(self, colormap = None, **plot_kwargs):
+        if colormap:
+            n_experiments = len(self.experiments)
+            colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_delta_evaluation_new(label = label, color=colormap(i/n_experiments), **plot_kwargs)    
+            return
         for i, (experiment, label) in enumerate(self.experiments):
             experiment._plot_delta_evaluation_new(label = label, **plot_kwargs)
 
@@ -627,11 +661,17 @@ class MultipleExperimentPlotter:
     def get_delta_energies(self):
         energies = pd.DataFrame()
         for experiment, name in self.experiments:
-            energies[name] = experiment.get_delta_energies()
+            energy = experiment.get_delta_energies()
+            if len(energy) == 0:
+                continue
+            energies[name] = energy
         return energies
     
     def plot_box(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
         energies = self.get_delta_energies()
+        if len(energies) == 0:
+            plt.close()
+            return
         sns.boxplot(energies, **plot_kwargs)
         plt.title(title)
         plt.xlabel(xlabel)

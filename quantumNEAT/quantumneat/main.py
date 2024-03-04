@@ -22,6 +22,7 @@ class QuantumNEAT:
 
         # For experimenting only
         self.best_fitnesses = [self.best_fitness]
+        self.best_lengths = [self.best_length]
         if self.config.calculate_solution:
             self.optimal_energy = self.problem.solution()
             self.logger.info(f"{self.optimal_energy=:.2f}")
@@ -56,6 +57,7 @@ class QuantumNEAT:
             self.best_length = len(best_genome.genes)
             self.best_genomes.append((self.population.generation, copy.deepcopy(self.population.get_best_genome())))
         self.best_fitnesses.append(self.best_fitness)
+        self.best_lengths.append(self.best_length)
         self.best_energies.append(best_genome.get_energy())
         self.average_fitnesses.append(self.population.average_fitness)
         self.population_sizes.append(len(self.population.population))
