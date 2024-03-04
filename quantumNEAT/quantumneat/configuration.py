@@ -27,8 +27,8 @@ class QuantumNEATConfig():
 
     # Main QNEAT settings
     number_of_cpus:int = -1 # Number of cpu's to use for multiprocessing. If < 0 no multiprocessing is used.
-    evaluate = True
-    calculate_solution = False
+    evaluate:bool = True
+    calculate_solution:bool = False
     
     # Population settings
     Population = Population
@@ -41,9 +41,9 @@ class QuantumNEATConfig():
 
     # Species settings
     Species = Species
-    remove_stagnant_species = False
-    stagnant_generation = 15
-    all_stagnant_n_save = 2 # How many species are preserved if all species are stagnant
+    remove_stagnant_species:bool = False
+    stagnant_generation:int = 15
+    all_stagnant_n_save:int = 2 # How many species are preserved if all species are stagnant
     
     # Genome settings
     Genome = Genome
@@ -52,13 +52,13 @@ class QuantumNEATConfig():
     perturbation_amplitude:float = 1
     prob_add_gene_mutation:float = 0.1
     max_add_gene_tries:int = 10
-    simulator = 'qulacs' # 'qiskit'
-    prevent_gate_duplication = False
+    simulator:str = 'qulacs' # 'qiskit'
+    prevent_gate_duplication:bool = False
 
     # Problem settings
-    optimize_energy = False
-    optimize_energy_max_iter = 100 # Ignored if optimize_energy == False
-    solution_margin = 10**-3 # epsilon
+    optimize_energy:bool = False
+    optimize_energy_max_iter:int = 100 # Ignored if optimize_energy == False
+    solution_margin:float = 10**-3 # epsilon
 
     h2_distance = None
     
@@ -67,9 +67,9 @@ class QuantumNEATConfig():
     parameter_amplitude: float = 2*np.pi
 
     # Helper settings
-    epsilon = 10**-5
-    n_shots = 1024
-    phys_noise = False
+    epsilon:float = 10**-5
+    n_shots:int = -1
+    phys_noise:bool = False
 
     # Distance settings
     excess_coefficient:float = 1
