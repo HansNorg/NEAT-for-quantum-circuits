@@ -57,6 +57,7 @@ class QuantumNEATConfig():
 
     # Problem settings
     optimize_energy:bool = False
+    optimize_energy_evaluation:bool = True
     optimize_energy_max_iter:int = 100 # Ignored if optimize_energy == False
     solution_margin:float = 10**-3 # epsilon
 

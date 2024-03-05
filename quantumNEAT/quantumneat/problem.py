@@ -43,7 +43,10 @@ class Problem(ABC):
         pass
 
     def evaluate(self, circuit, parameters, N:int=1000):
-        return []
+        return [], []
+    
+    def __str__(self) -> str:
+        return "problem_name"
     
     def __copy__(self):
         return self

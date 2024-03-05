@@ -143,6 +143,8 @@ class GroundStateEnergy(Problem):
                 
     def evaluate(self, circuit:Circuit, parameters, N = 1000):
         max_iter = self.config.optimize_energy_max_iter
+        optimize_energy = self.config.optimize_energy
+        self.config.optimize_energy = self.config.optimize_energy_evaluation
         self.config.optimize_energy_max_iter = N
         
         energies = []
@@ -150,6 +152,7 @@ class GroundStateEnergy(Problem):
             energies.append(self.instance_energy(instance, circuit, parameters))
 
         self.config.optimize_energy_max_iter = max_iter
+        self.config.optimize_energy = optimize_energy
         return self.data.index, energies
     
     def plot_solution(self, show = False, **plot_kwargs):
@@ -177,6 +180,28 @@ class GroundStateEnergy(Problem):
             return
         difference = energies - self.data["solution"]
         plt.scatter(self.data.index, difference, label ="UCCSD", **plot_kwargs)
+
+    def plot_HE_result(self, layers, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_HE_{layers}-layers.npy")
+        except:
+            print(f"HE data not found for {layers} layers")
+            return
+        plt.scatter(self.data.index, energies, label =f"HE-{layers}", **plot_kwargs)
+
+    def plot_HE_diff(self, layers, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_HE_{layers}-layers.npy")
+        except:
+            print(f"HE data not found for {layers} layers")
+            return
+        difference = energies - self.data["solution"]
+        plt.scatter(self.data.index, difference, label =f"HE-{layers}", **plot_kwargs)
+
+    def __str__(self) -> str:
+        return self.molecule
 
 class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
     def __init__(self, config: QuantumNEATConfig, molecule: str, error_in_fitness=True, **kwargs) -> None:
