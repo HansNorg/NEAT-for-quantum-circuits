@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 from quantumneat.configuration import QuantumNEATConfig
 
 from quantumneat.problem import Problem
-from quantumneat.helper import get_energy_qulacs
+from quantumneat.helper import get_energy_qulacs, get_energy_qiskit, get_energy_qiskit_no_transpilation
 from quantumneat.quant_lib_np import from_string
 
 if TYPE_CHECKING:
@@ -98,10 +98,23 @@ class GroundStateEnergy(Problem):
     def instance_energy(self, instance, circuit, parameters, no_optimization = False):
         hamiltonian = self.hamiltonian(instance)
         correction = instance.loc["correction"]
+        noise_weights = np.ones(self.config.n_qubits)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
-                    params, hamiltonian, [], circuit, self.config.n_qubits, 0, 
+                    params, hamiltonian, noise_weights, circuit, self.config.n_qubits, 0, 
+                    self.config.n_shots, self.config.phys_noise
+                )
+        # elif self.config.simulator == 'qiskit':
+        #     def expectation_function(params):
+        #         return get_energy_qiskit(
+        #             params, hamiltonian, noise_weights, circuit, self.config.n_qubits, 0,
+        #             self.config.n_shots, self.config.phys_noise
+        #         )
+        elif self.config.simulator == 'qiskit':
+            def expectation_function(params):
+                return get_energy_qiskit_no_transpilation(
+                    params, hamiltonian, noise_weights, circuit, self.config.n_qubits, 0,
                     self.config.n_shots, self.config.phys_noise
                 )
         else:
@@ -126,7 +139,7 @@ class GroundStateEnergy(Problem):
         return H
 
     def solution(self) -> float:
-        return self.data.loc["solution"]
+        return self.data["solution"]
                 
     def evaluate(self, circuit:Circuit, parameters, N = 1000):
         max_iter = self.config.optimize_energy_max_iter

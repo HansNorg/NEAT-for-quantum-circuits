@@ -21,7 +21,12 @@ def main(args:Namespace, unknown:list[str]):
         config = QNEAT_Config
     else:
         raise NotImplementedError(f"Implementation {implementation} not found.")
-    config = config(args.n_qubits, args.population_size, number_of_cpus=args.number_of_cpus)
+    config = config(args.n_qubits, args.population_size, 
+                    number_of_cpus=args.number_of_cpus, 
+                    simulator=args.simulator,
+                    n_shots = args.n_shots,
+                    phys_noise=args.phys_noise,
+                    )
         
     problem_arg:str = args.problem.lower()
     if "cim" in problem_arg or "classical_ising" in problem_arg:
@@ -136,10 +141,7 @@ def main(args:Namespace, unknown:list[str]):
         config.optimize_energy_max_iter = args.optimizer_steps
         args.name += f"_{args.optimizer_steps}-optimizer-steps"
 
-    args.n_shots = cluster_n_shots[args.n_shots]
-    config.n_shots = args.n_shots
     args.name += f"_{args.n_shots}-shots"
-    config.phys_noise = args.phys_noise
     if args.phys_noise:
         args.name += "_phys-noise"
 
@@ -176,6 +178,8 @@ if __name__ == "__main__":
     argparser.add_argument("--plot",                    action="store_true",                          help="Whether to plot the results")
     argparser.add_argument("--phys_noise",              action="store_true",                          help="Whether to add physical noise in the simulation")
     argparser.add_argument("--n_shots",                 type=int, default=-1,                         help="How many shots are taken for shot noise. (-1 means no shot noise)")
+    argparser.add_argument("--simulator",               type=str, default="qulacs",                   help="Which software package to use for simulation of circuits")
     argparser.add_argument("-X", "--extra_info",        type=str, default="",                         help="Extra settings")
     args, unknown = argparser.parse_known_args()
+    args.n_shots = cluster_n_shots[args.n_shots]
     main(args, unknown)

@@ -262,3 +262,101 @@ def get_shot_noise(weights, n_shots):
         shot_noise +=(np.array(weights).real).T@np.random.normal(mu,sigma,len(weights))
         
     return shot_noise
+
+unit_vectors = {"0":np.array([1,0]), "1":np.array([0,1])}
+def compute_expected_energy(counts:dict, observable, n_shots = None):
+    '''
+    returns the expected energy of a circuit given the counts and an observable
+    '''
+    def bool_to_state(integer):
+        # Convert the 1/0 of a bit to +1/-1
+        return 2*int(integer)-1
+    
+    def string_to_state(string):
+        state = np.array([1])
+        for qubit in string:
+            state = np.kron(state, unit_vectors[qubit])
+        return state
+
+    # r1=list(counts.keys())
+    # r2=list(counts.values())
+    total_energy = 0
+    for key, value in counts.items():
+        
+        # r2[k] is the number of shots that have this result
+        # r1[k] is the result as qubits (like 0001)
+        # state = np.array([bool_to_state(x) for x in key])
+        state = string_to_state(key)
+        # print(state)
+        total_energy += value*(state.T@observable@state)
+    if not n_shots:
+        n_shots = sum(counts.values())
+    expectation_value = total_energy/n_shots
+    return expectation_value
+
+def get_energy_qiskit(angles, observable, 
+                      weights,circuit:QuantumCircuit, n_qubits, 
+                      energy_shift, n_shots,
+                      phys_noise = False,
+                      backend_simulator = "local_qasm_simulator",
+                      ):
+    bound_circuit = circuit.bind_parameters(angles)
+    measurement_circuit = add_measurement(bound_circuit)
+    try:
+        backend_sim = AerSimulator.from_backend(backend_simulator)
+    except:
+        backend_sim = AerSimulator()
+    result = backend_sim.run(transpile(measurement_circuit, backend_sim), shots=n_shots).result()
+    # print(f"{n_shots =}")
+    # print(f"{result =}")
+    # print(f"{result.results =}")
+    # exit()
+    counts = result.get_counts()
+
+    return compute_expected_energy(counts, observable, n_shots) + energy_shift
+
+def get_energy_qiskit_no_transpilation(angles, observable, 
+                      weights,circuit:QuantumCircuit, n_qubits, 
+                      energy_shift, n_shots,
+                      phys_noise = False,
+                      backend_simulator = "local_qasm_simulator",
+                      ):
+    bound_circuit = circuit.bind_parameters(angles)
+    measurement_circuit = add_measurement(bound_circuit)
+    try:
+        backend_sim = AerSimulator.from_backend(backend_simulator)
+    except:
+        backend_sim = AerSimulator()
+    result = backend_sim.run(measurement_circuit, shots=n_shots).result()
+    # print(f"{n_shots =}")
+    # print(f"{result =}")
+    # print(f"{result.results =}")
+    # exit()
+    counts = result.get_counts()
+
+    return compute_expected_energy(counts, observable, n_shots) + energy_shift
+
+def get_energy_qiskit_new(angles, observable, 
+                      weights,circuit:QuantumCircuit, n_qubits, 
+                      energy_shift, n_shots,
+                      phys_noise = False,
+                      backend_simulator = "local_qasm_simulator",
+                      ):
+    bound_circuit = circuit.bind_parameters(angles)
+    measurement_circuit = add_measurement(bound_circuit)
+    try:
+        backend_sim = AerSimulator.from_backend(backend_simulator)
+    except:
+        backend_sim = AerSimulator()
+    
+
+    return compute_expected_energy(counts, observable, n_shots) + energy_shift
+
+
+if __name__ == "__main__":
+    counts = {"00":5, "10":2, "01":2, "11":1}
+    hamiltonian = np.identity(2**2)
+    print(compute_expected_energy(counts, hamiltonian, 10))
+    counts = {"000":5, "100":2, "011":2, "110":1}
+    hamiltonian = np.identity(2**3)
+    print(compute_expected_energy(counts, hamiltonian, 10))
