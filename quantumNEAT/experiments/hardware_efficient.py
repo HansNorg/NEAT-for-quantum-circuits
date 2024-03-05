@@ -70,6 +70,17 @@ class HardwareEfficient:
             np.save(f"{self.problem}_HE_{layers}-layers{savename}", solutions[1])
         return solutions
     
+    def solve_problem_total(self, layers:int, save=True, savename=""):
+        from quantumneat.problems.chemistry import GroundStateEnergySavedHamiltonian
+        if not isinstance(self.problem, GroundStateEnergySavedHamiltonian):
+            return
+        circuit, n_parameters = self.get_circuit(layers)
+        parameters = self.config.parameter_amplitude*np.random.random(n_parameters)
+        solutions = self.problem.evaluate_total(circuit, parameters)
+        if save:
+            np.save(f"{self.problem}_HE_{layers}-layers{savename}_evaluation-total", solutions[1])
+        return solutions
+    
 if __name__ == "__main__":
     from argparse import ArgumentParser
     from quantumneat.problems.chemistry import GroundStateEnergySavedHamiltonian
@@ -93,3 +104,4 @@ if __name__ == "__main__":
             if args.verbose >= 1:
                 print(f"{molecule:3} {layers:2} layers", end="\r")
             he.solve_problem(layers, savename=args.savename)
+            he.solve_problem_total(layers, savename=args.savename)

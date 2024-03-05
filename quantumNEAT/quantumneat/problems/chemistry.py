@@ -128,6 +128,29 @@ class GroundStateEnergy(Problem):
         else:
             expectation = expectation_function(parameters)
         return expectation + correction
+    
+    def total_energy(self, circuit, parameters, no_optimization = False):
+        if self.config.simulator == "qulacs":
+            noise_weigths = np.ones(self.config.n_qubits)
+            def expectation_function(params):
+                energy = 0
+                for _, instance in self.data.iterrows():
+                    hamiltonian = self.hamiltonian(instance)
+                    correction = instance.loc["correction"]
+                    energy += get_energy_qulacs(params, hamiltonian, noise_weigths, circuit,
+                                                self.config.n_qubits, correction, self.config.n_shots,
+                                                self.config.phys_noise)
+                return energy
+        if self.config.optimize_energy and not no_optimization:
+            optimized_parameters = minimize(expectation_function, parameters, method="COBYLA", tol=1e-4,
+                                   options={'maxiter':self.config.optimize_energy_max_iter}
+                                   ).x
+        else:
+            optimized_parameters = parameters
+        energies = []
+        for _, instance in self.data.iterrows():
+            energies.append(self.instance_energy(instance, circuit, optimized_parameters, no_optimization=True))
+        return energies
 
     @staticmethod
     def hamiltonian(instance:pd.DataFrame) -> list:
@@ -150,6 +173,21 @@ class GroundStateEnergy(Problem):
         energies = []
         for _, instance in self.data.iterrows():
             energies.append(self.instance_energy(instance, circuit, parameters))
+
+        self.config.optimize_energy_max_iter = max_iter
+        self.config.optimize_energy = optimize_energy
+        return self.data.index, energies
+    
+    def evaluate_total(self, circuit:Circuit, parameters, N = 1000):
+        max_iter = self.config.optimize_energy_max_iter
+        optimize_energy = self.config.optimize_energy
+        self.config.optimize_energy = self.config.optimize_energy_evaluation
+        self.config.optimize_energy_max_iter = N
+        
+        # energies = []
+        # for _, instance in self.data.iterrows():
+        #     energies.append(self.instance_energy(instance, circuit, parameters))
+        energies = self.total_energy(circuit, parameters)
 
         self.config.optimize_energy_max_iter = max_iter
         self.config.optimize_energy = optimize_energy
@@ -194,6 +232,25 @@ class GroundStateEnergy(Problem):
         import matplotlib.pyplot as plt
         try:
             energies = np.load(f"{self.molecule}_HE_{layers}-layers.npy")
+        except:
+            print(f"HE data not found for {layers} layers")
+            return
+        difference = energies - self.data["solution"]
+        plt.scatter(self.data.index, difference, label =f"HE-{layers}", **plot_kwargs)
+
+    def plot_HE_result_total(self, layers, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_HE_{layers}-layers_evaluation-total.npy")
+        except:
+            print(f"HE data not found for {layers} layers")
+            return
+        plt.scatter(self.data.index, energies, label =f"HE-{layers}", **plot_kwargs)
+
+    def plot_HE_diff_total(self, layers, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_HE_{layers}-layers_evaluation-total.npy")
         except:
             print(f"HE data not found for {layers} layers")
             return

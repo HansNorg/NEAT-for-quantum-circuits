@@ -186,7 +186,7 @@ def hardware_efficient(folder, verbose, show=False, save=False):
     if verbose >=1:
         print("hardware_efficient")
     colormap = "cool"
-    layers = [1, 2, 4, 8, 16]
+    layers = [0, 1, 2, 4, 8, 16]
     n_layers = len(layers)
     colormap = mpl.colormaps.get_cmap(colormap).resampled(n_layers)
     for molecule in ["H2", "H6", "LiH"]:
@@ -231,6 +231,59 @@ def hardware_efficient(folder, verbose, show=False, save=False):
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient\\{molecule}_diff_log.png")
+        if show:
+            plt.show()
+        plt.close()
+
+def hardware_efficient_evaluation_total(folder, verbose, show=False, save=False):
+    if verbose >=1:
+        print("hardware_efficient")
+    colormap = "cool"
+    layers = [0, 1, 2, 4, 8, 16]
+    n_layers = len(layers)
+    colormap = mpl.colormaps.get_cmap(colormap).resampled(n_layers)
+    for molecule in ["H2", "H6", "LiH"]:
+        gse = GroundStateEnergy(None, molecule.lower())
+        gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+        for ind, l in enumerate(layers):
+            gse.plot_HE_result_total(l, color=colormap(ind/n_layers), marker="x")
+        plt.title(f"Hardware efficient anzats for {molecule}")
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Energy (a.u.)")
+        if save:
+            os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
+            plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}.png")
+        if show:
+            plt.show()
+        plt.close()
+
+        for ind, l in enumerate(layers):
+            gse.plot_HE_diff_total(l, color=colormap(ind/n_layers), marker="x")
+        plt.title(f"Hardware efficient anzats for {molecule}")
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
+            plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}_diff.png")
+        if show:
+            plt.show()
+        plt.close()
+
+        plt.yscale("log")
+        for ind, l in enumerate(layers):
+            gse.plot_HE_diff_total(l, color=colormap(ind/n_layers), marker="x")
+        plt.title(f"Hardware efficient anzats for {molecule}")
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
+            plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}_diff_log.png")
         if show:
             plt.show()
         plt.close()
@@ -290,5 +343,7 @@ if __name__ == "__main__":
         noise_all(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "hardware_efficient" or args.experiment == "all":
         hardware_efficient(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "hardware_efficient_evaluation_total" or args.experiment == "all":
+        hardware_efficient_evaluation_total(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":
         test(args.folder, args.verbose, args.show, args.save)
