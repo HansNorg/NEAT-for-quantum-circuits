@@ -182,6 +182,34 @@ def noise_all(folder, verbose, show=False, save=False):
                 plotter.plot_box("n_shots", f"{molecule}{phys_noise_name}", show=show, save=save)
                 plotter.plot_box_log("n_shots", f"{molecule}{phys_noise_name}", show=show, save=save)
 
+def noise_new(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("noise")
+    colormap = "cool"
+    for molecule, n_qubits in [("H2", 2)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        for method, method_name in [("linear_growth", "Linear growth")]:#, ("qneat", "Qneat")]:
+            for phys_noise, phys_noise_name in [("", "")]:#, ("_phys-noise", ", physical noise")]:
+                plotter = MultipleExperimentPlotter(f"{molecule.lower()}_noise_{method}{phys_noise}", folder=folder, verbose=verbose, error_verbose=verbose)
+                experiments = []
+                for n_shots in range(0, 5): #range(0, 13):
+                    experiments.append((
+                        f"gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_{cluster_n_shots[n_shots]}-shots{phys_noise}",
+                        "[14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]",
+                        f"{cluster_n_shots[n_shots]}"
+                        ))
+                plotter.add_experiments(experiments)
+                plotter.plot_all(show, save)
+                gse = GroundStateEnergy(None, molecule.lower())
+                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+                gse.plot_UCCSD_result(color="black", marker="x")
+                plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
+                gse.plot_UCCSD_diff(color="black", marker="x")
+                plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                gse.plot_UCCSD_diff(color="black", marker="x")
+                plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_box("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
+                plotter.plot_box_log("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
+
 def hardware_efficient(folder, verbose, show=False, save=False):
     if verbose >=1:
         print("hardware_efficient")
@@ -341,6 +369,8 @@ if __name__ == "__main__":
         noise(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "noise_all" or args.experiment == "all":
         noise_all(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "noise_new" or args.experiment == "all":
+        noise_new(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "hardware_efficient" or args.experiment == "all":
         hardware_efficient(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "hardware_efficient_evaluation_total" or args.experiment == "all":
