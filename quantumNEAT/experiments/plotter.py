@@ -145,7 +145,7 @@ class SingleRunPlotter(BasePlotter):
         self._plot_species_evolution(sizes, 'black', 'white', n_generations, population_size, n_species)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution")
         if show:
             plt.show()
         plt.close()
@@ -158,7 +158,7 @@ class SingleRunPlotter(BasePlotter):
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution_avg_fitness.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution_avg_fitness")
         if show:
             plt.show()
         plt.close()
@@ -169,7 +169,7 @@ class SingleRunPlotter(BasePlotter):
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution_best_fitness.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution_best_fitness")
         if show:
             plt.show()
         plt.close()
@@ -240,7 +240,7 @@ class SingleRunPlotter(BasePlotter):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Energy (a.u.)",
-            savename=f"run{self.runs}_evaluation.png",
+            savename=f"run{self.runs}_evaluation",
             save=save, show=show,
             )
 
@@ -262,7 +262,7 @@ class SingleRunPlotter(BasePlotter):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Delta energy (a.u.)",
-            savename=f"run{self.runs}_delta_evaluation.png",
+            savename=f"run{self.runs}_delta_evaluation",
             save=save, show=show,
         )
         
@@ -294,7 +294,7 @@ class SingleRunPlotter(BasePlotter):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Delta energy (a.u.)",
-            savename=f"run{self.runs}_delta_evaluation.png",
+            savename=f"run{self.runs}_delta_evaluation",
             save=save, show=show,
         )
 
@@ -398,7 +398,7 @@ class MultipleRunPlotter(BasePlotter):
             title=title,
             xlabel="Generations",
             ylabel=ylabel,
-            savename=f"multiple_runs_{key}.png",
+            savename=f"multiple_runs_{key}",
             save=save, show=show,
         )
         
@@ -447,7 +447,7 @@ class MultipleRunPlotter(BasePlotter):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Energy (a.u.)",
-            savename=f"multiple_runs_evaluation.png",
+            savename=f"multiple_runs_evaluation",
             save=save, show=show,
         )
 
@@ -471,7 +471,7 @@ class MultipleRunPlotter(BasePlotter):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Delta energy (a.u.)",
-            savename=f"multiple_runs_delta_evaluation{logname}.png",
+            savename=f"multiple_runs_delta_evaluation{logname}",
             save=save, show=show,
         )
 
@@ -513,7 +513,7 @@ class MultipleRunPlotter(BasePlotter):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Delta energy (a.u.)",
-            savename=f"run{self.run}_delta_evaluation.png",
+            savename=f"run{self.run}_delta_evaluation",
             save=save, show=show,
         )
 
@@ -549,6 +549,9 @@ class MultipleExperimentPlotter(BasePlotter):
         self.error_verbose = error_verbose
         self.experiments:list[tuple[MultipleRunPlotter, str]] = []
     
+    def load_data(self):
+        pass
+
     def add_experiment(self, name, runs, label):
         self.experiments.append((MultipleRunPlotter(name, runs, self.folder, self.verbose, self.error_verbose), label))
 
@@ -568,7 +571,7 @@ class MultipleExperimentPlotter(BasePlotter):
                 title=title+extra_title,
                 xlabel="Generations",
                 ylabel=name,
-                savename=f"{key}.png",
+                savename=f"{key}",
                 save=save, show=show,
             )
         # if "h2" in self.name:
@@ -585,7 +588,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
             ylabel="Ground state energy (a.u.)",
-            savename=f"energy_vs_R.png",
+            savename=f"energy_vs_R",
             save=save, show=show,
         )
 
@@ -599,7 +602,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
             ylabel="Delta ground state energy (a.u.)",
-            savename=f"delta_energy_vs_R.png",
+            savename=f"delta_energy_vs_R",
             save=save, show=show,
         )
 
@@ -619,7 +622,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
             ylabel="Ground state energy (a.u.)",
-            savename=f"evaluation.png",
+            savename=f"evaluation",
             legend=True,
             save=save, show=show,
         )
@@ -634,7 +637,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
             ylabel="Delta energy (a.u.)",
-            savename=f"{savename}.png",
+            savename=f"{savename}",
             legend=True,
             save=save, show=show,
         )
@@ -665,7 +668,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
             ylabel="Delta energy (a.u.)",
-            savename=f"{savename}.png",
+            savename=f"{savename}",
             legend=True,
             save=save, show=show,
         )
@@ -676,7 +679,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
             ylabel="Delta energy (a.u.)",
-            savename=f"{savename}.png",
+            savename=f"{savename}",
             legend=True,
             save=save, show=show,
         )
@@ -714,7 +717,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel=xlabel,
             ylabel="Delta energy",
-            savename=f"delta_energy_boxplot{savename}.png",
+            savename=f"delta_energy_boxplot{savename}",
             save=save, show=show,
         )
 
@@ -728,7 +731,7 @@ class MultipleExperimentPlotter(BasePlotter):
             title=title,
             xlabel=xlabel,
             ylabel="Delta energy",
-            savename=f"delta_energy_boxplot{savename}.png",
+            savename=f"delta_energy_boxplot{savename}",
             save=save, show=show,
         )
 
