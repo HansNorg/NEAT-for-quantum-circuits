@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 from time import time
+from abc import ABC, abstractmethod
+
 from quantumneat.problems.chemistry import GroundStateEnergy
 from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution, get_solution as get_h2_solution, get_solutions as get_h2_solutions
 from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution, get_solution as get_h6_solution, get_solutions as get_h6_solutions
@@ -34,43 +36,66 @@ GENERATION_DATA = [
         ("min_energies", "Lowest energy per generation", "Energy (a.u.)"),
     ]
 
-class SingleRunPlotter:
-    def __init__(self, name:str, run:int, folder:str = ".", verbose=0, error_verbose = 1) -> None:
+class BasePlotter(ABC):
+    def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:
         self.name = name
-        self.run = run
+        self.runs = runs
         self.folder = folder
         self.verbose = verbose
         self.error_verbose = error_verbose
         self.load_data()
-        
-    def load_data(self):
-        self.data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_results.npz", allow_pickle=True))
-        self.config:QuantumNEATConfig = self.data.pop("config")
 
-    def _plot_vs_generations(self, key:str, label:str = None):
+    @abstractmethod
+    def load_data() -> None:
+        pass
+
+    def _plot_vs_generations(self, key:str, label:str=None, **plot_kwargs):
         try:
-            y = self.data[key]
-        except Exception as exc_info:
+            sns.lineplot(data=self.generation_data, x="generation", y=key, label=label, **plot_kwargs)
+        except ValueError as exc_info:
             if self.error_verbose == 1:
-                print(f"{key} data not found for {self.name}_run{self.run}")
+                print(f"{key} data not found for {self.name}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        plt.plot(y, label=label)
-
+        
     def plot_vs_generations(self, key:str, title:str, name:str, show=False, save=False):
         plt.figure()
         self._plot_vs_generations(key)
+        self.finalise_plot(title=title, xlabel="Generations", ylabel=name, savename=f"run{self.runs}_{key}", save=save, show=show)
+        
+    def finalise_plot(self, *, title:str=None, xlabel:str=None,ylabel:str=None, savename:str="", save:bool=False, show:bool=False, close:bool=True) -> None:
+        """
+        Set basic plotstyle settings and save/show the plot.
+        """
         plt.title(title)
         plt.grid()
-        plt.xlabel("Generations")
-        plt.ylabel(name)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_{key}.png")
+            plt.savefig(f"{self.folder}/figures/{self.name}/{savename}.png")
         if show:
             plt.show()
-        plt.close()
+        elif close:
+            plt.close()
+    
+class SingleRunPlotter(BasePlotter):
+    def load_data(self):
+        self.data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.runs}_results.npz", allow_pickle=True))
+        # self.data_df = pd.DataFrame.from_dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.runs}_results.npz", allow_pickle=True))
+        self.generation_data = pd.DataFrame()
+        for key, _, _ in GENERATION_DATA:
+            try:
+                self.generation_data[key] = pd.DataFrame(self.data.pop(key))
+            except KeyError as exc_info:
+                if self.error_verbose == 1:
+                    print(f"{key} data not found for {self.name} run: {self.runs}")
+                elif self.error_verbose >= 1:
+                    print(exc_info)
+                continue
+        self.generation_data.index.name = "generation"
+        self.config:QuantumNEATConfig = self.data.pop("config")
         
     def _plot_species_evolution(self, sizes, colorscheme, line_color, n_generations, population_size, n_species):        
         if type(colorscheme) is str:
@@ -93,7 +118,7 @@ class SingleRunPlotter:
             species_data = self.data["species_data"]
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"species_data data not found for {self.name}_run{self.run}")
+                print(f"species_data data not found for {self.name}_run{self.runs}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -118,7 +143,7 @@ class SingleRunPlotter:
         self._plot_species_evolution(sizes, 'black', 'white', n_generations, population_size, n_species)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution.png")
         if show:
             plt.show()
         plt.close()
@@ -131,7 +156,7 @@ class SingleRunPlotter:
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_avg_fitness.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution_avg_fitness.png")
         if show:
             plt.show()
         plt.close()
@@ -142,7 +167,7 @@ class SingleRunPlotter:
         self._plot_species_evolution(sizes, colorscheme, 'blue', n_generations, population_size, n_species)
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_species_evolution_best_fitness.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_species_evolution_best_fitness.png")
         if show:
             plt.show()
         plt.close()
@@ -165,7 +190,7 @@ class SingleRunPlotter:
             min_energy = min(self.data["min_energies"])
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"min_energies data not found for {self.name}_run{self.run}")
+                print(f"min_energies data not found for {self.name}_run{self.runs}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -176,7 +201,7 @@ class SingleRunPlotter:
             min_energy = min(self.data["min_energies"])
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"min_energies data not found for {self.name}_run{self.run}")
+                print(f"min_energies data not found for {self.name}_run{self.runs}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -185,10 +210,10 @@ class SingleRunPlotter:
 
     def plot_evaluation(self, show = False, save = False):
         try:
-            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_evaluation.npz", allow_pickle=True))
+            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.runs}_evaluation.npz", allow_pickle=True))
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"evaluation data not found for {self.name}_run{self.run}")
+                print(f"evaluation data not found for {self.name}_run{self.runs}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -214,17 +239,17 @@ class SingleRunPlotter:
         plt.ylabel("Energy (a.u.)")
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_evaluation.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_evaluation.png")
         if show:
             plt.show()
         plt.close()
 
     def _plot_delta_evaluation(self, solution_func, **plot_kwargs):
         try:
-            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_evaluation.npz", allow_pickle=True))
+            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.runs}_evaluation.npz", allow_pickle=True))
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"evaluation data not found for {self.name}_run{self.run}")
+                print(f"evaluation data not found for {self.name}_run{self.runs}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -238,17 +263,17 @@ class SingleRunPlotter:
         plt.ylabel("Delta energy (a.u.)")
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_delta_evaluation.png")
         if show:
             plt.show()
         plt.close()
         
     def _plot_delta_evaluation_new(self, **plot_kwargs):
         try:
-            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.run}_evaluation.npz", allow_pickle=True))
+            data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.runs}_evaluation.npz", allow_pickle=True))
         except Exception as exc_info:
             if self.error_verbose == 1:
-                print(f"evaluation data not found for {self.name}_run{self.run}")
+                print(f"evaluation data not found for {self.name}_run{self.runs}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -272,22 +297,15 @@ class SingleRunPlotter:
         plt.ylabel("Delta energy (a.u.)")
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_delta_evaluation.png")
         if show:
             plt.show()
         plt.close()
 
-class MultipleRunPlotter:
-    def __init__(self, name:str, runs = "*", folder:str = ".", verbose = 0, error_verbose = 1) -> None:
-        self.name = name
-        self.runs = runs
-        self.folder = folder
-        self.verbose = verbose
-        self.error_verbose = error_verbose
-        self.load_data()
-        
+class MultipleRunPlotter(BasePlotter):     
     def load_data(self):
-        self.data = dict()
+        # self.data = dict()
+        self.data_df = pd.DataFrame()
         data_multiple = []
         if self.runs == "*":
             files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_results.npz")
@@ -320,17 +338,19 @@ class MultipleRunPlotter:
             for i, data in enumerate(data_multiple):
                 try:
                     # print(data[key])
-                    data = pd.DataFrame(data[key])
+                    data_df = pd.DataFrame(data[key])
                 except KeyError as exc_info:
                     if self.error_verbose == 1:
                         print(f"{key} data not found for the {i}th run of {self.name} runs: {self.runs}")
                     elif self.error_verbose >= 1:
                         print(exc_info)
                     continue
-                key_data = pd.concat((key_data, data))
+                key_data = pd.concat((key_data, data_df))
             if len(key_data) == 0:
                 continue
-            self.data[key] = key_data
+            # self.data[key] = key_data
+            self.data_df[key] = key_data
+        self.data_df.index.name = "generation"
         # print(self.data)
         # print(self.data[GENERATION_DATA[0][0]].head())
 
@@ -355,34 +375,44 @@ class MultipleRunPlotter:
                 continue
             evaluation_data.append(data)
         self.evaluation_data = evaluation_data
+        evaluation_data_df = pd.DataFrame()
+        for key in ["distances", "energies"]:
+            key_data = pd.DataFrame()
+            for data in evaluation_data:
+                key_data = pd.concat((key_data, pd.DataFrame(data[key])))
+            if len(key_data) == 0:
+                continue
+            evaluation_data_df[key] = key_data
+        self.evaluation_data_df = evaluation_data_df
     
-    def _plot_vs_generations(self, key:str, label:str=None):
+    def _plot_vs_generations(self, key:str, label:str=None, **plot_kwargs):
         try:
-            data:pd.DataFrame = self.data[key]
-        except Exception as exc_info:
+            sns.lineplot(data=self.data_df, x="generation", y=key, label=label, **plot_kwargs)
+        except ValueError as exc_info:
             if self.error_verbose == 1:
                 print(f"{key} data not found for {self.name}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
-        y = np.real(data[0])
-        sns.lineplot(data=data, x=data.index, y=y, label=label)
 
+    def plot_vs_generations(self, key:str, show = False, save = False, title:str=None, ylabel:str=None, **plot_kwargs):
+        plt.figure()
+        self._plot_vs_generations(key)
+        plt.title(title)
+        plt.grid()
+        plt.xlabel("Generations")
+        plt.ylabel(ylabel)
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_{key}.png")
+        if show:
+            plt.show()
+        plt.close()
+        
     def plot_all(self, show = False, save = False):
         extra_title = f" averaged over {self.n_runs} runs"
         for key, title, name in GENERATION_DATA:
-            plt.figure()
-            self._plot_vs_generations(key)
-            plt.title(title+extra_title)
-            plt.grid()
-            plt.xlabel("Generations")
-            plt.ylabel(name)
-            if save:
-                os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-                plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_{key}.png")
-            if show:
-                plt.show()
-            plt.close()
+            self.plot_vs_generations(key, show, save, title+extra_title, name)
         self.plot_evaluation(show, save)
         self.plot_delta_evaluation(show, save)
         self.plot_delta_evaluation(show, save, logarithmic=True)
@@ -471,6 +501,22 @@ class MultipleRunPlotter:
         gse = GroundStateEnergy(self.config, molecule)
         for data in self.evaluation_data:
             plt.scatter(data["distances"], data["energies"]-gse.data["solution"], **plot_kwargs)
+
+    def _plot_delta_evaluation_new_abs(self, **plot_kwargs):
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+        if not molecule:
+            return
+        gse = GroundStateEnergy(self.config, molecule)
+        for data in self.evaluation_data:
+            plt.scatter(data["distances"], abs(data["energies"]-gse.data["solution"]), **plot_kwargs)
 
     def plot_delta_evaluation_new(self, show = False, save = False):
         self._plot_delta_evaluation_new()
@@ -630,8 +676,32 @@ class MultipleExperimentPlotter:
         for i, (experiment, label) in enumerate(self.experiments):
             experiment._plot_delta_evaluation_new(label = label, **plot_kwargs)
 
+    def _plot_delta_evaluation_new_abs(self, colormap = None, **plot_kwargs):
+        if colormap:
+            n_experiments = len(self.experiments)
+            colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_delta_evaluation_new_abs(label = label, color=colormap(i/n_experiments), **plot_kwargs)    
+            return
+        for i, (experiment, label) in enumerate(self.experiments):
+            experiment._plot_delta_evaluation_new_abs(label = label, **plot_kwargs)
+
     def plot_delta_evaluation_new(self, title = None, show = False, save = False, savename = "delta_evaluation", **plot_kwargs):
         self._plot_delta_evaluation_new(**plot_kwargs)
+        plt.title(title)
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\{savename}.png")
+        if show:
+            plt.show()
+        plt.close()
+
+    def plot_delta_evaluation_new_abs(self, title = None, show = False, save = False, savename = "delta_evaluation", **plot_kwargs):
+        self._plot_delta_evaluation_new_abs(**plot_kwargs)
         plt.title(title)
         plt.grid()
         plt.legend()
@@ -650,7 +720,7 @@ class MultipleExperimentPlotter:
 
     def plot_delta_evaluation_new_log(self, title = None, show = False, save = False, **plot_kwargs):
         plt.yscale("log")
-        self.plot_delta_evaluation_new(title, show, save, "delta_evaluation_log", **plot_kwargs)
+        self.plot_delta_evaluation_new_abs(title, show, save, "delta_evaluation_log", **plot_kwargs)
 
     def get_energies(self):
         energies = pd.DataFrame()
@@ -683,9 +753,25 @@ class MultipleExperimentPlotter:
             plt.show()
         plt.close()
 
+    def plot_box_abs(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
+        energies = self.get_delta_energies()
+        if len(energies) == 0:
+            plt.close()
+            return
+        sns.boxplot(abs(energies), **plot_kwargs)
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel("Delta energy")
+        if save:
+            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
+            plt.savefig(f"{self.folder}\\figures\\{self.name}\\delta_energy_boxplot{savename}.png")
+        if show:
+            plt.show()
+        plt.close()
+
     def plot_box_log(self, xlabel, title = None, show=False, save=False, **plot_kwargs):
         plt.yscale("log")
-        self.plot_box(xlabel, title = title, show=show, save=save, savename="_log", **plot_kwargs)
+        self.plot_box_abs(xlabel, title = title, show=show, save=save, savename="_log", **plot_kwargs)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -702,9 +788,9 @@ if __name__ == "__main__":
     args = argparser.parse_args()
     for run in args.run:
         if run.isdigit():
-            plotter = SingleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
+            plotter = SingleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=args.verbose)
             plotter.plot_all(show=args.show, save=args.save)
             # plotter.plot_species_evolution(show=args.show, save=args.save)
         else:
-            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=1)
+            plotter = MultipleRunPlotter(args.name, run, folder=args.folder, verbose=args.verbose, error_verbose=args.verbose)
             plotter.plot_all(show = args.show, save = args.save)
