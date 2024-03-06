@@ -46,8 +46,9 @@ class BasePlotter(ABC):
         self.load_data()
 
     @abstractmethod
-    def load_data() -> None:
-        pass
+    def load_data(self) -> None:
+        self.data = dict()
+        self.generation_data = pd.DataFrame()
 
     def _plot_vs_generations(self, key:str, label:str=None, **plot_kwargs):
         try:
@@ -301,7 +302,7 @@ class SingleRunPlotter(BasePlotter):
 class MultipleRunPlotter(BasePlotter):     
     def load_data(self):
         # self.data = dict()
-        self.data_df = pd.DataFrame()
+        self.generation_data = pd.DataFrame()
         data_multiple = []
         if self.runs == "*":
             files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_results.npz")
@@ -345,8 +346,8 @@ class MultipleRunPlotter(BasePlotter):
             if len(key_data) == 0:
                 continue
             # self.data[key] = key_data
-            self.data_df[key] = key_data
-        self.data_df.index.name = "generation"
+            self.generation_data[key] = key_data
+        self.generation_data.index.name = "generation"
         # print(self.data)
         # print(self.data[GENERATION_DATA[0][0]].head())
 
@@ -383,7 +384,7 @@ class MultipleRunPlotter(BasePlotter):
     
     def _plot_vs_generations(self, key:str, label:str=None, **plot_kwargs):
         try:
-            sns.lineplot(data=self.data_df, x="generation", y=key, label=label, **plot_kwargs)
+            sns.lineplot(data=self.generation_data, x="generation", y=key, label=label, **plot_kwargs)
         except ValueError as exc_info:
             if self.error_verbose == 1:
                 print(f"{key} data not found for {self.name}")
