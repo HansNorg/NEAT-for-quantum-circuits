@@ -64,10 +64,12 @@ class BasePlotter(ABC):
         self._plot_vs_generations(key)
         self.finalise_plot(title=title, xlabel="Generations", ylabel=name, savename=f"run{self.runs}_{key}", save=save, show=show)
         
-    def finalise_plot(self, *, title:str=None, xlabel:str=None,ylabel:str=None, savename:str="", save:bool=False, show:bool=False, close:bool=True) -> None:
+    def finalise_plot(self, *, title:str=None, xlabel:str=None,ylabel:str=None, legend:bool=False, savename:str="", save:bool=False, show:bool=False, close:bool=True) -> None:
         """
         Set basic plotstyle settings and save/show the plot.
         """
+        if legend:
+            plt.legend()
         plt.title(title)
         plt.grid()
         plt.xlabel(xlabel)
@@ -234,15 +236,13 @@ class SingleRunPlotter(BasePlotter):
         elif "h6" in self.name:
             plot_h6_solution(color="r", linewidth=1, label="Solution (ED)")
         plt.scatter(data["distances"], data["energies"])
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Energy (a.u.)",
+            savename=f"run{self.runs}_evaluation.png",
+            save=save, show=show,
+            )
 
     def _plot_delta_evaluation(self, solution_func, **plot_kwargs):
         try:
@@ -258,15 +258,13 @@ class SingleRunPlotter(BasePlotter):
 
     def plot_delta_evaluation(self, solution_func, show = False, save = False):
         self._plot_delta_evaluation(solution_func)
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_delta_evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Delta energy (a.u.)",
+            savename=f"run{self.runs}_delta_evaluation.png",
+            save=save, show=show,
+        )
         
     def _plot_delta_evaluation_new(self, **plot_kwargs):
         try:
@@ -292,15 +290,13 @@ class SingleRunPlotter(BasePlotter):
 
     def plot_delta_evaluation_new(self, show = False, save = False):
         self._plot_delta_evaluation_new()
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.runs}_delta_evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Delta energy (a.u.)",
+            savename=f"run{self.runs}_delta_evaluation.png",
+            save=save, show=show,
+        )
 
 class MultipleRunPlotter(BasePlotter):     
     def load_data(self):
@@ -398,16 +394,13 @@ class MultipleRunPlotter(BasePlotter):
     def plot_vs_generations(self, key:str, show = False, save = False, title:str=None, ylabel:str=None, **plot_kwargs):
         plt.figure()
         self._plot_vs_generations(key)
-        plt.title(title)
-        plt.grid()
-        plt.xlabel("Generations")
-        plt.ylabel(ylabel)
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_{key}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Generations",
+            ylabel=ylabel,
+            savename=f"multiple_runs_{key}.png",
+            save=save, show=show,
+        )
         
     def plot_all(self, show = False, save = False):
         extra_title = f" averaged over {self.n_runs} runs"
@@ -450,15 +443,13 @@ class MultipleRunPlotter(BasePlotter):
         elif "h6" in self.name:
             plot_h6_solution(color="r", linewidth=1, label="Solution (ED)")
         self._plot_evaluation(**plot_kwargs)
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Energy (a.u.)",
+            savename=f"multiple_runs_evaluation.png",
+            save=save, show=show,
+        )
 
     def _plot_delta_evaluation(self, solution_func, **plot_kwargs):
         for data in self.evaluation_data:
@@ -476,15 +467,13 @@ class MultipleRunPlotter(BasePlotter):
         if logarithmic:
             plt.yscale("log")
             logname = "_logarithmic"
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\multiple_runs_delta_evaluation{logname}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Delta energy (a.u.)",
+            savename=f"multiple_runs_delta_evaluation{logname}.png",
+            save=save, show=show,
+        )
 
     def _plot_delta_evaluation_new(self, **plot_kwargs):
         if "gs" in self.name:
@@ -520,15 +509,13 @@ class MultipleRunPlotter(BasePlotter):
 
     def plot_delta_evaluation_new(self, show = False, save = False):
         self._plot_delta_evaluation_new()
-        plt.title("Evaluation of best final circuit")
-        plt.xlabel("Distance (Angstrom)")
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\run{self.run}_delta_evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Delta energy (a.u.)",
+            savename=f"run{self.run}_delta_evaluation.png",
+            save=save, show=show,
+        )
 
     def get_energies(self) -> pd.DataFrame:
         energies = pd.DataFrame()
@@ -554,7 +541,7 @@ class MultipleRunPlotter(BasePlotter):
             energies = pd.concat((energies, pd.DataFrame(data["energies"]-gse.data["solution"], index=data["distances"])))
         return energies
 
-class MultipleExperimentPlotter:
+class MultipleExperimentPlotter(BasePlotter):
     def __init__(self,name:str, folder:str = ".", verbose = 0, error_verbose = 1) -> None:
         self.name = name
         self.folder = folder
@@ -577,15 +564,13 @@ class MultipleExperimentPlotter:
             plt.figure()
             for experiment, label in self.experiments:
                 experiment._plot_vs_generations(key, label=f"{label}: {experiment.n_runs}")
-            plt.title(title+extra_title)
-            plt.grid()
-            plt.xlabel("Generations")
-            plt.ylabel(name)
-            if save:
-                plt.savefig(f"{self.folder}\\figures\\{self.name}\\{key}.png")
-            if show:
-                plt.show()
-            plt.close()
+            self.finalise_plot(
+                title=title+extra_title,
+                xlabel="Generations",
+                ylabel=name,
+                savename=f"{key}.png",
+                save=save, show=show,
+            )
         # if "h2" in self.name:
         #     X, solutions = get_h2_solution()
         #     self.plot_diff_energy(X, solutions, "Difference from solution", show, save)
@@ -596,16 +581,13 @@ class MultipleExperimentPlotter:
     
     def plot_min_energy(self, X, title = None, show = False, save = False, **plot_kwargs):
         self._plot_min_energy_single_point(X, "b", **plot_kwargs)
-        plt.title(title)
-        plt.grid()
-        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Ground state energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\energy_vs_R.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
+            ylabel="Ground state energy (a.u.)",
+            savename=f"energy_vs_R.png",
+            save=save, show=show,
+        )
 
     def _plot_diff_energy_single_point(self, X, solutions, color = None, **plot_kwargs):
         for i, (experiment, label) in enumerate(self.experiments):
@@ -613,16 +595,13 @@ class MultipleExperimentPlotter:
 
     def plot_diff_energy(self, X, solutions, title = None, show = False, save = False, **plot_kwargs):
         self._plot_diff_energy_single_point(X, solutions, "b", **plot_kwargs)
-        plt.title(title)
-        plt.grid()
-        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Ground state energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\delta_energy_vs_R.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
+            ylabel="Delta ground state energy (a.u.)",
+            savename=f"delta_energy_vs_R.png",
+            save=save, show=show,
+        )
 
     def _plot_evaluation(self, colormap = None, **plot_kwargs):
         if colormap:
@@ -636,17 +615,14 @@ class MultipleExperimentPlotter:
 
     def plot_evaluation(self, title = None, show = False, save = False, **plot_kwargs):
         self._plot_evaluation(**plot_kwargs)
-        plt.title(title)
-        plt.grid()
-        plt.legend()
-        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Ground state energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\evaluation.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
+            ylabel="Ground state energy (a.u.)",
+            savename=f"evaluation.png",
+            legend=True,
+            save=save, show=show,
+        )
 
     def _plot_delta_evaluation(self, solution_func, **plot_kwargs):
         for i, (experiment, label) in enumerate(self.experiments):
@@ -654,17 +630,14 @@ class MultipleExperimentPlotter:
 
     def plot_delta_evaluation(self, solution_func, title = None, show = False, save = False, savename = "delta_evaluation", **plot_kwargs):
         self._plot_delta_evaluation(solution_func, **plot_kwargs)
-        plt.title(title)
-        plt.grid()
-        plt.legend()
-        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\{savename}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
+            ylabel="Delta energy (a.u.)",
+            savename=f"{savename}.png",
+            legend=True,
+            save=save, show=show,
+        )
 
     def _plot_delta_evaluation_new(self, colormap = None, **plot_kwargs):
         if colormap:
@@ -688,31 +661,25 @@ class MultipleExperimentPlotter:
 
     def plot_delta_evaluation_new(self, title = None, show = False, save = False, savename = "delta_evaluation", **plot_kwargs):
         self._plot_delta_evaluation_new(**plot_kwargs)
-        plt.title(title)
-        plt.grid()
-        plt.legend()
-        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\{savename}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
+            ylabel="Delta energy (a.u.)",
+            savename=f"{savename}.png",
+            legend=True,
+            save=save, show=show,
+        )
 
     def plot_delta_evaluation_new_abs(self, title = None, show = False, save = False, savename = "delta_evaluation", **plot_kwargs):
         self._plot_delta_evaluation_new_abs(**plot_kwargs)
-        plt.title(title)
-        plt.grid()
-        plt.legend()
-        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\{savename}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
+            ylabel="Delta energy (a.u.)",
+            savename=f"{savename}.png",
+            legend=True,
+            save=save, show=show,
+        )
     
     def plot_delta_evaluation_log(self, solution_func, title = None, show = False, save = False, **plot_kwargs):
         plt.yscale("log")
@@ -743,15 +710,13 @@ class MultipleExperimentPlotter:
             plt.close()
             return
         sns.boxplot(energies, **plot_kwargs)
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel("Delta energy")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\delta_energy_boxplot{savename}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel=xlabel,
+            ylabel="Delta energy",
+            savename=f"delta_energy_boxplot{savename}.png",
+            save=save, show=show,
+        )
 
     def plot_box_abs(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
         energies = self.get_delta_energies()
@@ -759,15 +724,13 @@ class MultipleExperimentPlotter:
             plt.close()
             return
         sns.boxplot(abs(energies), **plot_kwargs)
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel("Delta energy")
-        if save:
-            os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
-            plt.savefig(f"{self.folder}\\figures\\{self.name}\\delta_energy_boxplot{savename}.png")
-        if show:
-            plt.show()
-        plt.close()
+        self.finalise_plot(
+            title=title,
+            xlabel=xlabel,
+            ylabel="Delta energy",
+            savename=f"delta_energy_boxplot{savename}.png",
+            save=save, show=show,
+        )
 
     def plot_box_log(self, xlabel, title = None, show=False, save=False, **plot_kwargs):
         plt.yscale("log")
