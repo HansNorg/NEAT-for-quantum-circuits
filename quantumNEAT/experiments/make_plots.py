@@ -189,12 +189,13 @@ def noise_new(folder, verbose, show=False, save=False):
     for molecule, n_qubits in [("H2", 2)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
         for method, method_name in [("linear_growth", "Linear growth")]:#, ("qneat", "Qneat")]:
             for phys_noise, phys_noise_name in [("", "")]:#, ("_phys-noise", ", physical noise")]:
-                plotter = MultipleExperimentPlotter(f"{molecule.lower()}_noise_{method}{phys_noise}", folder=folder, verbose=verbose, error_verbose=verbose)
+                plotter = MultipleExperimentPlotter(f"{molecule.lower()}_noise_new_{method}{phys_noise}", folder=folder, verbose=verbose, error_verbose=verbose)
                 experiments = []
-                for n_shots in range(0, 5): #range(0, 13):
+                for n_shots in range(0, 13):
                     experiments.append((
-                        f"gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_{cluster_n_shots[n_shots]}-shots{phys_noise}",
-                        "[14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]",
+                        f"noise_new/gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_{cluster_n_shots[n_shots]}-shots{phys_noise}",
+                        # "[14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]",
+                        "*",
                         f"{cluster_n_shots[n_shots]}"
                         ))
                 plotter.add_experiments(experiments)
