@@ -41,7 +41,7 @@ class GroundStateEnergy(Problem):
         # print(f"Hamiltonian data: {self.data.keys()} \n {self.data.head()}")
         print("&\Ham(R) = ", end="\\\\&")
         for ind, key in enumerate(self.data.keys()):
-            if key == "solution" or key == "correction" or key == "hamiltonian":
+            if key == "solution" or key == "correction" or key == "hamiltonian" or key == "weights":
                 continue
             if ind != 0:
                 print(f" + ", end="")
@@ -98,7 +98,8 @@ class GroundStateEnergy(Problem):
     def instance_energy(self, instance, circuit, parameters, no_optimization = False):
         hamiltonian = self.hamiltonian(instance)
         correction = instance.loc["correction"]
-        noise_weights = np.ones(self.config.n_qubits)
+        # noise_weights = np.ones(self.config.n_qubits)
+        noise_weights = self.noise_weights(instance)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
@@ -161,6 +162,15 @@ class GroundStateEnergy(Problem):
             H += from_string(string)*const
         return H
 
+    @staticmethod
+    def noise_weights(instance:pd.DataFrame) -> list:
+        weights = []
+        for string, const in instance.item():
+            if string == "correction" or string == "solution":
+                continue
+            weights.append(const)
+        return weights
+    
     def solution(self) -> float:
         return self.data["solution"]
                 
@@ -264,16 +274,26 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
     def __init__(self, config: QuantumNEATConfig, molecule: str, error_in_fitness=True, **kwargs) -> None:
         super().__init__(config, molecule, error_in_fitness, **kwargs)
         self._add_hamiltonian_to_data()
+        self._add_weights_to_data()
 
     def _add_hamiltonian_to_data(self):
         hamiltonians = []
         for _, instance in self.data.iterrows():
             hamiltonians.append(super().hamiltonian(instance))
         self.data["hamiltonian"] = hamiltonians
+
+    def _add_weights_to_data(self):
+        weights = []
+        for _, instance in self.data.iterrows():
+            weights.append(super().noise_weights(instance))
+        self.data["weights"] = weights
     
     @staticmethod
     def hamiltonian(instance):
         return instance["hamiltonian"]
+    
+    def noise_weights(instance):
+        return instance["weigths"]
     
     def energy_new(self, data):
         return self.energy(data[0], data[1])
