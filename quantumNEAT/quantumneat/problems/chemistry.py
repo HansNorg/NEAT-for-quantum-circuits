@@ -165,10 +165,10 @@ class GroundStateEnergy(Problem):
     @staticmethod
     def noise_weights(instance:pd.DataFrame) -> list:
         weights = []
-        for string, const in instance.item():
-            if string == "correction" or string == "solution":
+        for string, const in instance.items():
+            if string == "correction" or string == "solution" or string == "hamiltonian":
                 continue
-            weights.append(const)
+            weights.append(const.real)
         return weights
     
     def solution(self) -> float:
@@ -315,7 +315,6 @@ if __name__ == "__main__":
         non_zero = np.count_nonzero(hamiltonian)
         total = np.prod(np.shape(hamiltonian))
         print(f"{molecule}: {non_zero} non zero elements out of {total} elements. {non_zero/total*100:.2f}%")
-
     exit()
     # problem = GroundStateEnergySavedHamiltonian(None, "h2")
     problem = GroundStateEnergySavedHamiltonian(None, "h6")

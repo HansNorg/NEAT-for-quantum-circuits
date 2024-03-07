@@ -260,7 +260,7 @@ def get_shot_noise(weights, n_shots):
         mu,sigma =0, (n_shots)**(-0.5)
         
         # shot_noise +=(np.array(weights).real).T@np.random.normal(mu,sigma,len(weights))
-        sn = np.sqrt(sum(weights)/n_shots)
+        sn = np.sqrt(sum(np.power(weights, 2))/n_shots)
         shot_noise += np.random.normal(mu, sn)
         
     return shot_noise
