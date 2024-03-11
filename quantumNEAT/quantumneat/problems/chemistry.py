@@ -248,6 +248,25 @@ class GroundStateEnergy(Problem):
         difference = energies - self.data["solution"]
         plt.scatter(self.data.index, difference, label =f"HE-{layers}", **plot_kwargs)
 
+    def plot_adaptVQE_result(self, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_AdaptVQE.npy")
+        except:
+            print(f"AdaptVQE data not found")
+            return
+        plt.scatter(self.data.index, energies, label =f"AdaptVQE", **plot_kwargs)
+
+    def plot_adaptVQE_diff(self, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_AdaptVQE.npy")
+        except:
+            print(f"AdaptVQE data not found")
+            return
+        difference = energies - self.data["solution"]
+        plt.scatter(self.data.index, difference, label =f"AdaptVQE", **plot_kwargs)
+
     def plot_HE_result_total(self, layers, **plot_kwargs):
         import matplotlib.pyplot as plt
         try:
