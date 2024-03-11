@@ -98,9 +98,9 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     plot_UCCSD_result_h2(color="black", marker="x")
     plotter.plot_evaluation("Evaluation", show, save, marker = "x")
     plot_UCCSD_diff_h2(color="black", marker="x")
-    plotter.plot_delta_evaluation(get_solutions, "Difference from solution", show, save, marker="x")
+    plotter.plot_delta_evaluation(show, save, marker="x")
     plot_UCCSD_diff_h2(color="black", marker="x")
-    plotter.plot_delta_evaluation_log(get_solutions, "Difference from solution", show, save, marker="x")
+    plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True)
 
 def new_results(folder, verbose, show = False, save = False):
     if verbose >= 1:
@@ -116,15 +116,15 @@ def new_results(folder, verbose, show = False, save = False):
             (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Qneat, 200 steps"),
         ]
         plotter.add_experiments(experiments)
-        plotter.plot_all(show, save)
+        plotter.plot_all_generations(show, save)
         gse = GroundStateEnergy(None, molecule.lower())
         gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
         gse.plot_UCCSD_result(color="black", marker="x")
         plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
         gse.plot_UCCSD_diff(color="black", marker="x")
-        plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x")
         gse.plot_UCCSD_diff(color="black", marker="x")
-        plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x")
+        plotter.plot_delta_evaluation(show, save, logarithmic = True, marker="x")
 
 def noise(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -142,15 +142,15 @@ def noise(folder, verbose, show=False, save=False):
                         f"{cluster_n_shots[n_shots]}"
                         ))
                 plotter.add_experiments(experiments)
-                plotter.plot_all(show, save)
+                plotter.plot_all_generations(show, save)
                 gse = GroundStateEnergy(None, molecule.lower())
                 gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 gse.plot_UCCSD_result(color="black", marker="x")
                 plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                 plotter.plot_box("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
                 plotter.plot_box_log("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
 
@@ -170,15 +170,15 @@ def noise_all(folder, verbose, show=False, save=False):
                         f"{cluster_n_shots[n_shots]}"
                         ))
                 plotter.add_experiments(experiments)
-                plotter.plot_all(show, save)
+                plotter.plot_all_generations(show, save)
                 gse = GroundStateEnergy(None, molecule.lower())
                 gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 gse.plot_UCCSD_result(color="black", marker="x")
                 plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                 plotter.plot_box("n_shots", f"{molecule}{phys_noise_name}", show=show, save=save)
                 plotter.plot_box_log("n_shots", f"{molecule}{phys_noise_name}", show=show, save=save)
 
@@ -199,15 +199,15 @@ def noise_new(folder, verbose, show=False, save=False):
                         f"{cluster_n_shots[n_shots]}"
                         ))
                 plotter.add_experiments(experiments)
-                plotter.plot_all(show, save)
+                plotter.plot_all_generations(show, save)
                 gse = GroundStateEnergy(None, molecule.lower())
                 gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 gse.plot_UCCSD_result(color="black", marker="x")
                 plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                 plotter.plot_box("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
                 plotter.plot_box_log("n_shots", f"{molecule}{phys_noise}", show=show, save=save)
 
@@ -339,9 +339,9 @@ def test(folder, verbose, show=False, save=False):
                 # gse.plot_UCCSD_result(color="black", marker="x")
                 # plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                 # plotter.plot_box("n_shots", f"{molecule}{phys_noise_name}", show=show, save=save)
                 # plotter.plot_box_log("n_shots", f"{molecule}{phys_noise_name}", show=show, save=save)
             exit()
