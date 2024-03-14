@@ -89,7 +89,7 @@ class GroundStateEnergy(Problem):
 
     def energy(self, circuit, parameters, no_optimization = False, subtract_solution = False) -> float:
         if self.config.use_total_energy:
-            energy = self.total_energy(circuit, parameters, no_optimization)
+            energy = sum(self.total_energy(circuit, parameters, no_optimization))
             if subtract_solution:
                 energy -= sum([instance["solution"] for _, instance in self.data.iterrows()])
             return energy
@@ -136,6 +136,7 @@ class GroundStateEnergy(Problem):
         return expectation + correction
     
     def total_energy(self, circuit, parameters, no_optimization = False):
+        print("Total_energy")
         if self.config.simulator == "qulacs":
             noise_weigths = np.ones(self.config.n_qubits)
             def expectation_function(params):
@@ -318,8 +319,9 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
     def hamiltonian(instance):
         return instance["hamiltonian"]
     
+    @staticmethod
     def noise_weights(instance):
-        return instance["weigths"]
+        return instance["weights"]
     
     def energy_new(self, data):
         return self.energy(data[0], data[1])
