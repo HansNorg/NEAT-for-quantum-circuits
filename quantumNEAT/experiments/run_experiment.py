@@ -27,7 +27,9 @@ def main(args:Namespace, unknown:list[str]):
                     n_shots = args.n_shots,
                     phys_noise=args.phys_noise,
                     )
-        
+    if args.total_energy:
+        config.use_total_energy = True    
+    
     problem_arg:str = args.problem.lower()
     if "cim" in problem_arg or "classical_ising" in problem_arg:
         from quantumneat.problems.ising import ClassicalIsing
@@ -179,6 +181,7 @@ if __name__ == "__main__":
     argparser.add_argument("--phys_noise",              action="store_true",                          help="Whether to add physical noise in the simulation")
     argparser.add_argument("--n_shots",                 type=int, default=-1,                         help="How many shots are taken for shot noise. (-1 means no shot noise)")
     argparser.add_argument("--simulator",               type=str, default="qulacs",                   help="Which software package to use for simulation of circuits")
+    argparser.add_argument("--total_energy",            action="store_true",                          help="Whether to optimize only one set of parameters for all energies instead of one per energy.")
     argparser.add_argument("-X", "--extra_info",        type=str, default="",                         help="Extra settings")
     args, unknown = argparser.parse_known_args()
     args.n_shots = cluster_n_shots[args.n_shots]

@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit import Parameter
 
+from quantumneat.implementations.gates import GateCNOT, GateROT
 from quantumneat.gene import GateGene
 from quantumneat.genome import CircuitGenome
 from quantumneat.configuration import QuantumNEATConfig
@@ -17,6 +17,11 @@ if TYPE_CHECKING:
     from quantumneat.configuration import Circuit
     from quantumneat.implementations.qneat import QNEAT_Config
     from quantumneat.problem import Problem
+
+class GateCNOTmod(GateCNOT):
+    def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits: list[int], **kwargs) -> None:
+        super().__init__(innovation_number, config, problem, qubits, **kwargs)
+        self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
 
 class GlobalLayerNumber:
     '''
@@ -47,51 +52,13 @@ class InnovationTracker:            # Original: Gate/InnovTable
         if not InnovationTracker.gate_history[type].get((layer_number, qubit),False):
             InnovationTracker.gate_history[type][layer_number, qubit] = config.GlobalInnovationNumber.next()
         return InnovationTracker.gate_history[type][layer_number, qubit]
-    
-class GateCNOT(GateGene):
-    n_qubits = 2
-
-    def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits: list[int], **kwargs) -> None:
-        super().__init__(innovation_number, config, problem, qubits, **kwargs)
-        self.qubits = [qubit%self.config.n_qubits for qubit in self.qubits]
-        # self.logger.debug(f"{self.qubits=}")
-
-    def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
-        if self.config.simulator == 'qulacs':
-            circuit.add_CNOT_gate(self.qubits[0], self.qubits[1])
-        elif self.config.simulator == 'qiskit':
-            circuit.cnot(self.qubits[0], self.qubits[1])
-        else:
-            raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
-        return circuit, n_parameters
-    
-class GateROT(GateGene):
-    n_qubits = 1
-    n_parameters = 3
-    
-    def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
-        if self.config.simulator == 'qulacs':
-            circuit.add_parametric_RX_gate(self.qubits[0], self.parameters[0])
-            circuit.add_parametric_RY_gate(self.qubits[0], self.parameters[1])
-            circuit.add_parametric_RZ_gate(self.qubits[0], self.parameters[2])
-            n_parameters += 3
-        elif self.config.simulator == 'qiskit':
-            circuit.rx(Parameter(str(n_parameters)), self.qubits[0])
-            n_parameters += 1
-            circuit.ry(Parameter(str(n_parameters)), self.qubits[0])
-            n_parameters += 1
-            circuit.rz(Parameter(str(n_parameters)), self.qubits[0])
-            n_parameters += 1
-        else:
-            raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
-        return circuit, n_parameters
 
 class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
 
     def __init__(self, config:QNEAT_Config, problem:Problem, ind:int) -> None:
         super().__init__(ind, config, problem, range(config.n_qubits))
-        self.genes:dict[object, list] = {GateROT:[], GateCNOT:[]}
+        self.genes:dict[object, list] = {GateROT:[], GateCNOTmod:[]}
         self.ind = ind
 
     def add_gate(self, gate:GateGene) -> bool:
@@ -366,7 +333,7 @@ class QNEAT_Population(Population):
                 new_layer.add_gate(new_rot)
             for qubit in range(self.config.n_qubits):
                 innovation_number = InnovationTracker.get_innovation(layer_number, qubit, 'cnot', self.config)
-                new_cnot = GateCNOT(innovation_number, self.config, qubits=[qubit, qubit+1])
+                new_cnot = GateCNOTmod(innovation_number, self.config, qubits=[qubit, qubit+1])
                 new_layer.add_gate(new_cnot)
             initial_layers[layer_number] = new_layer
         for _ in range(self.config.population_size):
@@ -381,7 +348,7 @@ class QNEAT_Config(QuantumNEATConfig):
     #                                                   # Name in original
     Population = QNEAT_Population
     Genome = QNEAT_Genome
-    gene_types:list[GateGene] = field(default_factory=lambda:[GateROT, GateCNOT])
+    gene_types:list[GateGene] = field(default_factory=lambda:[GateROT, GateCNOTmod])
     GlobalLayerNumber = GlobalLayerNumber()       
     initial_layers:int = 0                              # num_initial_layers
     disjoint_coefficient:float = 1                      # disjoint_coeff

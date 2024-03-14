@@ -88,6 +88,11 @@ class GroundStateEnergy(Problem):
         return total_gradient/n_parameters
 
     def energy(self, circuit, parameters, no_optimization = False, subtract_solution = False) -> float:
+        if self.config.use_total_energy:
+            energy = self.total_energy(circuit, parameters, no_optimization)
+            if subtract_solution:
+                energy -= sum([instance["solution"] for _, instance in self.data.iterrows()])
+            return energy
         energy = 0
         for _, instance in self.data.iterrows():
             energy += self.instance_energy(instance, circuit, parameters, no_optimization)
@@ -142,6 +147,8 @@ class GroundStateEnergy(Problem):
                                                 self.config.n_qubits, correction, self.config.n_shots,
                                                 self.config.phys_noise)
                 return energy
+        else:
+            raise NotImplementedError(f"Simulator {self.config.simulator} not implemented for total_energy of GroundStateEnergy")
         if self.config.optimize_energy and not no_optimization:
             optimized_parameters = minimize(expectation_function, parameters, method="COBYLA", tol=1e-4,
                                    options={'maxiter':self.config.optimize_energy_max_iter}
