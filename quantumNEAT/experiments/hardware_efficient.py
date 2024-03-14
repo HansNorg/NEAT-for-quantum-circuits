@@ -99,7 +99,6 @@ if __name__ == "__main__":
         args.savename += "_phys-noise"
     n_qubits_dict = {"h2":2, "h6":6, "lih":8}
     for molecule in args.molecule:
-        print(molecule)
         config = QuantumNEATConfig(n_qubits_dict[molecule], 0, n_shots=args.n_shots, phys_noise=args.phys_noise)
         problem = GroundStateEnergySavedHamiltonian(config, molecule)
         he = HardwareEfficient(config, problem)
