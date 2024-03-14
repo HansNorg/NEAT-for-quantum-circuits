@@ -16,12 +16,14 @@ class GateCNOT(GateGene):
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
             circuit.add_CNOT_gate(self.qubits[0], self.qubits[1])
+            if self.config.phys_noise:
+                circuit.add_gate(TwoQubitDepolarizingNoise(self.qubits[0], self.qubits[1], self.config.depolarizing_noise_prob))
         elif self.config.simulator == 'qiskit':
             circuit.cnot(self.qubits[0], self.qubits[1])
+            if self.config.phys_noise:
+                print("Phys noise not implemented for simulator qiskit")
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
-        if self.config.phys_noise:
-            circuit.add_gate(TwoQubitDepolarizingNoise(self.qubits[0], self.qubits[1], self.config.depolarizing_noise_prob))
         return circuit, n_parameters
     
 class GateROT(GateGene):
@@ -34,6 +36,8 @@ class GateROT(GateGene):
             circuit.add_parametric_RY_gate(self.qubits[0], self.parameters[1])
             circuit.add_parametric_RZ_gate(self.qubits[0], self.parameters[2])
             n_parameters += 3
+            if self.config.phys_noise:
+                circuit.add_gate(DepolarizingNoise(self.qubits[0], self.config.depolarizing_noise_prob))
         elif self.config.simulator == 'qiskit':
             circuit.rx(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
@@ -41,10 +45,10 @@ class GateROT(GateGene):
             n_parameters += 1
             circuit.rz(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                print("Phys noise not implemented for simulator qiskit")
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
-        if self.config.phys_noise:
-            circuit.add_gate(DepolarizingNoise(self.qubits[0], self.config.depolarizing_noise_prob))
         return circuit, n_parameters
 
 class GateRx(GateGene):
@@ -55,9 +59,13 @@ class GateRx(GateGene):
         if self.config.simulator == 'qulacs':
             circuit.add_parametric_RX_gate(self.qubits[0], self.parameters[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                circuit.add_gate(DepolarizingNoise(self.qubits[0], self.config.depolarizing_noise_prob))
         elif self.config.simulator == 'qiskit':
             circuit.rx(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                print("Phys noise not implemented for simulator qiskit")
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
         return circuit, n_parameters
@@ -70,9 +78,13 @@ class GateRy(GateGene):
         if self.config.simulator == 'qulacs':
             circuit.add_parametric_RY_gate(self.qubits[0], self.parameters[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                circuit.add_gate(DepolarizingNoise(self.qubits[0], self.config.depolarizing_noise_prob))
         elif self.config.simulator == 'qiskit':
             circuit.ry(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                print("Phys noise not implemented for simulator qiskit")
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
         return circuit, n_parameters
@@ -85,9 +97,13 @@ class GateRz(GateGene):
         if self.config.simulator == 'qulacs':
             circuit.add_parametric_RZ_gate(self.qubits[0], self.parameters[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                circuit.add_gate(DepolarizingNoise(self.qubits[0], self.config.depolarizing_noise_prob))
         elif self.config.simulator == 'qiskit':
             circuit.rz(Parameter(str(n_parameters)), self.qubits[0])
             n_parameters += 1
+            if self.config.phys_noise:
+                print("Phys noise not implemented for simulator qiskit")
         else:
             raise NotImplementedError(f"Simulation method: {self.config.simulator} not implemented for {self.__class__}")
         return circuit, n_parameters

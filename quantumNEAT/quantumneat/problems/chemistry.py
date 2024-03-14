@@ -136,7 +136,6 @@ class GroundStateEnergy(Problem):
         return expectation + correction
     
     def total_energy(self, circuit, parameters, no_optimization = False):
-        print("Total_energy")
         if self.config.simulator == "qulacs":
             noise_weigths = np.ones(self.config.n_qubits)
             def expectation_function(params):
