@@ -5,6 +5,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Parameter
 from qulacs import ParametricQuantumCircuit
 
+from experiments.run_experiment import cluster_n_shots
 from quantumneat.configuration import QuantumNEATConfig
 from quantumneat.problem import Problem
 
@@ -87,12 +88,19 @@ if __name__ == "__main__":
     argparser = ArgumentParser()
     argparser.add_argument("molecule", nargs="+")
     argparser.add_argument("--savename", type=str, default="")
+    argparser.add_argument("--n_shots", type=int, default=0)
+    argparser.add_argument("--phys_noise", action="store_true")
     argparser.add_argument("-v", "--verbose", action="count", default=0)
     args = argparser.parse_args()
-
+    args.n_shots = cluster_n_shots[args.n_shots]
+    if args.n_shots > 0:
+        args.savename += f"_{args.n_shots}-shots"
+    if args.phys_noise:
+        args.savename += "_phys-noise"
     n_qubits_dict = {"h2":2, "h6":6, "lih":8}
     for molecule in args.molecule:
-        config = QuantumNEATConfig(n_qubits_dict[molecule], 0)
+        print(molecule)
+        config = QuantumNEATConfig(n_qubits_dict[molecule], 0, n_shots=args.n_shots, phys_noise=args.phys_noise)
         problem = GroundStateEnergySavedHamiltonian(config, molecule)
         he = HardwareEfficient(config, problem)
         for layers in [0, 1, 2, 4, 8, 16]:
