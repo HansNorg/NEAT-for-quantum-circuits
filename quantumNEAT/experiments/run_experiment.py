@@ -145,7 +145,7 @@ def main(args:Namespace, unknown:list[str]):
 
     if args.total_energy:
         args.name += "_total-energy"
-        
+
     args.name += f"_{args.n_shots}-shots"
     if args.phys_noise:
         args.name += "_phys-noise"
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     argparser.add_argument("-gates", "--gate_set",      type=str, default="ROT-CNOT", choices=["ROT-CNOT", "R-CNOT"], help="which gateset to use")
     argparser.add_argument("--plot",                    action="store_true",                          help="Whether to plot the results")
     argparser.add_argument("--phys_noise",              action="store_true",                          help="Whether to add physical noise in the simulation")
-    argparser.add_argument("--n_shots",                 type=int, default=-1,                         help="How many shots are taken for shot noise. (-1 means no shot noise)")
+    argparser.add_argument("--n_shots",                 type=int, default=0,                         help="How many shots are taken for shot noise. (0 means no shot noise)")
     argparser.add_argument("--simulator",               type=str, default="qulacs",                   help="Which software package to use for simulation of circuits")
     argparser.add_argument("--total_energy",            action="store_true",                          help="Whether to optimize only one set of parameters for all energies instead of one per energy.")
     argparser.add_argument("-X", "--extra_info",        type=str, default="",                         help="Extra settings")
