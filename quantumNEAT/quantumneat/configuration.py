@@ -37,6 +37,7 @@ class QuantumNEATConfig():
     specie_champion_size:int = 5
     percentage_survivors:float = 0.5
     normalise_fitness:bool = False
+    fitness_sharing:bool = False
     force_population_size:bool = True
 
     # Species settings

@@ -107,3 +107,6 @@ class Species:
             self._update_fitness = False
             self._fitness = sum([genome.get_fitness() for genome in self.genomes])/len(self.genomes)
         return self._fitness
+    
+    def get_fitnesses(self):
+        return [genome.get_fitness()/len(self.genomes) for genome in self.genomes]

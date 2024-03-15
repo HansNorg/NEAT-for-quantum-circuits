@@ -53,10 +53,37 @@
 
 # bash experiments/run_experiment_n_shots.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 20 -R 11 
 
-bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 100 --phys_noise
-bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 100 --phys_noise
-bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 100 --phys_noise
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 20 -R 10 --phys_noise
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 20 -R 10 --phys_noise
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 20 --phys_noise
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 20 --phys_noise
 
-bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 100 --total_energy
-bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 100 --total_energy
-bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 100 --total_energy
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 20 -R 10 --phys_noise --total_energy
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 20 -R 10 --phys_noise --total_energy
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 20 --phys_noise --total_energy
+
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 100 -R 10 --total_energy
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 100 -R 10 --total_energy
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 100 -R 10 --total_energy
+
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 100 -R 10
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 100 -R 10
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 100 -R 10
+
+
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 20 -R 10 --phys_noise --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 20 -R 10 --phys_noise --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 20 --phys_noise --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 20 --phys_noise --fitness_sharing
+
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 20 -R 10 --phys_noise --total_energy --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 20 -R 10 --phys_noise --total_energy --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 20 --phys_noise --total_energy --fitness_sharing
+
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 100 -R 10 --total_energy --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 100 -R 10 --total_energy --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 100 -R 10 --total_energy --fitness_sharing
+
+bash experiments/run_experiment_single_cpu.bash gs_h2_errorless_saveh linear_growth -N 2 -O 100 -G 100 -R 10 --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_h6_errorless_saveh linear_growth -N 6 -O 100 -G 100 -R 10 --fitness_sharing
+bash experiments/run_experiment_single_cpu.bash gs_lih_errorless_saveh linear_growth -N 8 -O 100 -G 100 -R 10 --fitness_sharing
