@@ -90,8 +90,16 @@ class Population():
             def no_normalisation(fitnesses, update:bool = False):
                 return fitnesses
             optional_normalisation = no_normalisation
+        if self.config.fitness_sharing:
+            fitnesses = []
+            for specie in self.species:
+                fitnesses.append(specie.get_fitnesses())
+            average_fitness = np.mean(fitnesses)
         for specie in self.species:
-            specie_fitnesses = [genome.get_fitness() for genome in specie.genomes]
+            if self.config.fitness_sharing:
+                specie_fitnesses = specie.get_fitnesses()
+            else:
+                specie_fitnesses = [genome.get_fitness() for genome in specie.genomes]
             specie_fitnesses = optional_normalisation(specie_fitnesses)
             specie_total_fitness = sum(specie_fitnesses)
             n_offspring = specie_total_fitness/average_fitness
@@ -118,7 +126,7 @@ class Population():
         
             sorted_genomes = self.sort_genomes(specie.genomes)[:cutoff]
 
-            if len(specie.genomes) >= self.config.specie_champion_size:
+            if len(specie.genomes) >= self.config.specie_champion_size: # TODO: Check if sometimes champion is kept even when n_offspring == 0
                 # self.logger.debug(f"new_population: {n_offspring=}; champion")
                 new_population.append(copy.deepcopy(sorted_genomes[0]))
                 n_offspring -= 1

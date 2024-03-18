@@ -41,7 +41,7 @@ class GroundStateEnergy(Problem):
         # print(f"Hamiltonian data: {self.data.keys()} \n {self.data.head()}")
         print("&\Ham(R) = ", end="\\\\&")
         for ind, key in enumerate(self.data.keys()):
-            if key == "solution" or key == "correction" or key == "hamiltonian":
+            if key == "solution" or key == "correction" or key == "hamiltonian" or key == "weights":
                 continue
             if ind != 0:
                 print(f" + ", end="")
@@ -88,6 +88,11 @@ class GroundStateEnergy(Problem):
         return total_gradient/n_parameters
 
     def energy(self, circuit, parameters, no_optimization = False, subtract_solution = False) -> float:
+        if self.config.use_total_energy:
+            energy = sum(self.total_energy(circuit, parameters, no_optimization))
+            if subtract_solution:
+                energy -= sum([instance["solution"] for _, instance in self.data.iterrows()])
+            return energy
         energy = 0
         for _, instance in self.data.iterrows():
             energy += self.instance_energy(instance, circuit, parameters, no_optimization)
@@ -98,7 +103,8 @@ class GroundStateEnergy(Problem):
     def instance_energy(self, instance, circuit, parameters, no_optimization = False):
         hamiltonian = self.hamiltonian(instance)
         correction = instance.loc["correction"]
-        noise_weights = np.ones(self.config.n_qubits)
+        # noise_weights = np.ones(self.config.n_qubits)
+        noise_weights = self.noise_weights(instance)
         if self.config.simulator == 'qulacs':
             def expectation_function(params):
                 return get_energy_qulacs(
@@ -141,6 +147,8 @@ class GroundStateEnergy(Problem):
                                                 self.config.n_qubits, correction, self.config.n_shots,
                                                 self.config.phys_noise)
                 return energy
+        else:
+            raise NotImplementedError(f"Simulator {self.config.simulator} not implemented for total_energy of GroundStateEnergy")
         if self.config.optimize_energy and not no_optimization:
             optimized_parameters = minimize(expectation_function, parameters, method="COBYLA", tol=1e-4,
                                    options={'maxiter':self.config.optimize_energy_max_iter}
@@ -161,6 +169,15 @@ class GroundStateEnergy(Problem):
             H += from_string(string)*const
         return H
 
+    @staticmethod
+    def noise_weights(instance:pd.DataFrame) -> list:
+        weights = []
+        for string, const in instance.items():
+            if string == "correction" or string == "solution" or string == "hamiltonian":
+                continue
+            weights.append(const.real)
+        return weights
+    
     def solution(self) -> float:
         return self.data["solution"]
                 
@@ -238,6 +255,25 @@ class GroundStateEnergy(Problem):
         difference = energies - self.data["solution"]
         plt.scatter(self.data.index, difference, label =f"HE-{layers}", **plot_kwargs)
 
+    def plot_adaptVQE_result(self, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_AdaptVQE.npy")
+        except:
+            print(f"AdaptVQE data not found")
+            return
+        plt.scatter(self.data.index, energies, label =f"AdaptVQE", **plot_kwargs)
+
+    def plot_adaptVQE_diff(self, **plot_kwargs):
+        import matplotlib.pyplot as plt
+        try:
+            energies = np.load(f"{self.molecule}_AdaptVQE.npy")
+        except:
+            print(f"AdaptVQE data not found")
+            return
+        difference = energies - self.data["solution"]
+        plt.scatter(self.data.index, difference, label =f"AdaptVQE", **plot_kwargs)
+
     def plot_HE_result_total(self, layers, **plot_kwargs):
         import matplotlib.pyplot as plt
         try:
@@ -264,16 +300,27 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
     def __init__(self, config: QuantumNEATConfig, molecule: str, error_in_fitness=True, **kwargs) -> None:
         super().__init__(config, molecule, error_in_fitness, **kwargs)
         self._add_hamiltonian_to_data()
+        self._add_weights_to_data()
 
     def _add_hamiltonian_to_data(self):
         hamiltonians = []
         for _, instance in self.data.iterrows():
             hamiltonians.append(super().hamiltonian(instance))
         self.data["hamiltonian"] = hamiltonians
+
+    def _add_weights_to_data(self):
+        weights = []
+        for _, instance in self.data.iterrows():
+            weights.append(super().noise_weights(instance))
+        self.data["weights"] = weights
     
     @staticmethod
     def hamiltonian(instance):
         return instance["hamiltonian"]
+    
+    @staticmethod
+    def noise_weights(instance):
+        return instance["weights"]
     
     def energy_new(self, data):
         return self.energy(data[0], data[1])
@@ -295,7 +342,6 @@ if __name__ == "__main__":
         non_zero = np.count_nonzero(hamiltonian)
         total = np.prod(np.shape(hamiltonian))
         print(f"{molecule}: {non_zero} non zero elements out of {total} elements. {non_zero/total*100:.2f}%")
-
     exit()
     # problem = GroundStateEnergySavedHamiltonian(None, "h2")
     problem = GroundStateEnergySavedHamiltonian(None, "h6")

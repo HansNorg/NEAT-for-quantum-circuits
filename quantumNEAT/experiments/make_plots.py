@@ -108,23 +108,29 @@ def new_results(folder, verbose, show = False, save = False):
     for molecule, n_qubits in [("H2", 2), ("H6",6), ("LiH",8)]:
         plotter = MultipleExperimentPlotter(f"{molecule}_comparisons", folder=folder, verbose=verbose, error_verbose=verbose)
         experiments = [
-            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Linear growth, no optimization"),
+            # (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Linear growth, no optimization"),
             (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Linear growth, 100 steps"),
-            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Linear growth, 200 steps"),
-            (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Qneat, no optimization"),
-            (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Qneat, 100 steps"),
-            (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Qneat, 200 steps"),
+            # (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Linear growth, 200 steps"),
+            # (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Qneat, no optimization"),
+            # (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Qneat, 100 steps"),
+            # (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Qneat, 200 steps"),
         ]
         plotter.add_experiments(experiments)
         plotter.plot_all_generations(show, save)
         gse = GroundStateEnergy(None, molecule.lower())
         gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
-        gse.plot_UCCSD_result(color="black", marker="x")
+        gse.plot_UCCSD_result(color="black", marker=".")
+        gse.plot_adaptVQE_result(color="red", marker=".")
+        gse.plot_HE_result(1, color="green", marker=".")
         plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
-        gse.plot_UCCSD_diff(color="black", marker="x")
-        plotter.plot_delta_evaluation(show, save, marker="x")
-        gse.plot_UCCSD_diff(color="black", marker="x")
-        plotter.plot_delta_evaluation(show, save, logarithmic = True, marker="x")
+        gse.plot_UCCSD_diff(color="black", marker=".")
+        gse.plot_adaptVQE_diff(color="red", marker=".")
+        gse.plot_HE_diff(1, color="green", marker=".")
+        plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x")
+        gse.plot_UCCSD_diff(color="black", marker=".")
+        gse.plot_adaptVQE_diff(color="red", marker=".")
+        gse.plot_HE_diff(1, color="green", marker=".")
+        plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x")
 
 def noise(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -317,9 +323,35 @@ def hardware_efficient_evaluation_total(folder, verbose, show=False, save=False)
             plt.show()
         plt.close()
 
+def noise_total_fitness(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("noise_total_fitness")
+    colormap = "cool"
+    for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        plotter = MultipleExperimentPlotter(f"{molecule.lower()}_noise_total_fitness", folder=folder, verbose=verbose, error_verbose=verbose)
+        experiments = []
+        for phys_noise, phys_noise_name in [("", ""), ("_phys-noise", ", physical noise")]:
+            for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
+                for fitness, fitness_name in [("", ""), ("_shared-fitness", ", shared fitness")]:
+                    experiments.append((
+                        f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}{fitness}_0-shots{phys_noise}",
+                        "*",
+                        f"{phys_noise_name}{total_energy_name}{fitness_name}"
+                        ))
+        plotter.add_experiments(experiments)
+        plotter.plot_all(show, save)
+        gse = GroundStateEnergy(None, molecule.lower())
+        gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+        gse.plot_UCCSD_result(color="black", marker="x")
+        plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
+        gse.plot_UCCSD_diff(color="black", marker="x")
+        plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+        gse.plot_UCCSD_diff(color="black", marker="x")
+        plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+        
 def test(folder, verbose, show=False, save=False):
     if verbose >= 1:
-        print("noise")
+        print("test")
     colormap = "cool"#"plasma"
     for molecule, n_qubits in [("H2", 2), ("H6", 6)]:
         for method, method_name in [("linear_growth", "Linear growth"), ("qneat", "Qneat")]:
@@ -376,5 +408,7 @@ if __name__ == "__main__":
         hardware_efficient(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "hardware_efficient_evaluation_total" or args.experiment == "all":
         hardware_efficient_evaluation_total(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "noise_total_fitness" or args.experiment == "all":
+        noise_total_fitness(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":
         test(args.folder, args.verbose, args.show, args.save)

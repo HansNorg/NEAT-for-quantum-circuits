@@ -37,6 +37,7 @@ class QuantumNEATConfig():
     specie_champion_size:int = 5
     percentage_survivors:float = 0.5
     normalise_fitness:bool = False
+    fitness_sharing:bool = False
     force_population_size:bool = True
 
     # Species settings
@@ -60,6 +61,7 @@ class QuantumNEATConfig():
     optimize_energy_evaluation:bool = True
     optimize_energy_max_iter:int = 100 # Ignored if optimize_energy == False
     solution_margin:float = 10**-3 # epsilon
+    use_total_energy:bool = False # Whether to optimize only one set of parameters for all energies instead of one per energy.
 
     h2_distance = None
     
@@ -71,6 +73,7 @@ class QuantumNEATConfig():
     epsilon:float = 10**-5
     n_shots:int = -1
     phys_noise:bool = False
+    depolarizing_noise_prob:float = 0.1 # Ignored if phys_noise == False
 
     # Distance settings
     excess_coefficient:float = 1
