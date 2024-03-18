@@ -60,7 +60,7 @@ class BasePlotter(ABC):
             sns.lineplot(data=self.generation_data, x="generation", y=key, label=label, **plot_kwargs)
         except ValueError as exc_info:
             if self.error_verbose == 1:
-                print(f"{key} data not found for {self.name}")
+                print(f"{key} data not found for {self.name} {self.runs_name}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -95,6 +95,9 @@ class BasePlotter(ABC):
             plt.close()
 
     def _plot_evaluation(self, **plot_kwargs):
+        print(self.evaluation_data_df.head())
+        if len(self.evaluation_data_df) == 0:
+            return
         sns.scatterplot(self.evaluation_data_df, x="distances", y="energies", **plot_kwargs)
 
     def plot_evaluation(self, show=False, save=False, **plot_kwargs):
@@ -129,7 +132,7 @@ class BasePlotter(ABC):
     def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, **plot_kwargs):
         if logarithmic:
             plt.yscale("log")
-            self._plot_delta_evaluation(True, **plot_kwargs)
+            self._plot_delta_evaluation(absolute=True, **plot_kwargs)
             logname = "_log"
             absname = "|"
         else:
@@ -487,6 +490,7 @@ class MultipleExperimentPlotter(BasePlotter):
 
     def add_experiment(self, name, runs, label):
         self.experiments.append((MultipleRunPlotter(name, runs, self.folder, self.verbose, self.error_verbose), label))
+        self.config = self.experiments[0][0].config
 
     def add_experiments(self, experiments):
         for name, runs, label in experiments:
@@ -534,7 +538,7 @@ class MultipleExperimentPlotter(BasePlotter):
         for i, (experiment, label) in enumerate(self.experiments):
             experiment._plot_evaluation(label = label, **plot_kwargs)
 
-    def _plot_delta_evaluation(self, colormap = None, absolute = False, **plot_kwargs):
+    def _plot_delta_evaluation(self, absolute = False, colormap = None, **plot_kwargs):
         if colormap:
             n_experiments = len(self.experiments)
             colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
