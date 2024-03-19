@@ -93,7 +93,7 @@ class Population():
         if self.config.fitness_sharing:
             fitnesses = []
             for specie in self.species:
-                fitnesses.append(specie.get_fitnesses())
+                fitnesses.extend(specie.get_fitnesses())
             average_fitness = np.mean(fitnesses)
         for specie in self.species:
             if self.config.fitness_sharing:
