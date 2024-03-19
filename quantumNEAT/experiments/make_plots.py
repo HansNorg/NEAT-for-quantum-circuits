@@ -404,7 +404,7 @@ def noise_total_fitness(folder, verbose, show=False, save=False):
                         f"{phys_noise_name}{total_energy_name}{fitness_name}"
                         ))
         plotter.add_experiments(experiments)
-        # plotter.plot_all_generations(show, save)
+        plotter.plot_all_generations(show, save)
         gse = GroundStateEnergy(None, molecule.lower())
         gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
         gse.plot_UCCSD_result(color="black", marker="x")
