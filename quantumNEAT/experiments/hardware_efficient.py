@@ -1,9 +1,11 @@
 from __future__ import annotations
 from typing import Union, TYPE_CHECKING
 import numpy as np
+from tqdm import tqdm
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Parameter
 from qulacs import ParametricQuantumCircuit
+from qulacs.gate import DepolarizingNoise, TwoQubitDepolarizingNoise
 
 from experiments.run_experiment import cluster_n_shots
 from quantumneat.configuration import QuantumNEATConfig
@@ -40,13 +42,19 @@ class HardwareEfficient:
             circuit.add_parametric_RY_gate(qubit, 0)
             circuit.add_parametric_RZ_gate(qubit, 0)
             n_parameters += 2
+            if self.config.phys_noise:
+                circuit.add_gate(DepolarizingNoise(qubit, self.config.depolarizing_noise_prob))
         return circuit, n_parameters
 
     def add_CNOT_layer_qulacs(self, circuit:ParametricQuantumCircuit, n_parameters:int) -> Union[ParametricQuantumCircuit, int]:
         for qubit in range(0, self.config.n_qubits, 2):
             circuit.add_CNOT_gate(qubit, (qubit+1)%self.config.n_qubits)
+            if self.config.phys_noise:
+                circuit.add_gate(TwoQubitDepolarizingNoise(qubit, (qubit+1)%self.config.n_qubits, self.config.depolarizing_noise_prob))
         for qubit in range(1, self.config.n_qubits, 2):
             circuit.add_CNOT_gate(qubit, (qubit+1)%self.config.n_qubits)
+            if self.config.phys_noise:
+                circuit.add_gate(TwoQubitDepolarizingNoise(qubit, (qubit+1)%self.config.n_qubits, self.config.depolarizing_noise_prob))
         return circuit, n_parameters
     
     def add_R_layer_qiskit(self, circuit:QuantumCircuit, n_parameters:int) -> Union[QuantumCircuit, int]:
@@ -102,7 +110,7 @@ if __name__ == "__main__":
         config = QuantumNEATConfig(n_qubits_dict[molecule], 0, n_shots=args.n_shots, phys_noise=args.phys_noise)
         problem = GroundStateEnergySavedHamiltonian(config, molecule)
         he = HardwareEfficient(config, problem)
-        for layers in [0, 1, 2, 4, 8, 16]:
+        for layers in tqdm([0, 1, 2, 4, 8, 16]):
             if args.verbose >=2:
                 simul = config.simulator
                 config.simulator = "qiskit"
