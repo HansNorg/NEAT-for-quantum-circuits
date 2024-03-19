@@ -78,7 +78,7 @@ def get_solutions(X):
 def plot_solution(show = False, **plot_kwargs):
     import matplotlib.pyplot as plt
     x, y = get_solution()
-    plt.plot(x,y, label="Exact diagonalisation", **plot_kwargs)
+    plt.plot(x,y, **plot_kwargs)
     if show:
         plt.title("Hydrogen molecule")
         plt.ylabel("Energy (a.u.)")
@@ -96,7 +96,7 @@ def plot_UCCSD_result(**plot_kwargs):
     distances = np.array(H2_DATA.index)
     for ind, distance in enumerate(distances):
         energies[ind] += h2_instance(distance)["correction"]
-    plt.scatter(distances, energies, label ="UCCSD", **plot_kwargs)
+    plt.scatter(distances, energies, **plot_kwargs)
 
 def plot_UCCSD_diff(**plot_kwargs):
     import matplotlib.pyplot as plt
@@ -109,7 +109,7 @@ def plot_UCCSD_diff(**plot_kwargs):
     distances = np.array(H2_DATA.index)
     for ind, distance in enumerate(distances):
         energies[ind] += h2_instance(distance)["correction"] - solution[ind]
-    plt.scatter(distances, energies, label ="UCCSD", **plot_kwargs)
+    plt.scatter(distances, energies, **plot_kwargs)
 
 def plot_solution_2(show = False, **plot_kwargs):
     import matplotlib.pyplot as plt

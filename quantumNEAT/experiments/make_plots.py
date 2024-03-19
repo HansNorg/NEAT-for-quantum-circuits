@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm 
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -96,7 +97,7 @@ def hydrogen_atom(folder, verbose, show = False, save = False):
     # plotter.plot_all(show, save)
     plot_h2_solution(color="r", linewidth=1)
     plot_UCCSD_result_h2(color="black", marker="x")
-    plotter.plot_evaluation("Evaluation", show, save, marker = "x")
+    plotter.plot_evaluation(show, save, marker = "x")
     plot_UCCSD_diff_h2(color="black", marker="x")
     plotter.plot_delta_evaluation(show, save, marker="x")
     plot_UCCSD_diff_h2(color="black", marker="x")
@@ -122,15 +123,13 @@ def new_results(folder, verbose, show = False, save = False):
         gse.plot_UCCSD_result(color="black", marker=".")
         gse.plot_adaptVQE_result(color="red", marker=".")
         gse.plot_HE_result(1, color="green", marker=".")
-        plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
+        plotter.plot_evaluation(show, save, marker = "x")
         gse.plot_UCCSD_diff(color="black", marker=".")
         gse.plot_adaptVQE_diff(color="red", marker=".")
         gse.plot_HE_diff(1, color="green", marker=".")
-        plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x")
         gse.plot_UCCSD_diff(color="black", marker=".")
         gse.plot_adaptVQE_diff(color="red", marker=".")
         gse.plot_HE_diff(1, color="green", marker=".")
-        plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x")
 
 def noise(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -152,7 +151,7 @@ def noise(folder, verbose, show=False, save=False):
                 gse = GroundStateEnergy(None, molecule.lower())
                 gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 gse.plot_UCCSD_result(color="black", marker="x")
-                plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
+                plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
                 plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
@@ -180,7 +179,7 @@ def noise_all(folder, verbose, show=False, save=False):
                 gse = GroundStateEnergy(None, molecule.lower())
                 gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 gse.plot_UCCSD_result(color="black", marker="x")
-                plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
+                plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
                 plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
@@ -209,7 +208,7 @@ def noise_new(folder, verbose, show=False, save=False):
                 gse = GroundStateEnergy(None, molecule.lower())
                 gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 gse.plot_UCCSD_result(color="black", marker="x")
-                plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
+                plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
                 plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
@@ -323,31 +322,100 @@ def hardware_efficient_evaluation_total(folder, verbose, show=False, save=False)
             plt.show()
         plt.close()
 
+def hardware_efficient_noise(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("hardware_efficient_noise")
+    colormap = "cool"
+    layers = [0, 1, 2, 4, 8, 16]
+    n_layers = len(layers)
+    colormap = mpl.colormaps.get_cmap(colormap).resampled(n_layers)
+    for molecule in ["H2", "H6", "LiH"]:
+        gse = GroundStateEnergy(None, molecule.lower())
+        gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+        for ind, l in enumerate(layers):
+            for phys_noise in [False, True]:
+                marker = "x"
+                if phys_noise:
+                    marker = "+"
+                gse.plot_HE_result_total(l, color=colormap(ind/n_layers), marker=marker, phys_noise=phys_noise)
+        plt.title(f"Hardware efficient anzats for {molecule}")
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Energy (a.u.)")
+        if save:
+            os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
+            plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}.png")
+        if show:
+            plt.show()
+        plt.close()
+
+        for ind, l in enumerate(layers):
+            for phys_noise in [False, True]:
+                marker = "x"
+                if phys_noise:
+                    marker = "+"
+                gse.plot_HE_diff_total(l, color=colormap(ind/n_layers), marker=marker, phys_noise=phys_noise)
+        plt.title(f"Hardware efficient anzats for {molecule}")
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
+            plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}_diff.png")
+        if show:
+            plt.show()
+        plt.close()
+
+        plt.yscale("log")
+        for ind, l in enumerate(layers):
+            for phys_noise in [False, True]:
+                marker = "x"
+                if phys_noise:
+                    marker = "+"
+                gse.plot_HE_diff_total(l, color=colormap(ind/n_layers), marker=marker, phys_noise=phys_noise)
+        plt.title(f"Hardware efficient anzats for {molecule}")
+        plt.grid()
+        plt.legend()
+        plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+        plt.ylabel("Delta energy (a.u.)")
+        if save:
+            os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
+            plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}_diff_log.png")
+        if show:
+            plt.show()
+        plt.close()
+
+
 def noise_total_fitness(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("noise_total_fitness")
-    colormap = "cool"
+    colormap = None #"cool"
     for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
-        plotter = MultipleExperimentPlotter(f"{molecule.lower()}_noise_total_fitness", folder=folder, verbose=verbose, error_verbose=verbose)
+        plotter = MultipleExperimentPlotter(f"gs_{molecule.lower()}_noise_total_fitness", folder=folder, verbose=verbose, error_verbose=verbose)
         experiments = []
         for phys_noise, phys_noise_name in [("", ""), ("_phys-noise", ", physical noise")]:
             for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
                 for fitness, fitness_name in [("", ""), ("_shared-fitness", ", shared fitness")]:
                     experiments.append((
-                        f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}{fitness}_0-shots{phys_noise}",
+                        f"0/gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}{fitness}_0-shots{phys_noise}",
                         "*",
                         f"{phys_noise_name}{total_energy_name}{fitness_name}"
                         ))
         plotter.add_experiments(experiments)
-        plotter.plot_all(show, save)
+        # plotter.plot_all_generations(show, save)
         gse = GroundStateEnergy(None, molecule.lower())
         gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
         gse.plot_UCCSD_result(color="black", marker="x")
-        plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x", colormap=colormap)
+        plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
+        # plotter.plot_evaluation(show, save, plot_type="line", colormap=colormap)
         gse.plot_UCCSD_diff(color="black", marker="x")
-        plotter.plot_delta_evaluation_new(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+        # plotter.plot_delta_evaluation(show, save, marker = "x", colormap=colormap)
+        plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
         gse.plot_UCCSD_diff(color="black", marker="x")
-        plotter.plot_delta_evaluation_new_log(f"{molecule} delta evaluation", show, save, marker="x", colormap=colormap)
+        # plotter.plot_delta_evaluation(show, save, marker = "x", colormap=colormap, logarithmic=True)
+        plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
         
 def test(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -369,7 +437,7 @@ def test(folder, verbose, show=False, save=False):
                 gse = GroundStateEnergy(None, molecule.lower())
                 # gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
                 # gse.plot_UCCSD_result(color="black", marker="x")
-                # plotter.plot_evaluation(f"{molecule} evaluation", show, save, marker = "x")
+                # plotter.plot_evaluation(show, save, marker = "x")
                 gse.plot_UCCSD_diff(color="black", marker="x")
                 plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                 gse.plot_UCCSD_diff(color="black", marker="x")
@@ -408,6 +476,8 @@ if __name__ == "__main__":
         hardware_efficient(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "hardware_efficient_evaluation_total" or args.experiment == "all":
         hardware_efficient_evaluation_total(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "hardware_efficient_noise" or args.experiment == "all":
+        hardware_efficient_noise(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "noise_total_fitness" or args.experiment == "all":
         noise_total_fitness(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":

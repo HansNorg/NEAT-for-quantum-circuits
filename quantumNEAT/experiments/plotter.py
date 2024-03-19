@@ -5,8 +5,8 @@ from time import time
 from abc import ABC, abstractmethod
 
 from quantumneat.problems.chemistry import GroundStateEnergy
-from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution, get_solution as get_h2_solution, get_solutions as get_h2_solutions
-from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution, get_solution as get_h6_solution, get_solutions as get_h6_solutions
+from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution
+from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution
 from tqdm import tqdm
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -60,7 +60,7 @@ class BasePlotter(ABC):
             sns.lineplot(data=self.generation_data, x="generation", y=key, label=label, **plot_kwargs)
         except ValueError as exc_info:
             if self.error_verbose == 1:
-                print(f"{key} data not found for {self.name}")
+                print(f"{key} data not found for {self.name} {self.runs_name}")
             elif self.error_verbose >= 1:
                 print(exc_info)
             return
@@ -94,10 +94,7 @@ class BasePlotter(ABC):
         elif close:
             plt.close()
 
-    def _plot_evaluation(self, **plot_kwargs):
-        sns.scatterplot(self.evaluation_data_df, x="distances", y="energies", **plot_kwargs)
-
-    def plot_evaluation(self, show=False, save=False, **plot_kwargs):
+    def plot_solution(self, **plot_kwargs):
         if "gs" in self.name:
             if "h2" in self.name:
                 molecule = "h2"
@@ -109,11 +106,24 @@ class BasePlotter(ABC):
                 molecule = None
             if molecule:
                 gse = GroundStateEnergy(self.config, molecule)
-                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)", **plot_kwargs)
         elif "h2" in self.name:
-            plot_h2_solution(color="r", linewidth=1, label="Solution (ED)")
+            plot_h2_solution(color="r", linewidth=1, label="Solution (ED)", **plot_kwargs)
         elif "h6" in self.name:
-            plot_h6_solution(color="r", linewidth=1, label="Solution (ED)")
+            plot_h6_solution(color="r", linewidth=1, label="Solution (ED)", **plot_kwargs)
+
+    def _plot_evaluation(self, plot_type = "scatter", **plot_kwargs):
+        # print(self.evaluation_data_df.head())
+        if len(self.evaluation_data_df) == 0:
+            return
+        if plot_type == "scatter":
+            sns.scatterplot(self.evaluation_data_df, x="distances", y="energies", **plot_kwargs)
+        elif plot_type == "line":
+            sns.lineplot(self.evaluation_data_df, x="distances", y="energies", **plot_kwargs)
+        else:
+            print("plot_type ", plot_type, " not implemented")
+
+    def plot_evaluation(self, show=False, save=False, **plot_kwargs):
         self._plot_evaluation(**plot_kwargs)
         self.finalise_plot(
             title="Evaluation of best final circuit",
@@ -129,7 +139,7 @@ class BasePlotter(ABC):
     def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, **plot_kwargs):
         if logarithmic:
             plt.yscale("log")
-            self._plot_delta_evaluation(True, **plot_kwargs)
+            self._plot_delta_evaluation(absolute=True, **plot_kwargs)
             logname = "_log"
             absname = "|"
         else:
@@ -141,6 +151,7 @@ class BasePlotter(ABC):
             xlabel="Distance (Angstrom)",
             ylabel=absname+"Delta energy (a.u.)"+absname,
             savename=f"{self.runs_name}_delta_evaluation{logname}",
+            legend=True,
             save=save, show=show,
         )
 
@@ -150,6 +161,7 @@ class BasePlotter(ABC):
     
     def plot_all(self, show = False, save = False):
         self.plot_all_generations(show, save)
+        self.plot_solution()
         self.plot_evaluation(show, save)
         self.plot_delta_evaluation(show, save)
         self.plot_delta_evaluation(show, save, logarithmic=True)
@@ -303,7 +315,7 @@ class SingleRunPlotter(BasePlotter):
     #         save=save, show=show,
     #         )
         
-    def _plot_delta_evaluation(self, absolute=False, **plot_kwargs):
+    def _plot_delta_evaluation(self, absolute=False, plot_type = "scatter", **plot_kwargs):
         try:
             data = dict(np.load(f"{self.folder}\\results\\{self.name}_run{self.runs}_evaluation.npz", allow_pickle=True))
         except Exception as exc_info:
@@ -324,15 +336,23 @@ class SingleRunPlotter(BasePlotter):
         if not molecule:
             return
         gse = GroundStateEnergy(self.config, molecule)
-        difference = data["energies"]-gse.data["solution"]
+        difference:pd.Series = data["energies"]-gse.data["solution"]
         if absolute:
             difference = abs(difference)
-        plt.scatter(data["distances"], difference, **plot_kwargs)
+        else:
+            difference = difference.apply(lambda x: x.real)
+        if plot_type == "scatter":
+            plt.scatter(data["distances"], difference, **plot_kwargs)
+        elif plot_type == "line":
+            plt.plot(data["distances"], difference, **plot_kwargs)
+        else:
+            print("plot_type ", plot_type, " not implemented")
 
 class MultipleRunPlotter(BasePlotter):
     def __init__(self, name: str, runs="*", folder: str = ".", verbose=0, error_verbose=1) -> None:
         super().__init__(name, runs, folder, verbose, error_verbose)
         self.extra_title = f" averaged over {self.n_runs} runs"
+        self.extra_label = f": {self.n_runs}"
         self.runs_name = "multiple_runs"
 
     def load_data(self):
@@ -432,7 +452,7 @@ class MultipleRunPlotter(BasePlotter):
     #     for data in self.evaluation_data:
     #         plt.scatter(data["distances"], data["energies"], **plot_kwargs)
 
-    def _plot_delta_evaluation(self, absolute = False, **plot_kwargs):
+    def _plot_delta_evaluation(self, absolute = False, plot_type = "scatter", **plot_kwargs):
         if "gs" in self.name:
             if "h2" in self.name:
                 molecule = "h2"
@@ -445,19 +465,30 @@ class MultipleRunPlotter(BasePlotter):
         if not molecule:
             return
         gse = GroundStateEnergy(self.config, molecule)
+        diff_data = pd.DataFrame()
         for data in self.evaluation_data:
-            difference = data["energies"]-gse.data["solution"]
+            difference:pd.Series = data["energies"]-gse.data["solution"]
             if absolute:
                 difference = abs(difference)
-            plt.scatter(data["distances"], difference, **plot_kwargs)
-
+            else:
+                difference = difference.apply(lambda x: x.real)
+            diff_data = pd.concat((diff_data, difference))
+        if len(diff_data) == 0:
+            return
+        if plot_type == "scatter":
+            sns.scatterplot(data=diff_data, x=diff_data.index, y="solution", **plot_kwargs)
+        elif plot_type == "line":
+            sns.lineplot(data=diff_data, x=diff_data.index, y="solution", **plot_kwargs)
+        else:
+            print("plot_type ", plot_type, " not implemented")
+    
     def get_energies(self) -> pd.DataFrame:
         energies = pd.DataFrame()
         for data in self.evaluation_data:
             energies = pd.concat((energies, pd.DataFrame(data["energies"], index=data["distances"])))
         return energies
     
-    def get_delta_energies(self) -> pd.DataFrame:
+    def get_delta_energies(self, absolute=False) -> pd.DataFrame:
         energies = pd.DataFrame()
         if "gs" in self.name:
             if "h2" in self.name:
@@ -472,7 +503,10 @@ class MultipleRunPlotter(BasePlotter):
             return energies
         gse = GroundStateEnergy(self.config, molecule)
         for data in self.evaluation_data:
-            energies = pd.concat((energies, pd.DataFrame(data["energies"]-gse.data["solution"], index=data["distances"])))
+            difference = data["energies"]-gse.data["solution"]
+            if absolute:
+                difference = abs(difference)
+            energies = pd.concat((energies, pd.DataFrame(difference, index=data["distances"])))
         return energies
 
 class MultipleExperimentPlotter(BasePlotter):
@@ -487,6 +521,7 @@ class MultipleExperimentPlotter(BasePlotter):
 
     def add_experiment(self, name, runs, label):
         self.experiments.append((MultipleRunPlotter(name, runs, self.folder, self.verbose, self.error_verbose), label))
+        self.config = self.experiments[0][0].config
 
     def add_experiments(self, experiments):
         for name, runs, label in experiments:
@@ -494,7 +529,7 @@ class MultipleExperimentPlotter(BasePlotter):
 
     def _plot_vs_generations(self, key: str, label: str = None, **plot_kwargs):
         for i, (experiment, label) in enumerate(self.experiments):
-            experiment._plot_vs_generations(key, label, **plot_kwargs)
+            experiment._plot_vs_generations(key, label+experiment.extra_label, **plot_kwargs)
     
     def _plot_min_energy_single_point(self, X, color = None, **plot_kwargs):
         for i, (experiment, label) in enumerate(self.experiments):
@@ -529,20 +564,20 @@ class MultipleExperimentPlotter(BasePlotter):
             n_experiments = len(self.experiments)
             colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
             for i, (experiment, label) in enumerate(self.experiments):
-                experiment._plot_evaluation(label = label, color=colormap(i/n_experiments), **plot_kwargs)    
+                experiment._plot_evaluation(label = label+experiment.extra_label, color=colormap(i/n_experiments), **plot_kwargs)    
             return
         for i, (experiment, label) in enumerate(self.experiments):
-            experiment._plot_evaluation(label = label, **plot_kwargs)
+            experiment._plot_evaluation(label = label+experiment.extra_label, **plot_kwargs)
 
-    def _plot_delta_evaluation(self, colormap = None, absolute = False, **plot_kwargs):
+    def _plot_delta_evaluation(self, absolute = False, colormap = None, **plot_kwargs):
         if colormap:
             n_experiments = len(self.experiments)
             colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
             for i, (experiment, label) in enumerate(self.experiments):
-                experiment._plot_delta_evaluation(label = label, absolute=absolute, color=colormap(i/n_experiments), **plot_kwargs)    
+                experiment._plot_delta_evaluation(label = label+experiment.extra_label, absolute=absolute, color=colormap(i/n_experiments), **plot_kwargs)    
             return
         for i, (experiment, label) in enumerate(self.experiments):
-            experiment._plot_delta_evaluation(label = label, absolute=absolute, **plot_kwargs)
+            experiment._plot_delta_evaluation(label = label+experiment.extra_label, absolute=absolute, **plot_kwargs)
     
     def get_energies(self):
         energies = pd.DataFrame()

@@ -241,7 +241,7 @@ class GroundStateEnergy(Problem):
         try:
             energies = np.load(f"{self.molecule}_HE_{layers}-layers.npy")
         except:
-            print(f"HE data not found for {layers} layers")
+            print(f"HE data not found for {self.molecule} {layers} layers")
             return
         plt.scatter(self.data.index, energies, label =f"HE-{layers}", **plot_kwargs)
 
@@ -250,7 +250,7 @@ class GroundStateEnergy(Problem):
         try:
             energies = np.load(f"{self.molecule}_HE_{layers}-layers.npy")
         except:
-            print(f"HE data not found for {layers} layers")
+            print(f"HE data not found for {self.molecule} {layers} layers")
             return
         difference = energies - self.data["solution"]
         plt.scatter(self.data.index, difference, label =f"HE-{layers}", **plot_kwargs)
@@ -274,24 +274,34 @@ class GroundStateEnergy(Problem):
         difference = energies - self.data["solution"]
         plt.scatter(self.data.index, difference, label =f"AdaptVQE", **plot_kwargs)
 
-    def plot_HE_result_total(self, layers, **plot_kwargs):
+    def plot_HE_result_total(self, layers, n_shots=-1, phys_noise=False, **plot_kwargs):
         import matplotlib.pyplot as plt
+        extra = ""
+        if n_shots != -1:
+            extra += f"_{n_shots}-shots"
+        if phys_noise:
+            extra += "_phys-noise"
         try:
-            energies = np.load(f"{self.molecule}_HE_{layers}-layers_evaluation-total.npy")
+            energies = np.load(f"{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
         except:
-            print(f"HE data not found for {layers} layers")
+            print(f"HE data not found for {self.molecule} {layers} layers")
             return
-        plt.scatter(self.data.index, energies, label =f"HE-{layers}", **plot_kwargs)
+        plt.scatter(self.data.index, energies, label =f"HE-{layers}{extra}", **plot_kwargs)
 
-    def plot_HE_diff_total(self, layers, **plot_kwargs):
+    def plot_HE_diff_total(self, layers, n_shots=-1, phys_noise=False, **plot_kwargs):
         import matplotlib.pyplot as plt
+        extra = ""
+        if n_shots != -1:
+            extra += f"_{n_shots}-shots"
+        if phys_noise:
+            extra += "_phys-noise"
         try:
-            energies = np.load(f"{self.molecule}_HE_{layers}-layers_evaluation-total.npy")
+            energies = np.load(f"{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
         except:
-            print(f"HE data not found for {layers} layers")
+            print(f"HE data not found for {self.molecule} {layers} layers")
             return
         difference = energies - self.data["solution"]
-        plt.scatter(self.data.index, difference, label =f"HE-{layers}", **plot_kwargs)
+        plt.scatter(self.data.index, difference, label =f"HE-{layers}{extra}", **plot_kwargs)
 
     def __str__(self) -> str:
         return self.molecule
