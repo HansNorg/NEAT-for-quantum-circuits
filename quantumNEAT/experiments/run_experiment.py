@@ -5,7 +5,7 @@ from experiments.experimenter import Experimenter, MultipleRunExperimenter
 
 cluster_n_shots = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
 
-def main(args:Namespace, unknown:list[str]):
+def main(args:Namespace, unknown:list[str] = []):
     implementation = args.implementation.lower()
     if "linear_growth" in implementation:
         if args.gate_set == "ROT-CNOT":
@@ -137,7 +137,8 @@ def main(args:Namespace, unknown:list[str]):
         raise NotImplementedError(f"Problem {problem_arg} not found.")
     
     if args.name is None:
-        args.name = f"{problem_arg}_{implementation}"
+        args.name = ""
+    args.name += f"{problem_arg}_{implementation}"
     args.name += f"_{args.gate_set}_{args.n_qubits}-qubits_{args.population_size}-population"
     
     if args.optimizer_steps > 0:
