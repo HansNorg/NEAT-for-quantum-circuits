@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=$1_$2
+#SBATCH --job-name=hardware_efficient
 #SBATCH --output=slurm_out/%x_%A_%a.out
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"
@@ -16,5 +16,5 @@ module load ALICE/default
 module load Python/3.10.8-GCCcore-12.2.0
 source "/home/s3727599/.cache/pypoetry/virtualenvs/quantumneat-gXCYO08V-py3.10/bin/activate"
 echo "[$SHELL] #### Starting Python test at $(date)"
-python ./experiments/hardware_efficient.py $SLURM_ARRAY_TASK_ID --batch_job
+python ./experiments/hardware_efficient.py $SLURM_ARRAY_TASK_ID --batch_job $@
 echo "[$SHELL] #### Finished Test at $(date)."
