@@ -1,4 +1,5 @@
 from __future__ import annotations
+import itertools
 from typing import Union, TYPE_CHECKING
 import numpy as np
 from tqdm import tqdm
@@ -90,6 +91,21 @@ class HardwareEfficient:
             np.save(f"{self.problem}_HE_{layers}-layers{savename}_evaluation-total", solutions[1])
         return solutions
     
+def main(molecule, layers, args):
+    config = QuantumNEATConfig(n_qubits_dict[molecule], 0, n_shots=args.n_shots, phys_noise=args.phys_noise)
+    problem = GroundStateEnergySavedHamiltonian(config, molecule)
+    he = HardwareEfficient(config, problem)
+    for layers in tqdm(layers, disable=args.batch_job):
+        if args.verbose >=2:
+            simul = config.simulator
+            config.simulator = "qiskit"
+            print(he.get_circuit(layers)[0].draw(fold=-1))
+            config.simulator = simul
+        if args.verbose >= 1:
+            print(f"{molecule:3} {layers:2} layers", end="\r")
+        he.solve_problem(layers, savename=args.savename)
+        he.solve_problem_total(layers, savename=args.savename)
+
 if __name__ == "__main__":
     from argparse import ArgumentParser
     from quantumneat.problems.chemistry import GroundStateEnergySavedHamiltonian
@@ -98,6 +114,8 @@ if __name__ == "__main__":
     argparser.add_argument("--savename", type=str, default="")
     argparser.add_argument("--n_shots", type=int, default=0)
     argparser.add_argument("--phys_noise", action="store_true")
+    argparser.add_argument("--layers", nargs="+", type=int, default=[0, 1, 2, 4, 8, 16])
+    argparser.add_argument("--batch_job", action="store_true")
     argparser.add_argument("-v", "--verbose", action="count", default=0)
     args = argparser.parse_args()
     args.n_shots = cluster_n_shots[args.n_shots]
@@ -106,17 +124,12 @@ if __name__ == "__main__":
     if args.phys_noise:
         args.savename += "_phys-noise"
     n_qubits_dict = {"h2":2, "h6":6, "lih":8}
-    for molecule in args.molecule:
-        config = QuantumNEATConfig(n_qubits_dict[molecule], 0, n_shots=args.n_shots, phys_noise=args.phys_noise)
-        problem = GroundStateEnergySavedHamiltonian(config, molecule)
-        he = HardwareEfficient(config, problem)
-        for layers in tqdm([0, 1, 2, 4, 8, 16]):
-            if args.verbose >=2:
-                simul = config.simulator
-                config.simulator = "qiskit"
-                print(he.get_circuit(layers)[0].draw(fold=-1))
-                config.simulator = simul
-            if args.verbose >= 1:
-                print(f"{molecule:3} {layers:2} layers", end="\r")
-            he.solve_problem(layers, savename=args.savename)
-            he.solve_problem_total(layers, savename=args.savename)
+    if args.batch_job:
+        batch_tasks = list(itertools.product(["h2", "h6", "lih"], [0, 1, 2, 4, 8, 16]))
+        # print(len(batch_tasks))
+        for ind in args.molecule:
+            task = batch_tasks[int(ind)]
+            main(task[0], [task[1]], args)
+    else:
+        for molecule in args.molecule:
+            main(molecule, args.layers, args)
