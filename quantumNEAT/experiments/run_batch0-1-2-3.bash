@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=hardware_efficient
+#SBATCH --job-name=h2_batch
 #SBATCH --output=slurm_out/%x_%A_%a.out
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"

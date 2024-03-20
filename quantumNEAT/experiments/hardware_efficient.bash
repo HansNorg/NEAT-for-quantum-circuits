@@ -4,13 +4,13 @@
 #SBATCH --mail-user="hans.norg99@gmail.com"
 #SBATCH --mail-type="ALL"
 
-#SBATCH --partition=cpu-short
-#SBATCH --time=4:00:00
+#SBATCH --partition=cpu-medium
+#SBATCH --time=1-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
 
-#SBATCH --array=0-17
+#SBATCH --array=0-17%6
 
 module load ALICE/default
 module load Python/3.10.8-GCCcore-12.2.0
