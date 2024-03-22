@@ -19,6 +19,7 @@ class Gene(ABC):
     - n_parameters (int): The amount of parameters this gene has. (default = 0)
     """
     n_parameters:int = 0
+    length: int = 1
     logger = logging.getLogger("quantumNEAT.quantumneat.Gene")
     
     def __init__(self, innovation_number: int, config:QuantumNEATConfig, problem:Problem, **kwargs) -> None:
@@ -89,6 +90,8 @@ class GateGene(Gene):
     - n_qubits (int): The amount of qubits this gene acts on. (None)
     """
     n_qubits:int
+    n_cnots = 0 # for logging only
+    n_rots = 0 # for logging only
     
     def __init__(self, innovation_number: int, config: QuantumNEATConfig, problem:Problem, qubits:list[int], **kwargs) -> None:
         """

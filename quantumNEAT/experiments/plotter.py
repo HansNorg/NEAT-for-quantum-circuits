@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 GENERATION_DATA = [
         ("fitness_record", "Best fitness per generation", "Fitness (a.u.)"),
         ("best_lengths", "Length of best circuit per generation", "#gates"),
+        ("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters"),
         ("population_size", "Population size per generation", "Population"),
         ("number_of_species", "Number of species per generation", "Species"),
         ("average_fitnesses", "Average fitness per generation", "Fitness (a.u.)"),

@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 class GateCNOT(GateGene):
     n_qubits = 2
+    n_cnots = 1 # for logging only
 
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -29,6 +30,8 @@ class GateCNOT(GateGene):
 class GateROT(GateGene):
     n_qubits = 1
     n_parameters = 3
+    n_rots = 3 # for logging only
+    length = 3
     
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -54,6 +57,7 @@ class GateROT(GateGene):
 class GateRx(GateGene):
     n_qubits = 1
     n_parameters = 1
+    n_rots = 1 # for logging only
     
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -73,6 +77,7 @@ class GateRx(GateGene):
 class GateRy(GateGene):
     n_qubits = 1
     n_parameters = 1
+    n_rots = 1 # for logging only
     
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':
@@ -92,6 +97,7 @@ class GateRy(GateGene):
 class GateRz(GateGene):
     n_qubits = 1
     n_parameters = 1
+    n_rots = 1 # for logging only
     
     def add_to_circuit(self, circuit:Circuit, n_parameters:int) -> tuple[Circuit, int]:
         if self.config.simulator == 'qulacs':

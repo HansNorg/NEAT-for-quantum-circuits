@@ -78,6 +78,7 @@ class Experimenter:
                 config = self.config,
                 fitness_record=self.quantumneat.best_fitnesses, 
                 best_lengths = self.quantumneat.best_lengths,
+                best_n_parameters = self.quantumneat.best_n_parameters,
                 population_size=self.quantumneat.population_sizes, 
                 number_of_species=self.quantumneat.number_of_species, 
                 average_fitnesses=self.quantumneat.average_fitnesses, 

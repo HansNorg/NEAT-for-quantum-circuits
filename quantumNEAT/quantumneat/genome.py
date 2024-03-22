@@ -196,6 +196,18 @@ class Genome(ABC):
             parameters = np.append(parameters, gene.get_parameters())
         return parameters
 
+    def get_length(self) -> int:
+        length = 0
+        for gene in self.genes:
+            length += gene.length
+        return length
+    
+    def get_n_parameters(self) -> int:
+        params = 0
+        for gene in self.genes:
+            params += gene.n_parameters
+        return params
+
 class CircuitGenome(Genome):
     """Genome consisting of GateGenes acting on qubit wires in a defined order."""
 
@@ -357,3 +369,10 @@ class CircuitGenome(Genome):
                     Genome.logger.error("Child did not add gene of parent.")
 
         return child
+    
+    def get_gate_amounts(self) -> dict:
+        n_cnots, n_rots = 0, 0
+        for gene in self.genes:
+            n_cnots += gene.n_cnots
+            n_rots += gene.n_rots
+        return {"cnot":n_cnots, "r": n_rots}
