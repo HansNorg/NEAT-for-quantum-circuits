@@ -65,9 +65,9 @@ class BasePlotter(ABC):
                 print(exc_info)
             return
         
-    def plot_vs_generations(self, key:str, title:str, name:str, show=False, save=False):
+    def plot_vs_generations(self, key:str, title:str, name:str, show=False, save=False, **plot_kwargs):
         plt.figure()
-        self._plot_vs_generations(key)
+        self._plot_vs_generations(key, **plot_kwargs)
         self.finalise_plot(
             title=title, 
             xlabel="Generations", 
@@ -136,28 +136,28 @@ class BasePlotter(ABC):
     def _plot_delta_evaluation(self, absolute=False, **plot_kwargs):
         pass
 
-    def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, **plot_kwargs):
+    def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, absolute = False, **plot_kwargs):
+        logname, absname, abssym = "", "", ""
         if logarithmic:
             plt.yscale("log")
-            self._plot_delta_evaluation(absolute=True, **plot_kwargs)
             logname = "_log"
-            absname = "|"
-        else:
-            self._plot_delta_evaluation(**plot_kwargs)
-            logname = ""
-            absname = ""
+            absolute = True
+        self._plot_delta_evaluation(absolute=absolute, **plot_kwargs)
+        if absolute:
+            abssym = "|"
+            absname = "_abs"
         self.finalise_plot(
             title="Evaluation of best final circuit"+self.extra_title,
             xlabel="Distance (Angstrom)",
-            ylabel=absname+"Delta energy (a.u.)"+absname,
-            savename=f"{self.runs_name}_delta_evaluation{logname}",
+            ylabel=abssym+"Delta energy"+abssym+" (a.u.)",
+            savename=f"{self.runs_name}_delta_evaluation{logname}{absname}",
             legend=True,
             save=save, show=show,
         )
 
-    def plot_all_generations(self, show = False, save = False):
+    def plot_all_generations(self, show = False, save = False, **plot_kwargs):
         for key, title, name in GENERATION_DATA:
-            self.plot_vs_generations(key, title+self.extra_title, name, show, save)
+            self.plot_vs_generations(key, title+self.extra_title, name, show, save, **plot_kwargs)
     
     def plot_all(self, show = False, save = False):
         self.plot_all_generations(show, save)
@@ -503,9 +503,11 @@ class MultipleRunPlotter(BasePlotter):
             return energies
         gse = GroundStateEnergy(self.config, molecule)
         for data in self.evaluation_data:
-            difference = data["energies"]-gse.data["solution"]
+            difference:pd.Series = data["energies"]-gse.data["solution"]
             if absolute:
                 difference = abs(difference)
+            else:
+                difference = difference.apply(lambda x: x.real)
             energies = pd.concat((energies, pd.DataFrame(difference, index=data["distances"])))
         return energies
 
@@ -527,9 +529,15 @@ class MultipleExperimentPlotter(BasePlotter):
         for name, runs, label in experiments:
             self.add_experiment(name, runs, label)
 
-    def _plot_vs_generations(self, key: str, label: str = None, **plot_kwargs):
-        for i, (experiment, label) in enumerate(self.experiments):
-            experiment._plot_vs_generations(key, label+experiment.extra_label, **plot_kwargs)
+    def _plot_vs_generations(self, key: str, label: str = None, colormap = None, **plot_kwargs):
+        if colormap:
+            n_experiments = len(self.experiments)
+            colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_vs_generations(key, label = label+experiment.extra_label, color=colormap(i/n_experiments), **plot_kwargs)    
+        else:
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_vs_generations(key, label+experiment.extra_label, **plot_kwargs)
     
     def _plot_min_energy_single_point(self, X, color = None, **plot_kwargs):
         for i, (experiment, label) in enumerate(self.experiments):
@@ -591,15 +599,22 @@ class MultipleExperimentPlotter(BasePlotter):
             energy = experiment.get_delta_energies()
             if len(energy) == 0:
                 continue
+            print(len(energy))
+            print(energy)
             energies[name] = energy
         return energies
     
     def plot_box(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
-        energies = self.get_delta_energies()
-        if len(energies) == 0:
-            plt.close()
-            return
-        sns.boxplot(energies, **plot_kwargs)
+        # energies = self.get_delta_energies()
+        # if len(energies) == 0:
+        #     plt.close()
+        #     return
+        # sns.boxplot(energies, **plot_kwargs)
+        for ind, (experiment, label) in enumerate(self.experiments):
+            plt.boxplot(experiment.get_delta_energies(), labels=[label], positions=[ind], widths=[0.5])
+        # energies = []
+        # for ind, (experiment, label) in enumerate(self.experiments):
+        #     energies.append(experiment.get_delta_energies())
         self.finalise_plot(
             title=title,
             xlabel=xlabel,
@@ -609,15 +624,17 @@ class MultipleExperimentPlotter(BasePlotter):
         )
 
     def plot_box_abs(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
-        energies = self.get_delta_energies()
-        if len(energies) == 0:
-            plt.close()
-            return
-        sns.boxplot(abs(energies), **plot_kwargs)
+        # energies = self.get_delta_energies()
+        # if len(energies) == 0:
+        #     plt.close()
+        #     return
+        # sns.boxplot(abs(energies), **plot_kwargs)
+        for ind, (experiment, label) in enumerate(self.experiments):
+            plt.boxplot(abs(experiment.get_delta_energies()), labels=[label], positions=[ind], widths=[0.5])
         self.finalise_plot(
             title=title,
             xlabel=xlabel,
-            ylabel="Delta energy",
+            ylabel="|Delta energy|",
             savename=f"delta_energy_boxplot{savename}",
             save=save, show=show,
         )

@@ -393,31 +393,77 @@ def noise_total_fitness(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("noise_total_fitness")
     colormap = None #"cool"
-    for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
-        plotter = MultipleExperimentPlotter(f"gs_{molecule.lower()}_noise_total_fitness", folder=folder, verbose=verbose, error_verbose=verbose)
+    for molecule, n_qubits, n_layers_HE, n_layers_HE_noise in [("H2", 2, 8, 0), ("H6", 6, 0, 8), ("LiH", 8, 0, 0)]:
+        # plotter = MultipleExperimentPlotter(f"gs_{molecule.lower()}_noise_total_fitness", folder=folder, verbose=verbose, error_verbose=verbose)
+        plotter = MultipleExperimentPlotter(f"gs_{molecule.lower()}_noise_total", folder=folder, verbose=verbose, error_verbose=verbose)
         experiments = []
         for phys_noise, phys_noise_name in [("", ""), ("_phys-noise", ", physical noise")]:
-            for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
-                for fitness, fitness_name in [("", ""), ("_shared-fitness", ", shared fitness")]:
+            # for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
+            #     for fitness, fitness_name in [("", ""), ("_shared-fitness", ", shared fitness")]:
+                    total_energy, total_energy_name = "_total-energy", ""
+                    fitness, fitness_name = "", ""
                     experiments.append((
                         f"0/gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}{fitness}_0-shots{phys_noise}",
                         "*",
-                        f"{phys_noise_name}{total_energy_name}{fitness_name}"
+                        f"linear_growth{phys_noise_name}{total_energy_name}{fitness_name}"
                         ))
         plotter.add_experiments(experiments)
         plotter.plot_all_generations(show, save)
         gse = GroundStateEnergy(None, molecule.lower())
         gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
         gse.plot_UCCSD_result(color="black", marker="x")
+        gse.plot_HE_result_total(n_layers_HE, color="olive", marker = "x")
+        gse.plot_HE_result_total(n_layers_HE_noise, phys_noise=True, color="green", marker = "x")
         plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
         # plotter.plot_evaluation(show, save, plot_type="line", colormap=colormap)
         gse.plot_UCCSD_diff(color="black", marker="x")
+        gse.plot_HE_diff_total(n_layers_HE, color="olive", marker = "x")
+        gse.plot_HE_diff_total(n_layers_HE_noise, phys_noise=True, color="green", marker = "x")
         # plotter.plot_delta_evaluation(show, save, marker = "x", colormap=colormap)
         plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
         gse.plot_UCCSD_diff(color="black", marker="x")
+        gse.plot_HE_diff_total(n_layers_HE, color="olive", marker = "x")
+        gse.plot_HE_diff_total(n_layers_HE_noise, phys_noise=True, color="green", marker = "x")
         # plotter.plot_delta_evaluation(show, save, marker = "x", colormap=colormap, logarithmic=True)
         plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
-        
+
+def thesis_separate(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("thesis separate")
+    colormap = "cool"
+    for molecule, n_qubits in [("H2", 2)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        for method, method_name in [("linear_growth", "Linear growth"), ("qneat", "Qneat")]:
+            # for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
+            for total_energy, total_energy_name in [("_total-energy", ", total energy")]:
+                plotter = MultipleExperimentPlotter(f"thesis-separate_{molecule.lower()}_{method}{total_energy}", folder=folder, verbose=verbose, error_verbose=verbose)
+                for n_shots in range(0, 13):
+                    plotter.add_experiment(
+                        f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_{cluster_n_shots[n_shots]}-shots",
+                        "*",
+                        f"{cluster_n_shots[n_shots]}"
+                        )
+                plotter.plot_box("n_shots", f"{molecule}", show=show, save=save)
+                plotter.plot_box_log("n_shots", f"{molecule}", show=show, save=save)
+                plotter.add_experiment(
+                        f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_0-shots_phys-noise",
+                        "*",
+                        f"physical noise"
+                        )
+                plotter.plot_all_generations(show, save, colormap=colormap)
+                gse = GroundStateEnergy(None, molecule.lower())
+                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+                gse.plot_UCCSD_result(color="black", marker="x")
+                plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
+                gse.plot_UCCSD_diff(color="black", marker="x")
+                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
+                # plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
+                gse.plot_UCCSD_diff(absolute=True, color="black", marker="x")
+                # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
+                plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line", colormap=colormap)
+                gse.plot_UCCSD_diff(color="black", marker="x")
+                # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
+                plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
+
 def test(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("test")
@@ -481,5 +527,7 @@ if __name__ == "__main__":
         hardware_efficient_noise(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "noise_total_fitness" or args.experiment == "all":
         noise_total_fitness(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "thesis_separate" or args.experiment == "all":
+        thesis_separate(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":
         test(args.folder, args.verbose, args.show, args.save)

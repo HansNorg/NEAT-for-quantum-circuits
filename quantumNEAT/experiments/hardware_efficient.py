@@ -101,13 +101,16 @@ def main(molecule, layers, n_shots, args):
     problem = GroundStateEnergySavedHamiltonian(config, molecule)
     he = HardwareEfficient(config, problem)
     for layers in tqdm(layers, disable=args.batch_job):
-        if args.verbose >=2:
+        if args.verbose >=2 or args.print:
             simul = config.simulator
             config.simulator = "qiskit"
+            print()
             print(he.get_circuit(layers)[0].draw(fold=-1))
             config.simulator = simul
         if args.verbose >= 1:
             print(f"{molecule:3} {layers:2} layers", end="\r")
+        if args.print:
+            continue
         he.solve_problem(layers, savename=savename)
         he.solve_problem_total(layers, savename=savename)
 
@@ -122,6 +125,7 @@ if __name__ == "__main__":
     argparser.add_argument("--shot_noise", action="store_true")
     argparser.add_argument("--layers", nargs="+", type=int, default=[0, 1, 2, 4, 8, 16])
     argparser.add_argument("--batch_job", action="store_true")
+    argparser.add_argument("--print", action="store_true")
     argparser.add_argument("-v", "--verbose", action="count", default=0)
     args = argparser.parse_args()
     if args.shot_noise:
