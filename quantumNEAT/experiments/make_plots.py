@@ -433,36 +433,37 @@ def thesis_separate(folder, verbose, show=False, save=False):
     colormap = "cool"
     for molecule, n_qubits in [("H2", 2)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
         for method, method_name in [("linear_growth", "Linear growth"), ("qneat", "Qneat")]:
-            # for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
-            for total_energy, total_energy_name in [("_total-energy", ", total energy")]:
-                plotter = MultipleExperimentPlotter(f"thesis-separate_{molecule.lower()}_{method}{total_energy}", folder=folder, verbose=verbose, error_verbose=verbose)
-                for n_shots in range(0, 13):
+            for gate_set, gate_set_name in [("ROT-CNOT", "R=RxRyRz"), ("R-CNOT", "Rx,Ry,Rz")]:
+                # for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
+                for total_energy, total_energy_name in [("_total-energy", ", total energy")]:
+                    plotter = MultipleExperimentPlotter(f"thesis-separate_{molecule.lower()}_{gate_set}_{method}{total_energy}", folder=folder, verbose=verbose, error_verbose=verbose)
+                    for n_shots in range(0, 13):
+                        plotter.add_experiment(
+                            f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_{gate_set}_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_{cluster_n_shots[n_shots]}-shots",
+                            "*",
+                            f"{cluster_n_shots[n_shots]}"
+                            )
+                    plotter.plot_box("n_shots", f"{molecule}", show=show, save=save)
+                    plotter.plot_box_log("n_shots", f"{molecule}", show=show, save=save)
                     plotter.add_experiment(
-                        f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_{cluster_n_shots[n_shots]}-shots",
-                        "*",
-                        f"{cluster_n_shots[n_shots]}"
-                        )
-                plotter.plot_box("n_shots", f"{molecule}", show=show, save=save)
-                plotter.plot_box_log("n_shots", f"{molecule}", show=show, save=save)
-                plotter.add_experiment(
-                        f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_0-shots_phys-noise",
-                        "*",
-                        f"physical noise"
-                        )
-                plotter.plot_all_generations(show, save, colormap=colormap)
-                gse = GroundStateEnergy(None, molecule.lower())
-                gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
-                gse.plot_UCCSD_result(color="black", marker="x")
-                plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
-                gse.plot_UCCSD_diff(color="black", marker="x")
-                plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
-                # plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
-                gse.plot_UCCSD_diff(absolute=True, color="black", marker="x")
-                # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
-                plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line", colormap=colormap)
-                gse.plot_UCCSD_diff(color="black", marker="x")
-                # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
-                plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
+                            f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_{gate_set}_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_0-shots_phys-noise",
+                            "*",
+                            f"physical noise"
+                            )
+                    plotter.plot_all_generations(show, save, colormap=colormap)
+                    gse = GroundStateEnergy(None, molecule.lower())
+                    gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+                    gse.plot_UCCSD_result(color="black", marker="x")
+                    plotter.plot_evaluation(show, save, marker = "x", colormap=colormap)
+                    gse.plot_UCCSD_diff(color="black", marker="x")
+                    plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
+                    # plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
+                    gse.plot_UCCSD_diff(absolute=True, color="black", marker="x")
+                    # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
+                    plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line", colormap=colormap)
+                    gse.plot_UCCSD_diff(color="black", marker="x")
+                    # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
+                    plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
 
 def test(folder, verbose, show=False, save=False):
     if verbose >= 1:
