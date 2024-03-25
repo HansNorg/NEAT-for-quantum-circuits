@@ -431,13 +431,18 @@ def thesis_separate(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis separate")
     colormap = "cool"
-    for molecule, n_qubits in [("H2", 2)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
-        for method, method_name in [("linear_growth", "Linear growth"), ("qneat", "Qneat")]:
+    for molecule, n_qubits in [("H6", 6), ("LiH", 8)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        for method, method_name in [("linear_growth", "Linear growth")]:#, ("qneat", "Qneat")]:
             for gate_set, gate_set_name in [("ROT-CNOT", "R=RxRyRz"), ("R-CNOT", "Rx,Ry,Rz")]:
-                # for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
-                for total_energy, total_energy_name in [("_total-energy", ", total energy")]:
+                for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
+                # for total_energy, total_energy_name in [("_total-energy", ", total energy")]:
                     plotter = MultipleExperimentPlotter(f"thesis-separate_{molecule.lower()}_{gate_set}_{method}{total_energy}", folder=folder, verbose=verbose, error_verbose=verbose)
-                    for n_shots in range(0, 13):
+                    plotter.add_experiment(
+                            f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_{gate_set}_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_0-shots",
+                            "*",
+                            f"noiseless"
+                            )
+                    for n_shots in range(12, 0, -1):
                         plotter.add_experiment(
                             f"thesis_gs_{molecule.lower()}_errorless_saveh_{method}_{gate_set}_{n_qubits}-qubits_100-population_100-optimizer-steps{total_energy}_{cluster_n_shots[n_shots]}-shots",
                             "*",

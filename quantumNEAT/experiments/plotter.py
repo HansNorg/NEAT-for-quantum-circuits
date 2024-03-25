@@ -58,7 +58,7 @@ class BasePlotter(ABC):
 
     def _plot_vs_generations(self, key:str, label:str=None, **plot_kwargs):
         try:
-            sns.lineplot(data=self.generation_data, x="generation", y=key, label=label, **plot_kwargs)
+            sns.lineplot(data=self.generation_data, x="generation", y=key, label=label, legend=False, **plot_kwargs)
         except ValueError as exc_info:
             if self.error_verbose == 1:
                 print(f"{key} data not found for {self.name} {self.runs_name}")
@@ -73,6 +73,7 @@ class BasePlotter(ABC):
             title=title, 
             xlabel="Generations", 
             ylabel=name, 
+            legend=True,
             savename=f"{self.runs_name}_{key}", 
             save=save, show=show,
             )
@@ -82,7 +83,13 @@ class BasePlotter(ABC):
         Set basic plotstyle settings and save/show the plot.
         """
         if legend:
-            plt.legend()
+            fig = plt.figure(plt.get_fignums()[-1])
+            fig.set_size_inches(8,5)
+            # plt.legend()
+            plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+            fig.tight_layout(pad=2)
+            # fig.legend(loc=7)
+            # fig.subplots_adjust(right=0.65)
         plt.title(title)
         plt.grid()
         plt.xlabel(xlabel)
@@ -118,9 +125,9 @@ class BasePlotter(ABC):
         if len(self.evaluation_data_df) == 0:
             return
         if plot_type == "scatter":
-            sns.scatterplot(self.evaluation_data_df, x="distances", y="energies", **plot_kwargs)
+            sns.scatterplot(self.evaluation_data_df, x="distances", y="energies", legend=False, **plot_kwargs)
         elif plot_type == "line":
-            sns.lineplot(self.evaluation_data_df, x="distances", y="energies", **plot_kwargs)
+            sns.lineplot(self.evaluation_data_df, x="distances", y="energies", legend=False, **plot_kwargs)
         else:
             print("plot_type ", plot_type, " not implemented")
 
@@ -130,6 +137,7 @@ class BasePlotter(ABC):
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
             ylabel="Energy (a.u.)",
+            legend=True,
             savename=f"{self.runs_name}_evaluation",
             save=save, show=show,
         )
@@ -477,9 +485,9 @@ class MultipleRunPlotter(BasePlotter):
         if len(diff_data) == 0:
             return
         if plot_type == "scatter":
-            sns.scatterplot(data=diff_data, x=diff_data.index, y="solution", **plot_kwargs)
+            sns.scatterplot(data=diff_data, x=diff_data.index, y="solution", legend=False, **plot_kwargs)
         elif plot_type == "line":
-            sns.lineplot(data=diff_data, x=diff_data.index, y="solution", **plot_kwargs)
+            sns.lineplot(data=diff_data, x=diff_data.index, y="solution", legend=False, **plot_kwargs)
         else:
             print("plot_type ", plot_type, " not implemented")
     
