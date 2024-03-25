@@ -79,6 +79,9 @@ class Gene(ABC):
         dist = np.square(dist)
         dist = np.sum(dist)
         return True, np.sqrt(dist)    
+    
+    def get_length(self) -> int:
+        return self.length
 
 class GateGene(Gene):
     """

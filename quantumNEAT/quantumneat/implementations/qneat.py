@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -55,6 +55,7 @@ class InnovationTracker:            # Original: Gate/InnovTable
 
 class LayerGene(GateGene):
     #TODO Look at only adding gates in qubit order
+    length = None
 
     def __init__(self, config:QNEAT_Config, problem:Problem, ind:int) -> None:
         super().__init__(ind, config, problem, range(config.n_qubits))
@@ -90,11 +91,17 @@ class LayerGene(GateGene):
             circuit.barrier(self.qubits)
         return circuit, n_parameters
     
-    def gates(self):
+    def gates(self) -> Generator[GateGene]:
         for key in self.genes.keys():
             for gate in self.genes[key]: 
                 yield gate
 
+    def get_length(self) -> int:
+        length = 0
+        for gate in self.gates():
+            length += gate.get_length()
+        return length
+    
 class QNEAT_Genome(CircuitGenome):
     def __init__(self, config:QNEAT_Config, problem:Problem) -> None:
         super().__init__(config, problem)
@@ -315,6 +322,12 @@ class QNEAT_Genome(CircuitGenome):
                     QNEAT_Genome.logger.error("Child did not add gene of parent.")
 
         return child
+    
+    def get_length(self) -> int:
+        length = 0
+        for ind, gene in self.genes:
+            length += gene.get_length()
+        return length
     
 class QNEAT_Population(Population):
     def __init__(self, config: QNEAT_Config, problem:Problem) -> None:
