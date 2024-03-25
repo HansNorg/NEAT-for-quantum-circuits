@@ -325,9 +325,15 @@ class QNEAT_Genome(CircuitGenome):
     
     def get_length(self) -> int:
         length = 0
-        for ind, gene in self.genes:
+        for gene in self.genes.values():
             length += gene.get_length()
         return length
+    
+    def get_n_parameters(self) -> int:
+        n_params = 0
+        for gene in self.genes.values():
+            n_params += len(gene.get_parameters())
+        return n_params
     
 class QNEAT_Population(Population):
     def __init__(self, config: QNEAT_Config, problem:Problem) -> None:
