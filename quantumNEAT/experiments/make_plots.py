@@ -1,5 +1,6 @@
 import os
 from tqdm import tqdm 
+import pickle
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -431,9 +432,12 @@ def thesis_separate(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis separate")
     colormap = "cool"
-    for molecule, n_qubits in [("H6", 6), ("LiH", 8)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
-        for method, method_name in [("linear_growth", "Linear growth")]:#, ("qneat", "Qneat")]:
-            for gate_set, gate_set_name in [("ROT-CNOT", "R=RxRyRz"), ("R-CNOT", "Rx,Ry,Rz")]:
+    for molecule, n_qubits in [("H2", 2), ("H6", 6)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        for method, method_name in [("qneat", "Qneat")]:#("linear_growth", "Linear growth")]:#, ("qneat", "Qneat")]:
+            gate_set = [("ROT-CNOT", "R=RxRyRz"), ("R-CNOT", "Rx,Ry,Rz")]
+            if method == "qneat":
+                gate_set = [gate_set[0]]
+            for gate_set, gate_set_name in gate_set:
                 for total_energy, total_energy_name in [("", ""), ("_total-energy", ", total energy")]:
                 # for total_energy, total_energy_name in [("_total-energy", ", total energy")]:
                     plotter = MultipleExperimentPlotter(f"thesis-separate_{molecule.lower()}_{gate_set}_{method}{total_energy}", folder=folder, verbose=verbose, error_verbose=verbose)
@@ -469,6 +473,20 @@ def thesis_separate(folder, verbose, show=False, save=False):
                     gse.plot_UCCSD_diff(color="black", marker="x")
                     # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                     plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
+
+def UCCSD(folder, verbose, show=False, save=False):
+    from qiskit_nature.second_q.circuit.library import HartreeFock
+    from qiskit_nature.second_q.mappers import JordanWignerMapper, ParityMapper
+
+    for molecule, orbitals, particles in [("H2", 2, (1,1)), ("H6", 4, (2,2)), ("LiH", 5, (1, 1))]:
+        print(f"{molecule = }")
+        print("Parity")
+        print(HartreeFock(orbitals, particles, ParityMapper(particles)).draw())
+        print("Jordan Wigner")
+        print(HartreeFock(orbitals, particles, JordanWignerMapper()).draw())
+        # with open(f"{molecule.lower()}_UCCSD_anzats.pickle", "rb") as f:
+        #     ansatz = pickle.load(f)
+        # print(ansatz)
 
 def test(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -535,5 +553,7 @@ if __name__ == "__main__":
         noise_total_fitness(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "thesis_separate" or args.experiment == "all":
         thesis_separate(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "UCCSD" or args.experiment == "all":
+        UCCSD(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":
         test(args.folder, args.verbose, args.show, args.save)

@@ -18,6 +18,9 @@ EXPERIMENTS = (
     (["gs_lih_errorless_saveh"], ["linear_growth"], [8], [10], ["ROT-CNOT", "R-CNOT"], [True], [0], [True, False]),
     (["gs_lih_errorless_saveh"], ["qneat"], [8], [10], ["ROT-CNOT"], [False], cluster_n_shots, [True, False]),
     (["gs_lih_errorless_saveh"], ["qneat"], [8], [10], ["ROT-CNOT"], [True], [0], [True, False]),
+    (["gs_h2_errorless_saveh"], ["linear_growth"], [2], [10], ["R-CNOT"], [False], [0], [False]),
+    (["gs_h6_errorless_saveh"], ["linear_growth"], [6], [4], ["R-CNOT"], [False], [0], [False]),
+    (["gs_lih_errorless_saveh"], ["linear_growth"], [8], [2], ["R-CNOT"], [False], [0], [False]),
 )
 
 def setup_experiment(problem_ids:list[int], experiment_id:int):

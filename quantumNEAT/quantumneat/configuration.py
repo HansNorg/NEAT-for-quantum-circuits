@@ -73,6 +73,7 @@ class QuantumNEATConfig():
     epsilon:float = 10**-5
     n_shots:int = -1
     phys_noise:bool = False
+    phys_noise_encoding:bool = False
     depolarizing_noise_prob:float = 0.1 # Ignored if phys_noise == False
 
     # Distance settings

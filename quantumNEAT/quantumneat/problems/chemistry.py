@@ -5,11 +5,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
+from qiskit_nature.second_q.circuit.library import HartreeFock
+from qiskit_nature.second_q.mappers import ParityMapper
+from qulacs.gate import DepolarizingNoise
 from scipy.optimize import minimize
-from quantumneat.configuration import QuantumNEATConfig
 
-from quantumneat.problem import Problem
+from quantumneat.configuration import QuantumNEATConfig
 from quantumneat.helper import get_energy_qulacs, get_energy_qiskit, get_energy_qiskit_no_transpilation
+from quantumneat.problem import Problem
 from quantumneat.quant_lib_np import from_string
 
 if TYPE_CHECKING:
@@ -60,6 +63,49 @@ class GroundStateEnergy(Problem):
         elif self.config.simulator == "qulacs":
             for qubit in range(self.config.n_qubits):
                 circuit.add_H_gate(qubit)
+
+    def add_hartree_fock_encoding(self, circuit:Circuit):
+        if self.molecule == "h2":
+            if self.config.simulator == "qulacs":
+                circuit.add_X_gate(0)
+                if self.config.phys_noise_encoding:
+                    circuit.add_gate(DepolarizingNoise(0, self.config.depolarizing_noise_prob))
+            elif self.config.simulator == "qiskit":
+                circuit.x(0)
+                if self.config.phys_noise_encoding:
+                    print("Phys noise not implemented for simulator qiskit")
+            else:
+                raise NotImplementedError(f"Simulator {self.config.simulator} not implemented for add_hartree_fock_encoding")
+        elif self.molecule == "h6":
+            if self.config.simulator == "qulacs":
+                circuit.add_X_gate(0)
+                circuit.add_X_gate(3)
+                if self.config.phys_noise_encoding:
+                    circuit.add_gate(DepolarizingNoise(0, self.config.depolarizing_noise_prob))
+                    circuit.add_gate(DepolarizingNoise(3, self.config.depolarizing_noise_prob))
+            elif self.config.simulator == "qiskit":
+                circuit.x(0)
+                circuit.x(3)
+                if self.config.phys_noise_encoding:
+                    print("Phys noise not implemented for simulator qiskit")
+            else:
+                raise NotImplementedError(f"Simulator {self.config.simulator} not implemented for add_hartree_fock_encoding")
+        elif self.molecule == "lih":
+            if self.config.simulator == "qulacs":
+                for i in range(0, 4):
+                    circuit.add_X_gate(i)             
+                if self.config.phys_noise_encoding:
+                    for i in range(0, 4):
+                        circuit.add_gate(DepolarizingNoise(i, self.config.depolarizing_noise_prob))
+            elif self.config.simulator == "qiskit":
+                for i in range(0, 4):
+                    circuit.x(i)
+                if self.config.phys_noise_encoding:
+                    print("Phys noise not implemented for simulator qiskit")
+            else:
+                raise NotImplementedError(f"Simulator {self.config.simulator} not implemented for add_hartree_fock_encoding")
+        else:
+            raise NotImplementedError(f"add_hartree_fock_encoding not implemented for {self.molecule}")
 
     def fitness(self, genome:Genome) -> float:
         circuit, n_parameters = genome.get_circuit()
@@ -355,7 +401,6 @@ class GroundStateEnergySavedHamiltonian(GroundStateEnergy):
 
     def gradient_new(self, data):
         return self.gradient(data[0], data[1], data[2])
-
 
 if __name__ == "__main__":
     # plot_UCCSD_result("h2")
