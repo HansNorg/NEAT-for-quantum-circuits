@@ -471,22 +471,103 @@ def thesis_separate(folder, verbose, show=False, save=False):
                     # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
                     plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line", colormap=colormap)
                     gse.plot_UCCSD_diff(color="black", marker="x")
+                    gse.plot_UCCSD_diff(n_shots=0, color="black", marker="+")
+                    gse.plot_UCCSD_diff(n_shots=cluster_n_shots[-1], color="black", marker=".")
+                    gse.plot_UCCSD_diff(n_shots=0, phys_noise=True, color="black", marker="*")
                     # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                     plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
+                    exit()
 
 def UCCSD(folder, verbose, show=False, save=False):
-    from qiskit_nature.second_q.circuit.library import HartreeFock
-    from qiskit_nature.second_q.mappers import JordanWignerMapper, ParityMapper
+    # from qiskit import transpile
+    # from qiskit.circuit import Parameter
+    # from qiskit.circuit.library import EfficientSU2, RXGate, RYGate, RZGate, CXGate
+    # from qiskit.transpiler import Target
+    # from qiskit_nature.second_q.circuit.library import HartreeFock, UCCSD
+    # from qiskit_nature.second_q.mappers import JordanWignerMapper, ParityMapper
 
-    for molecule, orbitals, particles in [("H2", 2, (1,1)), ("H6", 4, (2,2)), ("LiH", 5, (1, 1))]:
-        print(f"{molecule = }")
-        print("Parity")
-        print(HartreeFock(orbitals, particles, ParityMapper(particles)).draw())
-        print("Jordan Wigner")
-        print(HartreeFock(orbitals, particles, JordanWignerMapper()).draw())
-        # with open(f"{molecule.lower()}_UCCSD_anzats.pickle", "rb") as f:
-        #     ansatz = pickle.load(f)
-        # print(ansatz)
+    # for molecule, n_qubits, orbitals, particles in [("H2", 2, 2, (1,1)), ("H6", 6, 4, (2,2)), ("LiH", 8, 5, (1, 1))]:
+    #     print(f"{molecule = }")
+    #     print("Parity")
+    #     print(HartreeFock(orbitals, particles, ParityMapper(particles)).draw())
+    #     print("Jordan Wigner")
+    #     print(HartreeFock(orbitals, particles, JordanWignerMapper()).draw())
+    #     print("UCCSD ansatz")
+    #     target = Target(num_qubits=n_qubits)
+    #     target.add_instruction(CXGate(), {(i,(i+1)%n_qubits):None for i in range(n_qubits)})
+    #     target.add_instruction(RXGate(Parameter('theta')), {(i,):None for i in range(n_qubits)})
+    #     target.add_instruction(RYGate(Parameter('theta')), {(i,):None for i in range(n_qubits)})
+    #     target.add_instruction(RZGate(Parameter('theta')), {(i,):None for i in range(n_qubits)})
+    #     ansatz = UCCSD(
+    #         orbitals,
+    #         particles,
+    #         ParityMapper(particles),
+    #     )
+    #     ansatz = transpile(ansatz, target=target)
+    #     print(ansatz)
+
+    if verbose >= 1:
+        print("UCCSD_noise")
+    colormap = "cool"
+    colormap = mpl.colormaps.get_cmap(colormap).resampled(len(cluster_n_shots))
+    for molecule in ["H2"]:#, "H6", "LiH"]:
+        gse = GroundStateEnergy(None, molecule.lower())
+        for total, func in [("", gse.plot_UCCSD_result)]:
+            gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+            for ind, l in enumerate(cluster_n_shots):
+                for phys_noise in [False, True]:
+                    marker = "x"
+                    if phys_noise:
+                        marker = "+"
+                    func(n_shots=l, color=colormap(ind/len(cluster_n_shots)), marker=marker, phys_noise=phys_noise)
+            plt.title(f"UCCSD anzats for {molecule}")
+            plt.grid()
+            plt.legend()
+            plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+            plt.ylabel("Energy (a.u.)")
+            if save:
+                os.makedirs(f"{folder}/figures/UCCSD_evaluation{total}", exist_ok=True)
+                plt.savefig(f"{folder}\\figures\\UCCSD_evaluation{total}\\{molecule}.png")
+            if show:
+                plt.show()
+            plt.close()
+
+            for ind, l in enumerate(cluster_n_shots):
+                for phys_noise in [False, True]:
+                    marker = "x"
+                    if phys_noise:
+                        marker = "+"
+                    gse.plot_UCCSD_diff(n_shots=l, color=colormap(ind/len(cluster_n_shots)), marker=marker, phys_noise=phys_noise)
+            plt.title(f"UCCSD anzats for {molecule}")
+            plt.grid()
+            plt.legend()
+            plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+            plt.ylabel("Delta energy (a.u.)")
+            if save:
+                os.makedirs(f"{folder}/figures/UCCSD_evaluation{total}", exist_ok=True)
+                plt.savefig(f"{folder}\\figures\\UCCSD_evaluation{total}\\{molecule}_diff.png")
+            if show:
+                plt.show()
+            plt.close()
+
+            plt.yscale("log")
+            for ind, l in enumerate(cluster_n_shots):
+                for phys_noise in [False, True]:
+                    marker = "x"
+                    if phys_noise:
+                        marker = "+"
+                    gse.plot_UCCSD_diff(n_shots=l, color=colormap(ind/len(cluster_n_shots)), marker=marker, phys_noise=phys_noise)
+            plt.title(f"UCCSD anzats for {molecule}")
+            plt.grid()
+            plt.legend()
+            plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
+            plt.ylabel("Delta energy (a.u.)")
+            if save:
+                os.makedirs(f"{folder}/figures/UCCSD_evaluation{total}", exist_ok=True)
+                plt.savefig(f"{folder}\\figures\\UCCSD_evaluation{total}\\{molecule}_diff_log.png")
+            if show:
+                plt.show()
+            plt.close()
 
 def test(folder, verbose, show=False, save=False):
     if verbose >= 1:

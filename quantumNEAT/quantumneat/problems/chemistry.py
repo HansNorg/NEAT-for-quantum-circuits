@@ -263,26 +263,42 @@ class GroundStateEnergy(Problem):
             import matplotlib.pyplot as plt
             plt.show()
     
-    def plot_UCCSD_result(self, **plot_kwargs):
+    def plot_UCCSD_result(self, n_shots=-1, phys_noise=False,  **plot_kwargs):
         import matplotlib.pyplot as plt
+        extra = ""
+        folder = ""
+        if n_shots != -1:
+            extra += f"_{n_shots}-shots"
+            folder = "UCCSD/"
+        if phys_noise:
+            extra += "_phys-noise"
+            folder = "UCCSD/"
         try:
-            energies = np.load(f"{self.molecule}_UCCSD.npy")
+            energies = np.load(f"{folder}{self.molecule}_UCCSD{extra}.npy")
         except:
-            print("UCCSD data not found")
+            print(f"UCCSD data not found for {self.molecule}{extra}")
             return
-        plt.scatter(self.data.index, energies, label ="UCCSD", **plot_kwargs)
+        plt.scatter(self.data.index, energies, label =f"UCCSD{extra}", **plot_kwargs)
 
-    def plot_UCCSD_diff(self, absolute = False, **plot_kwargs):
+    def plot_UCCSD_diff(self, n_shots=-1, phys_noise=False, absolute = False, **plot_kwargs):
         import matplotlib.pyplot as plt
+        extra = ""
+        folder = ""
+        if n_shots != -1:
+            extra += f"_{n_shots}-shots"
+            folder = "UCCSD/"
+        if phys_noise:
+            extra += "_phys-noise"
+            folder = "UCCSD/"
         try:
-            energies = np.load(f"{self.molecule}_UCCSD.npy")
+            energies = np.load(f"{folder}{self.molecule}_UCCSD{extra}.npy")
         except:
-            print("UCCSD data not found")
+            print(f"UCCSD data not found for {self.molecule}{extra}")
             return
         difference = energies - self.data["solution"]
         if absolute:
             difference = abs(difference)
-        plt.scatter(self.data.index, difference, label ="UCCSD", **plot_kwargs)
+        plt.scatter(self.data.index, difference, label =f"UCCSD{extra}", **plot_kwargs)
 
     def plot_HE_result(self, layers, n_shots=-1, phys_noise=False, **plot_kwargs):
         import matplotlib.pyplot as plt

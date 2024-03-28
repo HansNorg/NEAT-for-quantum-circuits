@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import itertools
 from typing import Union, TYPE_CHECKING
 import numpy as np
@@ -77,7 +78,8 @@ class HardwareEfficient:
         parameters = self.config.parameter_amplitude*np.random.random(n_parameters)
         solutions = self.problem.evaluate(circuit, parameters)
         if save:
-            np.save(f"{self.problem}_HE_{layers}-layers{savename}", solutions[1])
+            os.makedirs("HE", exist_ok=True)
+            np.save(f"HE/{self.problem}_HE_{layers}-layers{savename}", solutions[1])
         return solutions
     
     def solve_problem_total(self, layers:int, save=True, savename=""):
@@ -88,7 +90,8 @@ class HardwareEfficient:
         parameters = self.config.parameter_amplitude*np.random.random(n_parameters)
         solutions = self.problem.evaluate_total(circuit, parameters)
         if save:
-            np.save(f"{self.problem}_HE_{layers}-layers{savename}_evaluation-total", solutions[1])
+            os.makedirs("HE", exist_ok=True)
+            np.save(f"HE/{self.problem}_HE_{layers}-layers{savename}_evaluation-total", solutions[1])
         return solutions
     
 def main(molecule, layers, n_shots, args):
