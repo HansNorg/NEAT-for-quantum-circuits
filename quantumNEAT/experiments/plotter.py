@@ -112,7 +112,7 @@ class BasePlotter(ABC):
             plt.close()
 
     def plot_solution(self, **plot_kwargs):
-        if "gs" in self.name:
+        if "gs" in self.name or "thesis" in self.name:
             if "h2" in self.name:
                 molecule = "h2"
             elif "h6" in self.name:
