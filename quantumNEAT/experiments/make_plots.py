@@ -432,8 +432,8 @@ def thesis_separate(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis separate")
     colormap = "cool"
-    for molecule, n_qubits in [("H2", 2), ("H6", 6)]:# [("H2", 2), ("H6", 6), ("LiH", 8)]:
-        for method, method_name in [("qneat", "Qneat")]:#("linear_growth", "Linear growth")]:#, ("qneat", "Qneat")]:
+    for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        for method, method_name in [("linear_growth", "Linear growth"), ("qneat", "Qneat")]:
             gate_set = [("ROT-CNOT", "R=RxRyRz"), ("R-CNOT", "Rx,Ry,Rz")]
             if method == "qneat":
                 gate_set = [gate_set[0]]
@@ -476,7 +476,272 @@ def thesis_separate(folder, verbose, show=False, save=False):
                     gse.plot_UCCSD_diff(n_shots=0, phys_noise=True, color="black", marker="*")
                     # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap, logarithmic=True)
                     plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap, logarithmic=True)
-                    exit()
+
+def thesis_hf(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("thesis hf")
+    for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        plotter = MultipleExperimentPlotter(f"thesis-hf_{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
+        for method, method_name in [("", "|0>"), ("_hf", "fock")]:
+            plotter.add_experiment(
+                f"thesis_gs_{molecule.lower()}_errorless_saveh{method}_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots", 
+                "*", 
+                method_name
+                )
+        plotter.plot_all_generations(show, save)
+        gse = GroundStateEnergy(None, molecule.lower())
+        gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+        # gse.plot_UCCSD_result(color="black", marker="x")
+        plotter.plot_evaluation(show, save, marker = "x")
+        # gse.plot_UCCSD_diff(color="black", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x")
+        # plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
+        # gse.plot_UCCSD_diff(absolute=True, color="black", marker="x")
+        # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
+        plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line")
+        # # gse.plot_UCCSD_diff(color="black", marker="x")
+        # gse.plot_UCCSD_diff(n_shots=0, color="black", marker="+")
+        # gse.plot_UCCSD_diff(n_shots=cluster_n_shots[-1], color="black", marker=".")
+        # gse.plot_UCCSD_diff(n_shots=0, phys_noise=True, color="black", marker="*")
+        plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+        plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+
+def thesis(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("thesis hf")
+    if False: # "H2"
+        plotter = MultipleExperimentPlotter("thesis/h2", folder=folder, verbose=verbose, error_verbose=verbose)
+        gse = GroundStateEnergy(None, "h2")
+        plotter.add_experiment("thesis_gs_h2_errorless_saveh_linear_growth_R-CNOT_2-qubits_100-population_100-optimizer-steps_0-shots",
+                            "*",
+                            "QASNEAT (noiseless) R")
+        plotter.add_experiment("thesis_gs_h2_errorless_saveh_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_0-shots",
+                            "*",
+                            "QASNEAT (noiseless) ROT")
+        plotter.add_experiment("thesis_gs_h2_errorless_saveh_qneat_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_0-shots",
+                            "*",
+                            "qNEAT (noiseless)")
+        # plotter.plot_all_generations(show, save)
+        plt.hlines(y=[18], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        plt.hlines(y=[10], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        plotter.plot_vs_generations("best_lengths", "Length of best circuit per generation", "#gates", show, save, savename="_compared")
+        plt.hlines(y=[14], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        plt.hlines(y=[8], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+        plotter.plot_solution()
+        gse.plot_UCCSD_result(n_shots=0, color="black", marker="x")
+        gse.plot_HE_result(layers=1, n_shots=-1, color="grey", marker="x")
+        plotter.plot_evaluation(show, save, marker="x")
+        gse.plot_UCCSD_diff(n_shots=0, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x")
+        gse.plot_UCCSD_diff(n_shots=0, absolute=True, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+        gse.plot_UCCSD_diff(n_shots=0, absolute=True, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+    if False: # "H6"
+        plotter = MultipleExperimentPlotter("thesis/h6", folder=folder, verbose=verbose, error_verbose=verbose)
+        gse = GroundStateEnergy(None, "h6")
+        plotter.add_experiment("thesis_gs_h6_errorless_saveh_linear_growth_R-CNOT_6-qubits_100-population_100-optimizer-steps_0-shots",
+                                "*",
+                                "QASNEAT (noiseless) R")
+        plotter.add_experiment("thesis_gs_h6_errorless_saveh_linear_growth_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_0-shots",
+                                "*",
+                                "QASNEAT (noiseless) ROT")
+        plotter.add_experiment("thesis_gs_h6_errorless_saveh_qneat_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_0-shots",
+                                "*",
+                                "qNEAT (noiseless)")
+        # plotter.plot_all_generations(show, save)
+        from matplotlib.axes import Axes
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 3])
+        ax1:Axes; ax2:Axes
+        fig.set_size_inches(8,5)
+        ax1.set_ylim(4260, 4270)
+        ax2.set_ylim(0, 30)
+        ax1.spines.bottom.set_visible(False)
+        ax2.spines.top.set_visible(False)
+        ax1.xaxis.tick_top()
+        ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+        ax2.xaxis.tick_bottom()
+
+        d = .5  # proportion of vertical to horizontal extent of the slanted line
+        kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                    linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+        ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+        ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+        ax1.hlines(y=[4262], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[4262], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[26], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        # plt.yscale("log")
+        plotter._plot_vs_generations("best_lengths", ax=ax2)
+        ax1.set_title("Length of best circuit per generation")
+        ax1.grid()
+        ax2.grid()
+        plt.xlabel("Generation")
+        plt.ylabel("#gates")
+        ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+        fig.tight_layout(pad=2)
+        fig.subplots_adjust(hspace=0.1)
+        plotter._show_save_close_plot(savename="multiple_experiments_best_lengths_compared_broken", save=save, show=show)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 3])
+        ax1:Axes; ax2:Axes
+        fig.set_size_inches(8,5)
+        ax1.set_ylim(2760, 2770)
+        ax2.set_ylim(0, 30)
+        ax1.spines.bottom.set_visible(False)
+        ax2.spines.top.set_visible(False)
+        ax1.xaxis.tick_top()
+        ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+        ax2.xaxis.tick_bottom()
+
+        d = .5  # proportion of vertical to horizontal extent of the slanted line
+        kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                    linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+        ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+        ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+        ax1.hlines(y=[2764], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[2764], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[20], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        # plt.yscale("log")
+        plotter._plot_vs_generations("best_n_parameters", ax=ax2)
+        ax1.set_title("Number of parameters of best circuit per generation")
+        ax1.grid()
+        ax2.grid()
+        plt.xlabel("Generation")
+        plt.ylabel("#gates")
+        ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+        fig.tight_layout(pad=2)
+        fig.subplots_adjust(hspace=0.1)
+        plotter._show_save_close_plot(savename="multiple_experiments_best_n_parameters_compared_broken", save=save, show=show)
+
+        plt.hlines(y=[4262], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        plt.hlines(y=[26], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        plotter.plot_vs_generations("best_lengths", "Length of best circuit per generation", "#gates", show, save, savename="_compared")
+
+        plt.hlines(y=[2764], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        plt.hlines(y=[20], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        # plt.yscale("log")
+        plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+        plotter.plot_solution()
+        gse.plot_UCCSD_result(n_shots=0, color="black", marker="x")
+        gse.plot_HE_result(layers=1, n_shots=-1, color="grey", marker="x")
+        plotter.plot_evaluation(show, save, marker="x")
+        gse.plot_UCCSD_diff(n_shots=0, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x")
+        gse.plot_UCCSD_diff(n_shots=0, absolute=True, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+        gse.plot_UCCSD_diff(n_shots=0, absolute=True, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+    if False: # "LiH"
+        plotter = MultipleExperimentPlotter("thesis/lih", folder=folder, verbose=verbose, error_verbose=verbose)
+        gse = GroundStateEnergy(None, "lih")
+        plotter.add_experiment("thesis_gs_lih_errorless_saveh_linear_growth_R-CNOT_8-qubits_100-population_100-optimizer-steps_0-shots",
+                                "*",
+                                "QASNEAT (noiseless) R")
+        plotter.add_experiment("thesis_gs_lih_errorless_saveh_linear_growth_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_0-shots",
+                                "*",
+                                "QASNEAT (noiseless) ROT")
+        plotter.add_experiment("thesis_gs_lih_errorless_saveh_qneat_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_0-shots",
+                                "*",
+                                "qNEAT (noiseless)")
+        # plotter.plot_all_generations(show, save)
+        from matplotlib.axes import Axes
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 4.5])
+        ax1:Axes; ax2:Axes
+        fig.set_size_inches(8,5)
+        ax1.set_ylim(3810, 3820)
+        ax2.set_ylim(0, 45)
+        ax1.spines.bottom.set_visible(False)
+        ax2.spines.top.set_visible(False)
+        ax1.xaxis.tick_top()
+        ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+        ax2.xaxis.tick_bottom()
+
+        d = .5  # proportion of vertical to horizontal extent of the slanted line
+        kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                    linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+        ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+        ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+        ax1.hlines(y=[3815], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[3815], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[40], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        # plt.yscale("log")
+        plotter._plot_vs_generations("best_lengths", ax=ax2)
+        ax1.set_title("Length of best circuit per generation")
+        ax1.grid()
+        ax2.grid()
+        plt.xlabel("Generation")
+        plt.ylabel("#gates")
+        ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+        fig.tight_layout(pad=2)
+        fig.subplots_adjust(hspace=0.1)
+        plotter._show_save_close_plot(savename="multiple_experiments_best_lengths_compared_broken", save=save, show=show)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 4.5])
+        ax1:Axes; ax2:Axes
+        fig.set_size_inches(8,5)
+        ax1.set_ylim(2295, 2305)
+        ax2.set_ylim(0, 45)
+        ax1.spines.bottom.set_visible(False)
+        ax2.spines.top.set_visible(False)
+        ax1.xaxis.tick_top()
+        ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+        ax2.xaxis.tick_bottom()
+
+        d = .5  # proportion of vertical to horizontal extent of the slanted line
+        kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                    linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+        ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+        ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+        ax1.hlines(y=[2300], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[2300], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        ax2.hlines(y=[32], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        # plt.yscale("log")
+        plotter._plot_vs_generations("best_n_parameters", ax=ax2)
+        ax1.set_title("Number of parameters of best circuit per generation")
+        ax1.grid()
+        ax2.grid()
+        plt.xlabel("Generation")
+        plt.ylabel("#gates")
+        ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+        fig.tight_layout(pad=2)
+        fig.subplots_adjust(hspace=0.1)
+        plotter._show_save_close_plot(savename="multiple_experiments_best_n_parameters_compared_broken", save=save, show=show)
+
+        plt.hlines(y=[4262], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        plt.hlines(y=[40], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        plotter.plot_vs_generations("best_lengths", "Length of best circuit per generation", "#gates", show, save, savename="_compared")
+
+        plt.hlines(y=[2764], xmin=[0], xmax=[100], colors=["black"], linestyles="dashed", label="UCCSD")
+        plt.hlines(y=[32], xmin=[0], xmax=[100], colors=["grey"], linestyles="dashed", label="Hardware efficient")
+        # plt.yscale("log")
+        plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+        plotter.plot_solution()
+        gse.plot_UCCSD_result(n_shots=0, color="black", marker="x")
+        gse.plot_HE_result(layers=1, n_shots=-1, color="grey", marker="x")
+        plotter.plot_evaluation(show, save, marker="x")
+        gse.plot_UCCSD_diff(n_shots=0, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x")
+        gse.plot_UCCSD_diff(n_shots=0, absolute=True, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+        gse.plot_UCCSD_diff(n_shots=0, absolute=True, color="black", marker="x")
+        gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color="grey", marker="x")
+        plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
 def UCCSD(folder, verbose, show=False, save=False):
     # from qiskit import transpile
@@ -634,6 +899,10 @@ if __name__ == "__main__":
         noise_total_fitness(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "thesis_separate" or args.experiment == "all":
         thesis_separate(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "thesis_hf" or args.experiment == "all":
+        thesis_hf(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "thesis" or args.experiment == "all":
+        thesis(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "UCCSD" or args.experiment == "all":
         UCCSD(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":

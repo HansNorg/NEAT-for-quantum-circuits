@@ -66,15 +66,15 @@ class BasePlotter(ABC):
                 print(exc_info)
             return
         
-    def plot_vs_generations(self, key:str, title:str, name:str, show=False, save=False, **plot_kwargs):
-        plt.figure()
+    def plot_vs_generations(self, key:str, title:str, name:str, show=False, save=False, savename="", **plot_kwargs):
+        # plt.figure()
         self._plot_vs_generations(key, **plot_kwargs)
         self.finalise_plot(
             title=title, 
             xlabel="Generations", 
             ylabel=name, 
             legend=True,
-            savename=f"{self.runs_name}_{key}", 
+            savename=f"{self.runs_name}_{key}{savename}", 
             save=save, show=show,
             )
         
@@ -86,7 +86,13 @@ class BasePlotter(ABC):
             fig = plt.figure(plt.get_fignums()[-1])
             fig.set_size_inches(8,5)
             # plt.legend()
-            plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+            legend = plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+            # legendfig = legend.figure
+            # legendfig.canvas.draw()
+            # legendfig.savefig(f"{self.folder}/figures/{self.name}/{savename}_legend.png")
+            # fig.set_size_inches(5,6)
+            # plt.legend(loc="lower center", bbox_to_anchor=(0.5, -0.3))
+            # fig.legend(loc="outside lower center")
             fig.tight_layout(pad=2)
             # fig.legend(loc=7)
             # fig.subplots_adjust(right=0.65)
@@ -94,6 +100,9 @@ class BasePlotter(ABC):
         plt.grid()
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
+        self._show_save_close_plot(savename, save, show, close)
+
+    def _show_save_close_plot(self, savename:str="", save:bool=False, show:bool=False, close:bool = True):
         if save:
             os.makedirs(f"{self.folder}/figures/{self.name}", exist_ok=True)
             plt.savefig(f"{self.folder}/figures/{self.name}/{savename}.png")
@@ -145,7 +154,7 @@ class BasePlotter(ABC):
     def _plot_delta_evaluation(self, absolute=False, **plot_kwargs):
         pass
 
-    def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, absolute = False, **plot_kwargs):
+    def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, absolute = False, savename="", **plot_kwargs):
         logname, absname, abssym = "", "", ""
         if logarithmic:
             plt.yscale("log")
@@ -159,7 +168,7 @@ class BasePlotter(ABC):
             title="Evaluation of best final circuit"+self.extra_title,
             xlabel="Distance (Angstrom)",
             ylabel=abssym+"Delta energy"+abssym+" (a.u.)",
-            savename=f"{self.runs_name}_delta_evaluation{logname}{absname}",
+            savename=f"{self.runs_name}_delta_evaluation{logname}{absname}{savename}",
             legend=True,
             save=save, show=show,
         )

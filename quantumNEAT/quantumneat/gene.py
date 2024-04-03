@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 if TYPE_CHECKING:
-    from quantumNEAT.quantumneat.configuration import QuantumNEATConfig, Circuit
+    from quantumneat.configuration import QuantumNEATConfig, Circuit
     from quantumneat.problem import Problem
     
 class Gene(ABC):
