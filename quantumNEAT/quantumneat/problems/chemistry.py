@@ -275,7 +275,7 @@ class GroundStateEnergy(Problem):
             folder = "UCCSD/"
         try:
             energies = np.load(f"{folder}{self.molecule}_UCCSD{extra}.npy")
-        except:
+        except FileNotFoundError:
             print(f"UCCSD data not found for {self.molecule}{extra}")
             return
         plt.scatter(self.data.index, energies, label =f"UCCSD{extra}", **plot_kwargs)
@@ -292,13 +292,36 @@ class GroundStateEnergy(Problem):
             folder = "UCCSD/"
         try:
             energies = np.load(f"{folder}{self.molecule}_UCCSD{extra}.npy")
-        except:
+        except FileNotFoundError:
             print(f"UCCSD data not found for {self.molecule}{extra}")
             return
         difference = energies - self.data["solution"]
         if absolute:
             difference = abs(difference)
         plt.scatter(self.data.index, difference, label =f"UCCSD{extra}", **plot_kwargs)
+
+    def plot_UCCSD_shots(self, absolute=False, **plot_kwargs):
+        import seaborn as sns
+        from experiments.run_experiment import cluster_n_shots
+        data = pd.DataFrame()
+        for n_shots in cluster_n_shots:
+            new_data = pd.DataFrame()
+            try:
+                energies = np.load(f"UCCSD/{self.molecule}_UCCSD_{n_shots}-shots.npy")
+            except FileNotFoundError:
+                print(f"UCCSD data not found for {self.molecule} {n_shots=} (and possibly more)")
+                return
+            if absolute:
+                energies = abs(energies)
+            new_data["solution"] = energies
+            label = str(n_shots)
+            if label == "0":
+                label = "\u221e"
+            new_data["n_shots"]=[label for _ in new_data.values]
+            new_data = new_data.set_index("n_shots")
+            data = pd.concat((data, new_data))
+        if len(data) != 0:
+            sns.lineplot(data=data, x="n_shots", y="solution", errorbar=("pi", 100), **plot_kwargs)
 
     def plot_HE_result(self, layers, n_shots=-1, phys_noise=False, **plot_kwargs):
         import matplotlib.pyplot as plt
@@ -308,8 +331,8 @@ class GroundStateEnergy(Problem):
         if phys_noise:
             extra += "_phys-noise"
         try:
-            energies = np.load(f"{self.molecule}_HE_{layers}-layers{extra}.npy")
-        except:
+            energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}.npy")
+        except FileNotFoundError:
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
         plt.scatter(self.data.index, energies, label =f"HE-{layers}{extra}", **plot_kwargs)
@@ -322,8 +345,8 @@ class GroundStateEnergy(Problem):
         if phys_noise:
             extra += "_phys-noise"
         try:
-            energies = np.load(f"{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
-        except:
+            energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
+        except FileNotFoundError:
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
         plt.scatter(self.data.index, energies, label =f"HE-{layers}{extra}", **plot_kwargs)
@@ -336,8 +359,8 @@ class GroundStateEnergy(Problem):
         if phys_noise:
             extra += "_phys-noise"
         try:
-            energies = np.load(f"{self.molecule}_HE_{layers}-layers{extra}.npy")
-        except:
+            energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}.npy")
+        except FileNotFoundError:
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
         difference = energies - self.data["solution"]
@@ -353,8 +376,8 @@ class GroundStateEnergy(Problem):
         if phys_noise:
             extra += "_phys-noise"
         try:
-            energies = np.load(f"{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
-        except:
+            energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
+        except FileNotFoundError:
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
         difference = energies - self.data["solution"]
@@ -362,11 +385,34 @@ class GroundStateEnergy(Problem):
             difference = abs(difference)
         plt.scatter(self.data.index, difference, label =f"HE-{layers}{extra}", **plot_kwargs)
 
+    def plot_HE_shots(self, layers, absolute=False, **plot_kwargs):
+        import seaborn as sns
+        from experiments.run_experiment import cluster_n_shots
+        data = pd.DataFrame()
+        for n_shots in cluster_n_shots:
+            new_data = pd.DataFrame()
+            try:
+                energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers_{n_shots}-shots.npy")
+            except FileNotFoundError:
+                print(f"HE data not found for {self.molecule} {n_shots=} (and possibly more)")
+                return
+            if absolute:
+                energies = abs(energies)
+            new_data["solution"] = energies
+            label = str(n_shots)
+            if label == "0":
+                label = "\u221e"
+            new_data["n_shots"]=[label for _ in new_data.values]
+            new_data = new_data.set_index("n_shots")
+            data = pd.concat((data, new_data))
+        if len(data) != 0:
+            sns.lineplot(data=data, x="n_shots", y="solution", errorbar=("pi", 100), **plot_kwargs)
+
     def plot_adaptVQE_result(self, **plot_kwargs):
         import matplotlib.pyplot as plt
         try:
             energies = np.load(f"{self.molecule}_AdaptVQE.npy")
-        except:
+        except FileNotFoundError:
             print(f"AdaptVQE data not found")
             return
         plt.scatter(self.data.index, energies, label =f"AdaptVQE", **plot_kwargs)
@@ -375,7 +421,7 @@ class GroundStateEnergy(Problem):
         import matplotlib.pyplot as plt
         try:
             energies = np.load(f"{self.molecule}_AdaptVQE.npy")
-        except:
+        except FileNotFoundError:
             print(f"AdaptVQE data not found")
             return
         difference = energies - self.data["solution"]

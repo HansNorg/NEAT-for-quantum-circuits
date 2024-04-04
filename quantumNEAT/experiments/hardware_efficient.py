@@ -96,7 +96,7 @@ class HardwareEfficient:
     
 def main(molecule, layers, n_shots, args):
     savename = args.savename
-    if n_shots > 0:
+    if n_shots > -1:
         savename += f"_{n_shots}-shots"
     if args.phys_noise:
         savename += "_phys-noise"

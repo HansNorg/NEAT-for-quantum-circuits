@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 GENERATION_DATA = [
         ("fitness_record", "Best fitness per generation", "Fitness (a.u.)"),
-        ("best_lengths", "Length of best circuit per generation", "#gates"),
+        ("best_lengths", "Number of gates of best circuit per generation", "#gates"),
         ("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters"),
         ("population_size", "Population size per generation", "Population"),
         ("number_of_species", "Number of species per generation", "Species"),
@@ -367,10 +367,14 @@ class SingleRunPlotter(BasePlotter):
             print("plot_type ", plot_type, " not implemented")
 
 class MultipleRunPlotter(BasePlotter):
-    def __init__(self, name: str, runs="*", folder: str = ".", verbose=0, error_verbose=1) -> None:
+    def __init__(self, name: str, runs="*", folder: str = ".", verbose=0, error_verbose=1, label_n_runs:bool=True) -> None:
         super().__init__(name, runs, folder, verbose, error_verbose)
         self.extra_title = f" averaged over {self.n_runs} runs"
-        self.extra_label = f": {self.n_runs}"
+        if label_n_runs:
+            self.extra_label = f": {self.n_runs}"
+        else:
+            self.extra_label = ""
+            print(f"{self.name}: {self.n_runs}")
         self.runs_name = "multiple_runs"
 
     def load_data(self):
@@ -539,13 +543,13 @@ class MultipleExperimentPlotter(BasePlotter):
     def load_data(self):
         pass
 
-    def add_experiment(self, name, runs, label):
-        self.experiments.append((MultipleRunPlotter(name, runs, self.folder, self.verbose, self.error_verbose), label))
+    def add_experiment(self, name, runs, label, **mrp_kwargs):
+        self.experiments.append((MultipleRunPlotter(name, runs, self.folder, self.verbose, self.error_verbose, **mrp_kwargs), label))
         self.config = self.experiments[0][0].config
 
-    def add_experiments(self, experiments):
+    def add_experiments(self, experiments, **mrp_kwargs):
         for name, runs, label in experiments:
-            self.add_experiment(name, runs, label)
+            self.add_experiment(name, runs, label, **mrp_kwargs)
 
     def _plot_vs_generations(self, key: str, label: str = None, colormap = None, **plot_kwargs):
         if colormap:
@@ -629,7 +633,7 @@ class MultipleExperimentPlotter(BasePlotter):
         #     return
         # sns.boxplot(energies, **plot_kwargs)
         for ind, (experiment, label) in enumerate(self.experiments):
-            plt.boxplot(experiment.get_delta_energies(), labels=[label], positions=[ind], widths=[0.5])
+            plt.boxplot(experiment.get_delta_energies(), labels=[label], positions=[ind], widths=[0.5], **plot_kwargs)
         # energies = []
         # for ind, (experiment, label) in enumerate(self.experiments):
         #     energies.append(experiment.get_delta_energies())
@@ -648,7 +652,7 @@ class MultipleExperimentPlotter(BasePlotter):
         #     return
         # sns.boxplot(abs(energies), **plot_kwargs)
         for ind, (experiment, label) in enumerate(self.experiments):
-            plt.boxplot(abs(experiment.get_delta_energies()), labels=[label], positions=[ind], widths=[0.5])
+            plt.boxplot(abs(experiment.get_delta_energies()), labels=[label], positions=[ind], widths=[0.5], **plot_kwargs)
         self.finalise_plot(
             title=title,
             xlabel=xlabel,
@@ -657,9 +661,39 @@ class MultipleExperimentPlotter(BasePlotter):
             save=save, show=show,
         )
 
-    def plot_box_log(self, xlabel, title = None, show=False, save=False, **plot_kwargs):
+    def plot_box_log(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
         plt.yscale("log")
-        self.plot_box_abs(xlabel, title = title, show=show, save=save, savename="_log", **plot_kwargs)
+        self.plot_box_abs(xlabel, title = title, show=show, save=save, savename=savename+"_log", **plot_kwargs)
+
+    def _plot_shots(self, absolute=False, **plot_kwargs):
+        data = pd.DataFrame()
+        for ind, (experiment, label) in enumerate(self.experiments):
+            energies = experiment.get_delta_energies(absolute=absolute)
+            energies["n_shots"]=[label for _ in energies.values]
+            energies = energies.set_index("n_shots")
+            data = pd.concat((data, energies))
+        sns.lineplot(data=data, x="n_shots", y="solution", errorbar=("pi", 100), **plot_kwargs)
+
+    def _plot_shots_generations(self, key:str, **plot_kwargs):
+        data = pd.DataFrame()
+        for ind, (experiment, label) in enumerate(self.experiments):
+            new_data = experiment.generation_data[key]
+            new_data = new_data[max(new_data.index)]
+            new_data = pd.DataFrame(new_data)
+            new_data["n_shots"]=[label for _ in new_data.values]
+            new_data = new_data.set_index("n_shots")
+            data = pd.concat((data, new_data))
+        sns.lineplot(data=data, x="n_shots", y=key, **plot_kwargs)
+    
+    def plot_shots(self, xlabel, title = None, show=False, save=False, savename="", **plot_kwargs):
+        self._plot_shots(**plot_kwargs)
+        self.finalise_plot(
+            title=title,
+            xlabel=xlabel,
+            ylabel="Delta energy",
+            savename=f"delta_energy_shotplot{savename}",
+            save=save, show=show,
+        )
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
