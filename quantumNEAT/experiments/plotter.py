@@ -725,7 +725,7 @@ class MultipleExperimentPlotter(BasePlotter):
                 len(data)
             except TypeError:
                 print(f"{self.name} {key}: {label:15} min(data)={data:5} max(data)={data:5} np.mean(data)={data:5} np.std(data)=0")    
-                return
+                continue
             print(f"{self.name} {key}: {label:15} {min(data)=:5} {max(data)=:5} {np.mean(data)=:.0f} {np.std(data)=:.1g}")
 
     def print_n_runs(self):

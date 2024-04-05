@@ -392,7 +392,6 @@ def hardware_efficient_noise(folder, verbose, show=False, save=False):
                 plt.show()
             plt.close()
 
-
 def noise_total_fitness(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("noise_total_fitness")
@@ -509,13 +508,12 @@ def thesis_hf(folder, verbose, show=False, save=False):
         plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
         plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
-
 def thesis(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis")
-    noiseless, phys_noise, shot_noise = True, True, True
+    noiseless, phys_noise, shot_noise = False, True, False
     h2, h6, lih = True, True, True
-    _print = False
+    _print = True
     
     if noiseless:
         if h2: 
@@ -1457,7 +1455,6 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_ROT.plot_box_log("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
                 plotter_qneat.plot_box("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
                 plotter_qneat.plot_box_log("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
-
 
 def UCCSD(folder, verbose, show=False, save=False):
     # from qiskit import transpile
