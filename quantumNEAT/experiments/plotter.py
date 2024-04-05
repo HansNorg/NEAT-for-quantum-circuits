@@ -374,7 +374,6 @@ class MultipleRunPlotter(BasePlotter):
             self.extra_label = f": {self.n_runs}"
         else:
             self.extra_label = ""
-            print(f"{self.name}: {self.n_runs}")
         self.runs_name = "multiple_runs"
 
     def load_data(self):
@@ -532,6 +531,29 @@ class MultipleRunPlotter(BasePlotter):
                 difference = difference.apply(lambda x: x.real)
             energies = pd.concat((energies, pd.DataFrame(difference, index=data["distances"])))
         return energies
+    
+    def load_circuit_data(self):
+        if self.runs == "*":
+            files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_circuit.pickle")
+        else:
+            files = [
+                f"{self.folder}\\results\\{self.name}_run{run}_circuit.pickle"
+                for run in eval(self.runs)
+                ]
+        data_multiple = []
+        for file in files:
+            if self.verbose >= 1:
+                print(file)
+            try:
+                data = dict(np.load(file, allow_pickle=True))
+            except FileNotFoundError as exc_info:
+                if self.error_verbose < 2:
+                    print(f"{file} not found.")
+                else:
+                    print(exc_info)
+                continue
+            config:QuantumNEATConfig = data.pop("config")
+            data_multiple.append(data)
 
 class MultipleExperimentPlotter(BasePlotter):
     def __init__(self, name: str, runs="*", folder: str = ".", verbose=0, error_verbose=1) -> None:
@@ -665,14 +687,14 @@ class MultipleExperimentPlotter(BasePlotter):
         plt.yscale("log")
         self.plot_box_abs(xlabel, title = title, show=show, save=save, savename=savename+"_log", **plot_kwargs)
 
-    def _plot_shots(self, absolute=False, **plot_kwargs):
+    def _plot_shots(self, absolute=False, errorbar=("pi", 100), **plot_kwargs):
         data = pd.DataFrame()
         for ind, (experiment, label) in enumerate(self.experiments):
             energies = experiment.get_delta_energies(absolute=absolute)
             energies["n_shots"]=[label for _ in energies.values]
             energies = energies.set_index("n_shots")
             data = pd.concat((data, energies))
-        sns.lineplot(data=data, x="n_shots", y="solution", errorbar=("pi", 100), **plot_kwargs)
+        sns.lineplot(data=data, x="n_shots", y="solution", errorbar=errorbar, **plot_kwargs)
 
     def _plot_shots_generations(self, key:str, **plot_kwargs):
         data = pd.DataFrame()
@@ -694,6 +716,22 @@ class MultipleExperimentPlotter(BasePlotter):
             savename=f"delta_energy_shotplot{savename}",
             save=save, show=show,
         )
+
+    def print_final_data(self, key):
+        for experiment, label in self.experiments:
+            data = experiment.generation_data[key]
+            data = data[max(data.index)]
+            try:
+                len(data)
+            except TypeError:
+                print(f"{self.name} {key}: {label:15} min(data)={data:5} max(data)={data:5} np.mean(data)={data:5} np.std(data)=0")    
+                return
+            print(f"{self.name} {key}: {label:15} {min(data)=:5} {max(data)=:5} {np.mean(data)=:.0f} {np.std(data)=:.1g}")
+
+    def print_n_runs(self):
+        for experiment, label in self.experiments:
+            if experiment.n_runs != 10:
+                print(f"{experiment.name}: {experiment.n_runs}")
 
 if __name__ == "__main__":
     from argparse import ArgumentParser

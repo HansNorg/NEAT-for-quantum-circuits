@@ -263,7 +263,7 @@ class GroundStateEnergy(Problem):
             import matplotlib.pyplot as plt
             plt.show()
     
-    def plot_UCCSD_result(self, n_shots=-1, phys_noise=False,  **plot_kwargs):
+    def plot_UCCSD_result(self, n_shots=-1, phys_noise=False, label=None, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         folder = ""
@@ -278,9 +278,11 @@ class GroundStateEnergy(Problem):
         except FileNotFoundError:
             print(f"UCCSD data not found for {self.molecule}{extra}")
             return
-        plt.scatter(self.data.index, energies, label =f"UCCSD{extra}", **plot_kwargs)
+        if label is None:
+            label = f"UCCSD{extra}"
+        plt.scatter(self.data.index, energies, label =label, **plot_kwargs)
 
-    def plot_UCCSD_diff(self, n_shots=-1, phys_noise=False, absolute = False, **plot_kwargs):
+    def plot_UCCSD_diff(self, n_shots=-1, phys_noise=False, absolute = False, label=None, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         folder = ""
@@ -298,9 +300,11 @@ class GroundStateEnergy(Problem):
         difference = energies - self.data["solution"]
         if absolute:
             difference = abs(difference)
-        plt.scatter(self.data.index, difference, label =f"UCCSD{extra}", **plot_kwargs)
+        if label is None:
+            label = f"UCCSD{extra}"
+        plt.scatter(self.data.index, difference, label =label, **plot_kwargs)
 
-    def plot_UCCSD_shots(self, absolute=False, **plot_kwargs):
+    def plot_UCCSD_shots(self, absolute=False, errorbar=("pi", 100), **plot_kwargs):
         import seaborn as sns
         from experiments.run_experiment import cluster_n_shots
         data = pd.DataFrame()
@@ -321,9 +325,9 @@ class GroundStateEnergy(Problem):
             new_data = new_data.set_index("n_shots")
             data = pd.concat((data, new_data))
         if len(data) != 0:
-            sns.lineplot(data=data, x="n_shots", y="solution", errorbar=("pi", 100), **plot_kwargs)
+            sns.lineplot(data=data, x="n_shots", y="solution", errorbar=errorbar, **plot_kwargs)
 
-    def plot_HE_result(self, layers, n_shots=-1, phys_noise=False, **plot_kwargs):
+    def plot_HE_result(self, layers, n_shots=-1, phys_noise=False, label=None, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
@@ -335,9 +339,11 @@ class GroundStateEnergy(Problem):
         except FileNotFoundError:
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
-        plt.scatter(self.data.index, energies, label =f"HE-{layers}{extra}", **plot_kwargs)
+        if label is None:
+            label = f"HE-{layers}{extra}"
+        plt.scatter(self.data.index, energies, label =label, **plot_kwargs)
 
-    def plot_HE_result_total(self, layers, n_shots=-1, phys_noise=False, **plot_kwargs):
+    def plot_HE_result_total(self, layers, n_shots=-1, phys_noise=False, label=None, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
@@ -349,9 +355,11 @@ class GroundStateEnergy(Problem):
         except FileNotFoundError:
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
-        plt.scatter(self.data.index, energies, label =f"HE-{layers}{extra}", **plot_kwargs)
+        if label is None:
+            label = f"HE-{layers}{extra}"
+        plt.scatter(self.data.index, energies, label =label, **plot_kwargs)
 
-    def plot_HE_diff(self, layers, n_shots=-1, phys_noise=False, absolute = False, **plot_kwargs):
+    def plot_HE_diff(self, layers, n_shots=-1, phys_noise=False, absolute = False, label=None, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
@@ -366,9 +374,11 @@ class GroundStateEnergy(Problem):
         difference = energies - self.data["solution"]
         if absolute:
             difference = abs(difference)
-        plt.scatter(self.data.index, difference, label =f"HE-{layers}{extra}", **plot_kwargs)
+        if label is None:
+            label = f"HE-{layers}{extra}"
+        plt.scatter(self.data.index, difference, label =label, **plot_kwargs)
 
-    def plot_HE_diff_total(self, layers, n_shots=-1, phys_noise=False, absolute=False, **plot_kwargs):
+    def plot_HE_diff_total(self, layers, n_shots=-1, phys_noise=False, absolute=False, label=None, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
@@ -383,9 +393,11 @@ class GroundStateEnergy(Problem):
         difference = energies - self.data["solution"]
         if absolute:
             difference = abs(difference)
-        plt.scatter(self.data.index, difference, label =f"HE-{layers}{extra}", **plot_kwargs)
+        if label is None:
+            label = f"HE-{layers}{extra}"
+        plt.scatter(self.data.index, difference, label =label, **plot_kwargs)
 
-    def plot_HE_shots(self, layers, absolute=False, **plot_kwargs):
+    def plot_HE_shots(self, layers, absolute=False, errorbar=("pi", 100), **plot_kwargs):
         import seaborn as sns
         from experiments.run_experiment import cluster_n_shots
         data = pd.DataFrame()
@@ -406,7 +418,7 @@ class GroundStateEnergy(Problem):
             new_data = new_data.set_index("n_shots")
             data = pd.concat((data, new_data))
         if len(data) != 0:
-            sns.lineplot(data=data, x="n_shots", y="solution", errorbar=("pi", 100), **plot_kwargs)
+            sns.lineplot(data=data, x="n_shots", y="solution", errorbar=errorbar, **plot_kwargs)
 
     def plot_adaptVQE_result(self, **plot_kwargs):
         import matplotlib.pyplot as plt
