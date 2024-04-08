@@ -488,7 +488,7 @@ if __name__ == "__main__":
         hamiltonian = instance["hamiltonian"]
         non_zero = np.count_nonzero(hamiltonian)
         total = np.prod(np.shape(hamiltonian))
-        print(f"{molecule}: {non_zero} non zero elements out of {total} elements. {non_zero/total*100:.2f}%")
+        print(f"{molecule}: {non_zero} non zero elements out of {total} elements. {non_zero/total*100:.2f}% {len(instance['weights'])} terms")
     exit()
     # problem = GroundStateEnergySavedHamiltonian(None, "h2")
     problem = GroundStateEnergySavedHamiltonian(None, "h6")

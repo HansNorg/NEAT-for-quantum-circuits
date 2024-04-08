@@ -236,7 +236,7 @@ def hardware_efficient(folder, verbose, show=False, save=False):
         plt.grid()
         plt.legend()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Energy (a.u.)")
+        plt.ylabel("Energy (Hartree)")
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient\\{molecule}.png")
@@ -289,7 +289,7 @@ def hardware_efficient_evaluation_total(folder, verbose, show=False, save=False)
         plt.grid()
         plt.legend()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Energy (a.u.)")
+        plt.ylabel("Energy (Hartree)")
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}.png")
@@ -347,7 +347,7 @@ def hardware_efficient_noise(folder, verbose, show=False, save=False):
             plt.grid()
             plt.legend()
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-            plt.ylabel("Energy (a.u.)")
+            plt.ylabel("Energy (Hartree)")
             if save:
                 os.makedirs(f"{folder}/figures/hardware_efficient_evaluation{total}", exist_ok=True)
                 plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation{total}\\{molecule}.png")
@@ -1002,7 +1002,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="Energy difference",
+                    ylabel="Energy difference (Hartree)",
                     legend=True,
                     savename="shotplot",
                     save=save, show=show,
@@ -1016,7 +1016,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="|Energy difference|",
+                    ylabel="|Energy difference| (Hartree)",
                     legend=True,
                     savename="shotplot_abs",
                     save=save, show=show,
@@ -1031,7 +1031,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="|Energy difference|",
+                    ylabel="|Energy difference| (Hartree)",
                     legend=True,
                     savename="shotplot_log",
                     save=save, show=show,
@@ -1047,7 +1047,7 @@ def thesis(folder, verbose, show=False, save=False):
                 # plotter.finalise_plot(
                 #     title="Energy with shot noise",
                 #     xlabel="#shots",
-                #     ylabel="|Energy difference|",
+                #     ylabel="|Energy difference| (Hartree)",
                 #     legend=True,
                 #     savename="shotplot_log_new",
                 #     save=save, show=show,
@@ -1216,7 +1216,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="Energy difference",
+                    ylabel="Energy difference (Hartree)",
                     legend=True,
                     savename="shotplot",
                     save=save, show=show,
@@ -1230,7 +1230,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="|Energy difference|",
+                    ylabel="|Energy difference| (Hartree)",
                     legend=True,
                     savename="shotplot_abs",
                     save=save, show=show,
@@ -1245,7 +1245,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="|Energy difference|",
+                    ylabel="|Energy difference| (Hartree)",
                     legend=True,
                     savename="shotplot_log",
                     save=save, show=show,
@@ -1414,7 +1414,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="Energy difference",
+                    ylabel="Energy difference (Hartree)",
                     legend=True,
                     savename="shotplot",
                     save=save, show=show,
@@ -1428,7 +1428,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="|Energy difference|",
+                    ylabel="|Energy difference| (Hartree)",
                     legend=True,
                     savename="shotplot_abs",
                     save=save, show=show,
@@ -1443,7 +1443,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.finalise_plot(
                     title="Energy with shot noise",
                     xlabel="#shots",
-                    ylabel="|Energy difference|",
+                    ylabel="|Energy difference| (Hartree)",
                     legend=True,
                     savename="shotplot_log",
                     save=save, show=show,
@@ -1502,7 +1502,7 @@ def UCCSD(folder, verbose, show=False, save=False):
             plt.grid()
             plt.legend()
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-            plt.ylabel("Energy (a.u.)")
+            plt.ylabel("Energy (Hartree)")
             if save:
                 os.makedirs(f"{folder}/figures/UCCSD_evaluation{total}", exist_ok=True)
                 plt.savefig(f"{folder}\\figures\\UCCSD_evaluation{total}\\{molecule}.png")

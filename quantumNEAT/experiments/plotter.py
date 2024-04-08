@@ -32,9 +32,9 @@ GENERATION_DATA = [
         ("population_size", "Population size per generation", "Population"),
         ("number_of_species", "Number of species per generation", "Species"),
         ("average_fitnesses", "Average fitness per generation", "Fitness (a.u.)"),
-        ("best_energies", "Best energy per generation", "Energy (a.u.)"),
+        ("best_energies", "Best energy per generation", "Energy (Hartee)"),
         ("number_of_solutions", "Number of circuits that get \N{GREEK SMALL LETTER EPSILON} close to the real solution", "Circuits"),
-        ("min_energies", "Lowest energy per generation", "Energy (a.u.)"),
+        ("min_energies", "Lowest energy per generation", "Energy (Hartee)"),
     ]
 
 class BasePlotter(ABC):
@@ -145,7 +145,7 @@ class BasePlotter(ABC):
         self.finalise_plot(
             title="Evaluation of best final circuit",
             xlabel="Distance (Angstrom)",
-            ylabel="Energy (a.u.)",
+            ylabel="Energy (Hartree)",
             legend=True,
             savename=f"{self.runs_name}_evaluation",
             save=save, show=show,
@@ -328,7 +328,7 @@ class SingleRunPlotter(BasePlotter):
     #     self.finalise_plot(
     #         title="Evaluation of best final circuit",
     #         xlabel="Distance (Angstrom)",
-    #         ylabel="Energy (a.u.)",
+    #         ylabel="Energy (Hartree)",
     #         savename=f"run{self.runs}_evaluation",
     #         save=save, show=show,
     #         )
