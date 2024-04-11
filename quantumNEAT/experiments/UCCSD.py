@@ -249,6 +249,7 @@ if __name__ == "__main__":
     argparser.add_argument("--n_shots", nargs="+", type=int, default=[0])
     argparser.add_argument("--phys_noise", action="store_true")
     argparser.add_argument("--shot_noise", action="store_true")
+    argparser.add_argument("--hf", action="store_true")
     argparser.add_argument("--print", action="store_true")
     argparser.add_argument("-v", "--verbose", action="count", default=0)
     args = argparser.parse_args()

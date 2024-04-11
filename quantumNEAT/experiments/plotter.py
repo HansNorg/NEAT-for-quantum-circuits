@@ -167,7 +167,7 @@ class BasePlotter(ABC):
         self.finalise_plot(
             title="Evaluation of best final circuit"+self.extra_title,
             xlabel="Distance (Angstrom)",
-            ylabel=abssym+"Delta energy"+abssym+" (a.u.)",
+            ylabel=abssym+"Delta energy"+abssym+" (Hartee)",
             savename=f"{self.runs_name}_delta_evaluation{logname}{absname}{savename}",
             legend=True,
             save=save, show=show,
@@ -592,7 +592,7 @@ class MultipleExperimentPlotter(BasePlotter):
         self.finalise_plot(
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
-            ylabel="Ground state energy (a.u.)",
+            ylabel="Ground state energy (Hartee)",
             savename=f"energy_vs_R",
             save=save, show=show,
         )
@@ -606,7 +606,7 @@ class MultipleExperimentPlotter(BasePlotter):
         self.finalise_plot(
             title=title,
             xlabel="Distance between atoms (Angstrom)", #TODO angstrom symbol
-            ylabel="Delta ground state energy (a.u.)",
+            ylabel="Delta ground state energy (Hartee)",
             savename=f"delta_energy_vs_R",
             save=save, show=show,
         )

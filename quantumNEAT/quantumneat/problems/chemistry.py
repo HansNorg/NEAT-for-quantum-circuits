@@ -56,6 +56,9 @@ class GroundStateEnergy(Problem):
                     print("\\"+str(op)+"_{"+ str(qubit)+"}", end="")
         print()
     
+    def no_encoding_layer(self, circuit:Circuit):
+        pass
+
     def add_encoding_layer(self, circuit:Circuit):
         if self.config.simulator == "qiskit":
             for qubit in range(self.config.n_qubits):
@@ -263,7 +266,7 @@ class GroundStateEnergy(Problem):
             import matplotlib.pyplot as plt
             plt.show()
     
-    def plot_UCCSD_result(self, n_shots=-1, phys_noise=False, label=None, **plot_kwargs):
+    def plot_UCCSD_result(self, n_shots=-1, phys_noise=False, label=None, total=False, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         folder = ""
@@ -273,6 +276,8 @@ class GroundStateEnergy(Problem):
         if phys_noise:
             extra += "_phys-noise"
             folder = "UCCSD/"
+        if total:
+            extra += "_evaluation-total"
         try:
             energies = np.load(f"{folder}{self.molecule}_UCCSD{extra}.npy")
         except FileNotFoundError:
@@ -282,7 +287,7 @@ class GroundStateEnergy(Problem):
             label = f"UCCSD{extra}"
         plt.scatter(self.data.index, energies, label =label, **plot_kwargs)
 
-    def plot_UCCSD_diff(self, n_shots=-1, phys_noise=False, absolute = False, label=None, **plot_kwargs):
+    def plot_UCCSD_diff(self, n_shots=-1, phys_noise=False, absolute = False, label=None, total=False, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         folder = ""
@@ -292,6 +297,8 @@ class GroundStateEnergy(Problem):
         if phys_noise:
             extra += "_phys-noise"
             folder = "UCCSD/"
+        if total:
+            extra += "_evaluation-total"
         try:
             energies = np.load(f"{folder}{self.molecule}_UCCSD{extra}.npy")
         except FileNotFoundError:
@@ -304,14 +311,17 @@ class GroundStateEnergy(Problem):
             label = f"UCCSD{extra}"
         plt.scatter(self.data.index, difference, label =label, **plot_kwargs)
 
-    def plot_UCCSD_shots(self, absolute=False, errorbar=("pi", 100), **plot_kwargs):
+    def plot_UCCSD_shots(self, absolute=False, errorbar=("pi", 100), total=False, **plot_kwargs):
         import seaborn as sns
         from experiments.run_experiment import cluster_n_shots
         data = pd.DataFrame()
+        extra = ""
+        if total:
+            extra = "_evaluation-total"
         for n_shots in cluster_n_shots:
             new_data = pd.DataFrame()
             try:
-                energies = np.load(f"UCCSD/{self.molecule}_UCCSD_{n_shots}-shots.npy")
+                energies = np.load(f"UCCSD/{self.molecule}_UCCSD_{n_shots}-shots{extra}.npy")
             except FileNotFoundError:
                 print(f"UCCSD data not found for {self.molecule} {n_shots=} (and possibly more)")
                 return
@@ -327,45 +337,52 @@ class GroundStateEnergy(Problem):
         if len(data) != 0:
             sns.lineplot(data=data, x="n_shots", y="solution", errorbar=errorbar, **plot_kwargs)
 
-    def plot_HE_result(self, layers, n_shots=-1, phys_noise=False, label=None, **plot_kwargs):
+    def plot_HE_result(self, layers, n_shots=-1, phys_noise=False, label=None, total=False, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
             extra += f"_{n_shots}-shots"
         if phys_noise:
             extra += "_phys-noise"
+        if total:
+            extra += "_evaluation-total"    
         try:
-            energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}.npy")
-        except FileNotFoundError:
+            energies = np.load(f"./HE/{self.molecule}_HE_{layers}-layers{extra}.npy")
+        except FileNotFoundError as exc:
+            print(exc)
             print(f"HE data not found for {self.molecule}{extra} {layers} layers")
             return
         if label is None:
             label = f"HE-{layers}{extra}"
         plt.scatter(self.data.index, energies, label =label, **plot_kwargs)
 
-    def plot_HE_result_total(self, layers, n_shots=-1, phys_noise=False, label=None, **plot_kwargs):
+    def plot_HE_result_total(self, layers, n_shots=-1, phys_noise=False, label=None, total=False, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
             extra += f"_{n_shots}-shots"
         if phys_noise:
             extra += "_phys-noise"
+        if total:
+            extra += "_evaluation-total"
         try:
             energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}_evaluation-total.npy")
         except FileNotFoundError:
-            print(f"HE data not found for {self.molecule}{extra} {layers} layers")
+            print(f"HE data not found for {self.molecule}{extra} {layers} layers total_energy")
             return
         if label is None:
             label = f"HE-{layers}{extra}"
         plt.scatter(self.data.index, energies, label =label, **plot_kwargs)
 
-    def plot_HE_diff(self, layers, n_shots=-1, phys_noise=False, absolute = False, label=None, **plot_kwargs):
+    def plot_HE_diff(self, layers, n_shots=-1, phys_noise=False, absolute = False, label=None, total=False, **plot_kwargs):
         import matplotlib.pyplot as plt
         extra = ""
         if n_shots != -1:
             extra += f"_{n_shots}-shots"
         if phys_noise:
             extra += "_phys-noise"
+        if total:
+            extra += "_evaluation-total"
         try:
             energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers{extra}.npy")
         except FileNotFoundError:
@@ -397,14 +414,17 @@ class GroundStateEnergy(Problem):
             label = f"HE-{layers}{extra}"
         plt.scatter(self.data.index, difference, label =label, **plot_kwargs)
 
-    def plot_HE_shots(self, layers, absolute=False, errorbar=("pi", 100), **plot_kwargs):
+    def plot_HE_shots(self, layers, absolute=False, errorbar=("pi", 100), total=False, **plot_kwargs):
         import seaborn as sns
         from experiments.run_experiment import cluster_n_shots
         data = pd.DataFrame()
+        extra = ""
+        if total:
+            extra = "_evaluation-total"
         for n_shots in cluster_n_shots:
             new_data = pd.DataFrame()
             try:
-                energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers_{n_shots}-shots.npy")
+                energies = np.load(f"HE/{self.molecule}_HE_{layers}-layers_{n_shots}-shots{extra}.npy")
             except FileNotFoundError:
                 print(f"HE data not found for {self.molecule} {n_shots=} (and possibly more)")
                 return

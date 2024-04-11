@@ -69,6 +69,8 @@ def main(args:Namespace, unknown:list[str] = []):
         if "hf" in problem_arg:
             # from quantumneat.problems.chemistry import GroundStateEnergy.add_hartree_fock_encoding
             problem.add_encoding_layer = problem.add_hartree_fock_encoding
+        elif "0" in problem_arg:
+            problem.add_encoding_layer = problem.no_encoding_layer
     elif "h2" in problem_arg or "hydrogen" in problem_arg:
         error_in_fitness = True
         if "errorless" in problem_arg:

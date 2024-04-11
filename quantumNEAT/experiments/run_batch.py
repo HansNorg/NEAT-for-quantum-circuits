@@ -21,6 +21,9 @@ EXPERIMENTS = (
     (["gs_h2_errorless_saveh_hf"], ["linear_growth"], [2], [10], ["R-CNOT"], [False], [0], [False]),
     (["gs_h6_errorless_saveh_hf"], ["linear_growth"], [6], [10], ["R-CNOT"], [False], [0], [False]),
     (["gs_lih_errorless_saveh_hf"], ["linear_growth"], [8], [10], ["R-CNOT"], [False], [0], [False]),
+    (["gs_h2_errorless_saveh_0"], ["linear_growth"], [2], [10], ["R-CNOT"], [False], [0], [False]),
+    (["gs_h6_errorless_saveh_0"], ["linear_growth"], [6], [10], ["R-CNOT"], [False], [0], [False]),
+    (["gs_lih_errorless_saveh_0"], ["linear_growth"], [8], [10], ["R-CNOT"], [False], [0], [False]),
 )
 
 def setup_experiment(problem_ids:list[int], experiment_id:int):

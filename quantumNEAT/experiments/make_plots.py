@@ -250,7 +250,7 @@ def hardware_efficient(folder, verbose, show=False, save=False):
         plt.grid()
         plt.legend()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
+        plt.ylabel("Delta energy (Hartee)")
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient\\{molecule}_diff.png")
@@ -265,7 +265,7 @@ def hardware_efficient(folder, verbose, show=False, save=False):
         plt.grid()
         plt.legend()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
+        plt.ylabel("Delta energy (Hartee)")
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient\\{molecule}_diff_log.png")
@@ -303,7 +303,7 @@ def hardware_efficient_evaluation_total(folder, verbose, show=False, save=False)
         plt.grid()
         plt.legend()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
+        plt.ylabel("Delta energy (Hartee)")
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}_diff.png")
@@ -318,7 +318,7 @@ def hardware_efficient_evaluation_total(folder, verbose, show=False, save=False)
         plt.grid()
         plt.legend()
         plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-        plt.ylabel("Delta energy (a.u.)")
+        plt.ylabel("Delta energy (Hartee)")
         if save:
             os.makedirs(f"{folder}/figures/hardware_efficient_evaluation-total", exist_ok=True)
             plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation-total\\{molecule}_diff_log.png")
@@ -335,17 +335,24 @@ def hardware_efficient_noise(folder, verbose, show=False, save=False):
     colormap = mpl.colormaps.get_cmap(colormap).resampled(n_layers)
     for molecule in ["H2", "H6", "LiH"]:
         gse = GroundStateEnergy(None, molecule.lower())
-        for total, func in [("", gse.plot_HE_result), ("-total", gse.plot_HE_result_total)]:
+        for total, func, diff_func in [("", gse.plot_HE_result, gse.plot_HE_diff), ("-total", gse.plot_HE_result_total, gse.plot_HE_diff_total)]:
             gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
             for ind, l in enumerate(layers):
                 for phys_noise in [False, True]:
                     marker = "x"
+                    label=f"{l} layers"
                     if phys_noise:
                         marker = "+"
-                    func(l, color=colormap(ind/n_layers), marker=marker, phys_noise=phys_noise)
+                        label+=" noise"
+                    func(l, n_shots=0, color=colormap(ind/n_layers), marker=marker, label=label, phys_noise=phys_noise)
             plt.title(f"Hardware efficient anzats for {molecule}")
             plt.grid()
-            plt.legend()
+            # plt.legend()
+            fig = plt.figure(plt.get_fignums()[-1])
+            fig.set_size_inches(8,5)
+            plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+            fig.tight_layout(pad=2)
+            
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
             plt.ylabel("Energy (Hartree)")
             if save:
@@ -355,17 +362,25 @@ def hardware_efficient_noise(folder, verbose, show=False, save=False):
                 plt.show()
             plt.close()
 
+            # plt.figure(figsize=(8,5))
             for ind, l in enumerate(layers):
                 for phys_noise in [False, True]:
                     marker = "x"
+                    label=f"{l} layers"
                     if phys_noise:
                         marker = "+"
-                    gse.plot_HE_diff_total(l, color=colormap(ind/n_layers), marker=marker, phys_noise=phys_noise)
+                        label+=" noise"
+                    diff_func(l, n_shots=0, color=colormap(ind/n_layers), marker=marker, label=label, phys_noise=phys_noise)
             plt.title(f"Hardware efficient anzats for {molecule}")
             plt.grid()
-            plt.legend()
+            # plt.legend()
+            fig = plt.figure(plt.get_fignums()[-1])
+            fig.set_size_inches(8,5)
+            plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+            fig.tight_layout(pad=2)
+
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-            plt.ylabel("Delta energy (a.u.)")
+            plt.ylabel("Delta energy (Hartree)")
             if save:
                 os.makedirs(f"{folder}/figures/hardware_efficient_evaluation{total}", exist_ok=True)
                 plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation{total}\\{molecule}_diff.png")
@@ -377,14 +392,21 @@ def hardware_efficient_noise(folder, verbose, show=False, save=False):
             for ind, l in enumerate(layers):
                 for phys_noise in [False, True]:
                     marker = "x"
+                    label=f"{l} layers"
                     if phys_noise:
                         marker = "+"
-                    gse.plot_HE_diff_total(l, color=colormap(ind/n_layers), marker=marker, phys_noise=phys_noise)
+                        label+=" noise"
+                    diff_func(l, n_shots=0, color=colormap(ind/n_layers), marker=marker, label=label, phys_noise=phys_noise)
             plt.title(f"Hardware efficient anzats for {molecule}")
             plt.grid()
-            plt.legend()
+            # plt.legend()
+            fig = plt.figure(plt.get_fignums()[-1])
+            fig.set_size_inches(8,5)
+            legend = plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+            fig.tight_layout(pad=2)
+
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-            plt.ylabel("Delta energy (a.u.)")
+            plt.ylabel("|Delta energy| (Hartree)")
             if save:
                 os.makedirs(f"{folder}/figures/hardware_efficient_evaluation{total}", exist_ok=True)
                 plt.savefig(f"{folder}\\figures\\hardware_efficient_evaluation{total}\\{molecule}_diff_log.png")
@@ -483,8 +505,8 @@ def thesis_hf(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis hf")
     for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
-        plotter = MultipleExperimentPlotter(f"thesis-hf_{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
-        for method, method_name in [("", "|0>"), ("_hf", "fock")]:
+        plotter = MultipleExperimentPlotter(f"thesis-hf/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
+        for method, method_name in [("", "|+>"), ("_hf", "fock"), ("_0", "|0>")]:
             plotter.add_experiment(
                 f"thesis_gs_{molecule.lower()}_errorless_saveh{method}_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots", 
                 "*", 
@@ -511,7 +533,7 @@ def thesis_hf(folder, verbose, show=False, save=False):
 def thesis(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis")
-    noiseless, phys_noise, shot_noise = False, True, False
+    noiseless, phys_noise, shot_noise = True, True, True
     h2, h6, lih = True, True, True
     _print = True
     
@@ -536,23 +558,23 @@ def thesis(folder, verbose, show=False, save=False):
             else:
                 # plotter.plot_all_generations(show, save)
                 plt.hlines(y=[18], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                plt.hlines(y=[10], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plt.hlines(y=[16], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter.plot_vs_generations("best_lengths", "Number of gates of best circuit per generation", "#gates", show, save, savename="_compared")
                 plt.hlines(y=[14], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                plt.hlines(y=[8], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plt.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
                 plotter.plot_solution()
                 gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_result(layers=1, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_result(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
         if h6: 
@@ -575,11 +597,11 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.print_final_data("best_n_parameters")
             else:
                 from matplotlib.axes import Axes
-                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 3])
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[2, 9])
                 ax1:Axes; ax2:Axes
                 fig.set_size_inches(8,5)
                 ax1.set_ylim(4260, 4270)
-                ax2.set_ylim(0, 30)
+                ax2.set_ylim(0, 45)
                 ax1.spines.bottom.set_visible(False)
                 ax2.spines.top.set_visible(False)
                 ax1.xaxis.tick_top()
@@ -594,7 +616,7 @@ def thesis(folder, verbose, show=False, save=False):
 
                 ax1.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
                 ax2.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                ax2.hlines(y=[26], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                ax2.hlines(y=[44], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 # plt.yscale("log")
                 plotter._plot_vs_generations("best_lengths", ax=ax2)
                 ax1.set_title("Number of gates of best circuit per generation")
@@ -607,11 +629,11 @@ def thesis(folder, verbose, show=False, save=False):
                 fig.subplots_adjust(hspace=0.1)
                 plotter._show_save_close_plot(savename="multiple_experiments_best_lengths_compared_broken", save=save, show=show)
 
-                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 3])
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[2, 7])
                 ax1:Axes; ax2:Axes
                 fig.set_size_inches(8,5)
                 ax1.set_ylim(2760, 2770)
-                ax2.set_ylim(0, 30)
+                ax2.set_ylim(0, 35)
                 ax1.spines.bottom.set_visible(False)
                 ax2.spines.top.set_visible(False)
                 ax1.xaxis.tick_top()
@@ -626,7 +648,7 @@ def thesis(folder, verbose, show=False, save=False):
 
                 ax1.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
                 ax2.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                ax2.hlines(y=[20], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                ax2.hlines(y=[32], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 # plt.yscale("log")
                 plotter._plot_vs_generations("best_n_parameters", ax=ax2)
                 ax1.set_title("Number of parameters of best circuit per generation")
@@ -649,16 +671,16 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
                 plotter.plot_solution()
                 gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_result(layers=1, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_result(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
         if lih: 
@@ -755,16 +777,16 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
                 plotter.plot_solution()
                 gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_result(layers=1, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_result(layers=1, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=1, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=1, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD")
-                gse.plot_HE_diff(layers=1, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
+                gse.plot_HE_diff(layers=1, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient")
                 plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
     if phys_noise:
@@ -795,16 +817,16 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
                 plotter.plot_solution()
                 gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_result(layers=0, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_result(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_diff(layers=0, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_delta_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_diff(layers=0, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_diff(layers=0, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
         if h6:
@@ -901,16 +923,16 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
                 plotter.plot_solution()
                 gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_result(layers=0, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_result(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_diff(layers=0, n_shots=-1, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_delta_evaluation(show, save, marker="x")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_diff(layers=0, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
                 gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True)
-                gse.plot_HE_diff(layers=0, n_shots=-1, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True)
                 plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
     if shot_noise:
@@ -967,7 +989,7 @@ def thesis(folder, verbose, show=False, save=False):
                     # _plotter.print_final_data("best_n_parameters")
             else:
                 plt.hlines(y=[18], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                plt.hlines(y=[10], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plt.hlines(y=[16], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R")
                 plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT")
                 plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT")
@@ -981,7 +1003,7 @@ def thesis(folder, verbose, show=False, save=False):
                 )
 
                 plt.hlines(y=[14], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                plt.hlines(y=[8], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plt.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
                 plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
                 plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
@@ -997,7 +1019,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_R._plot_shots(label="QASNEAT R")
                 plotter_ROT._plot_shots(label="QASNEAT ROT")
                 plotter_qneat._plot_shots(label="QNEAT")
-                gse.plot_HE_shots(1, label="HE", color=HE_COLOR)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR)
                 gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR)
                 plotter.finalise_plot(
                     title="Energy with shot noise",
@@ -1011,7 +1033,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_R._plot_shots(label="QASNEAT R", absolute=True)
                 plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
                 plotter_qneat._plot_shots(label="QNEAT", absolute=True)
-                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True)
                 gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True)
                 plotter.finalise_plot(
                     title="Energy with shot noise",
@@ -1026,7 +1048,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_R._plot_shots(label="QASNEAT R", absolute=True)
                 plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
                 plotter_qneat._plot_shots(label="QNEAT", absolute=True)
-                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True)
                 gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True)
                 plotter.finalise_plot(
                     title="Energy with shot noise",
@@ -1114,11 +1136,11 @@ def thesis(folder, verbose, show=False, save=False):
                     # _plotter.print_final_data("best_n_parameters")
             else:
                 from matplotlib.axes import Axes
-                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 7])
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 9])
                 ax1:Axes; ax2:Axes
                 fig.set_size_inches(8,5)
                 ax1.set_ylim(4260, 4265)
-                ax2.set_ylim(0, 35)
+                ax2.set_ylim(0, 45)
                 ax1.spines.bottom.set_visible(False)
                 ax2.spines.top.set_visible(False)
                 ax1.xaxis.tick_top()
@@ -1133,7 +1155,7 @@ def thesis(folder, verbose, show=False, save=False):
 
                 ax1.hlines(y=[4262], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
                 ax2.hlines(y=[4262], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                ax2.hlines(y=[26], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                ax2.hlines(y=[44], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 # plt.yscale("log")
                 plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R", ax=ax2)
                 plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT", ax=ax2)
@@ -1167,7 +1189,7 @@ def thesis(folder, verbose, show=False, save=False):
 
                 ax1.hlines(y=[2764], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
                 ax2.hlines(y=[2764], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
-                ax2.hlines(y=[20], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                ax2.hlines(y=[32], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
                 plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
                 plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
@@ -1182,7 +1204,7 @@ def thesis(folder, verbose, show=False, save=False):
                 fig.subplots_adjust(hspace=0.1)
                 plotter._show_save_close_plot(savename="shotplot_best_n_parameters_broken", save=save, show=show)
 
-                plt.hlines(y=[26], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plt.hlines(y=[44], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R")
                 plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT")
                 plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT")
@@ -1195,7 +1217,7 @@ def thesis(folder, verbose, show=False, save=False):
                     save=save, show=show,
                 )
 
-                plt.hlines(y=[20], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plt.hlines(y=[32], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
                 plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
                 plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
                 plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
@@ -1211,7 +1233,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_R._plot_shots(label="QASNEAT R")
                 plotter_ROT._plot_shots(label="QASNEAT ROT")
                 plotter_qneat._plot_shots(label="QNEAT")
-                gse.plot_HE_shots(1, label="HE", color=HE_COLOR)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR)
                 gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR)
                 plotter.finalise_plot(
                     title="Energy with shot noise",
@@ -1225,7 +1247,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_R._plot_shots(label="QASNEAT R", absolute=True)
                 plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
                 plotter_qneat._plot_shots(label="QNEAT", absolute=True)
-                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True)
                 gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True)
                 plotter.finalise_plot(
                     title="Energy with shot noise",
@@ -1240,7 +1262,7 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_R._plot_shots(label="QASNEAT R", absolute=True)
                 plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
                 plotter_qneat._plot_shots(label="QNEAT", absolute=True)
-                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True)
                 gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True)
                 plotter.finalise_plot(
                     title="Energy with shot noise",
@@ -1456,6 +1478,954 @@ def thesis(folder, verbose, show=False, save=False):
                 plotter_qneat.plot_box("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
                 plotter_qneat.plot_box_log("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
 
+def thesis_total(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("thesis")
+    noiseless, phys_noise, shot_noise = True, True, True
+    h2, h6, lih = True, True, True
+    _print = False
+    
+    if noiseless:
+        if h2: 
+            plotter = MultipleExperimentPlotter("thesis_total-energy/h2", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "h2")
+            plotter.add_experiment("thesis_gs_h2_errorless_saveh_linear_growth_R-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                "*",
+                                "QASNEAT R", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h2_errorless_saveh_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                "*",
+                                "QASNEAT ROT", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h2_errorless_saveh_qneat_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                "*",
+                                "QNEAT", label_n_runs=False)
+            if _print:
+                plotter.print_n_runs()
+                plotter.print_final_data("best_lengths")
+                plotter.print_final_data("best_n_parameters")
+            else:
+                # plotter.plot_all_generations(show, save)
+                plt.hlines(y=[18], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[16], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_lengths", "Number of gates of best circuit per generation", "#gates", show, save, savename="_compared")
+                plt.hlines(y=[14], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+                plotter.plot_solution()
+                gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_result(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+        if h6: 
+            plotter = MultipleExperimentPlotter("thesis_total-energy/h6", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "h6")
+            plotter.add_experiment("thesis_gs_h6_errorless_saveh_linear_growth_R-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                    "*",
+                                    "QASNEAT R", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h6_errorless_saveh_linear_growth_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                    "*",
+                                    "QASNEAT ROT", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h6_errorless_saveh_qneat_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                    "*",
+                                    "QNEAT", label_n_runs=False)
+            # plotter.plot_all_generations(show, save)
+            if _print:
+                plotter.print_n_runs()
+                plotter.print_final_data("best_lengths")
+                plotter.print_final_data("best_n_parameters")
+            else:
+                from matplotlib.axes import Axes
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[2, 9])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(4260, 4270)
+                ax2.set_ylim(0, 45)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[44], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter._plot_vs_generations("best_lengths", ax=ax2)
+                ax1.set_title("Number of gates of best circuit per generation")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("Generation")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="multiple_experiments_best_lengths_compared_broken", save=save, show=show)
+
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[2, 7])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(2760, 2770)
+                ax2.set_ylim(0, 35)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[32], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter._plot_vs_generations("best_n_parameters", ax=ax2)
+                ax1.set_title("Number of parameters of best circuit per generation")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("Generation")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="multiple_experiments_best_n_parameters_compared_broken", save=save, show=show)
+
+                # plt.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[26], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_lengths", "Number of gates of best circuit per generation", "#gates", show, save, savename="_compared")
+
+                # plt.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[20], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+                plotter.plot_solution()
+                gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_result(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=2, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=2, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+        if lih: 
+            plotter = MultipleExperimentPlotter("thesis_total-energy/lih", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "lih")
+            plotter.add_experiment("thesis_gs_lih_errorless_saveh_linear_growth_R-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                    "*",
+                                    "QASNEAT R", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_lih_errorless_saveh_linear_growth_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                    "*",
+                                    "QASNEAT ROT", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_lih_errorless_saveh_qneat_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                                    "*",
+                                    "QNEAT", label_n_runs=False)
+            # plotter.plot_all_generations(show, save)
+            if _print:
+                plotter.print_n_runs()
+                plotter.print_final_data("best_lengths")
+                plotter.print_final_data("best_n_parameters")
+            else:
+                from matplotlib.axes import Axes
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 4.5])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(3810, 3820)
+                ax2.set_ylim(0, 45)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[3815], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[3815], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[40], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter._plot_vs_generations("best_lengths", ax=ax2)
+                ax1.set_title("Number of gates of best circuit per generation")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("Generation")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="multiple_experiments_best_lengths_compared_broken", save=save, show=show)
+
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 4.5])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(2295, 2305)
+                ax2.set_ylim(0, 45)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[2300], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[2300], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[32], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter._plot_vs_generations("best_n_parameters", ax=ax2)
+                ax1.set_title("Number of parameters of best circuit per generation")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("Generation")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="multiple_experiments_best_n_parameters_compared_broken", save=save, show=show)
+
+                # plt.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[40], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_lengths", "Number of gates of best circuit per generation", "#gates", show, save, savename="_compared")
+
+                # plt.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[32], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+                plotter.plot_solution()
+                gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_result(layers=1, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=1, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=1, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", total=True)
+                gse.plot_HE_diff(layers=1, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", total=True)
+                plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+    if phys_noise:
+        if h2:
+            plotter = MultipleExperimentPlotter("thesis/h2_phys-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "h2")
+            plotter.add_experiment("thesis_gs_h2_errorless_saveh_linear_growth_R-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots_phys-noise",
+                                "*",
+                                "QASNEAT R", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h2_errorless_saveh_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots_phys-noise",
+                                "*",
+                                "QASNEAT ROT", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h2_errorless_saveh_qneat_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots_phys-noise",
+                                "*",
+                                "QNEAT", label_n_runs=False)
+            # plotter.plot_all_generations(show, save)
+            if _print:
+                plotter.print_n_runs()
+                plotter.print_final_data("best_lengths")
+                plotter.print_final_data("best_n_parameters")
+            else:
+                plt.hlines(y=[18], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[4], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_lengths", "Number of gates of best circuit per generation", "#gates", show, save, savename="_compared")
+                plt.hlines(y=[14], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[4], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+                plotter.plot_solution()
+                gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_result(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+        if h6:
+            plotter = MultipleExperimentPlotter("thesis_total-energy/h6_phys-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "h6")
+            plotter.add_experiment("thesis_gs_h6_errorless_saveh_linear_growth_R-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots_phys-noise",
+                                    "*",
+                                    "QASNEAT R", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h6_errorless_saveh_linear_growth_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots_phys-noise",
+                                    "*",
+                                    "QASNEAT ROT", label_n_runs=False)
+            plotter.add_experiment("thesis_gs_h6_errorless_saveh_qneat_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots_phys-noise",
+                                    "*",
+                                    "QNEAT", label_n_runs=False)
+            if _print:
+                plotter.print_n_runs()
+                plotter.print_final_data("best_lengths")
+                plotter.print_final_data("best_n_parameters")
+            else:
+                # plotter.plot_all_generations(show, save)
+                from matplotlib.axes import Axes
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 3])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(4260, 4270)
+                ax2.set_ylim(0, 25)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter._plot_vs_generations("best_lengths", ax=ax2)
+                ax1.set_title("Number of gates of best circuit per generation")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("Generation")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="multiple_experiments_best_lengths_compared_broken", save=save, show=show)
+
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 3])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(2760, 2770)
+                ax2.set_ylim(0, 25)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter._plot_vs_generations("best_n_parameters", ax=ax2)
+                ax1.set_title("Number of parameters of best circuit per generation")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("Generation")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="multiple_experiments_best_n_parameters_compared_broken", save=save, show=show)
+
+                # plt.hlines(y=[4262], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter.plot_vs_generations("best_lengths", "Number of gates of best circuit per generation", "#gates", show, save, savename="_compared")
+
+                # plt.hlines(y=[2764], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter.plot_vs_generations("best_n_parameters", "Number of parameters of best circuit per generation", "#parameters", show, save, savename="_compared")
+                plotter.plot_solution()
+                gse.plot_UCCSD_result(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_result(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+                gse.plot_UCCSD_diff(n_shots=0, absolute=True, color=UCCSD_COLOR, marker="x", label="UCCSD", phys_noise=True, total=True)
+                gse.plot_HE_diff(layers=0, n_shots=0, absolute=True, color=HE_COLOR, marker="x", label="Hardware efficient", phys_noise=True, total=True)
+                plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
+    if shot_noise:
+        if h2:
+            plotter = MultipleExperimentPlotter(f"thesis_total-energy/h2_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "h2")
+
+            plotter_R = MultipleExperimentPlotter(f"thesis_total-energy/h2_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_R.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_R.add_experiment(
+                    f"thesis_gs_h2_errorless_saveh_linear_growth_R-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_R.add_experiment(
+                f"thesis_gs_h2_errorless_saveh_linear_growth_R-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+            
+            plotter_ROT = MultipleExperimentPlotter(f"thesis_total-energy/h2_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_ROT.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_ROT.add_experiment(
+                    f"thesis_gs_h2_errorless_saveh_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_ROT.add_experiment(
+                f"thesis_gs_h2_errorless_saveh_linear_growth_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+
+            plotter_qneat = MultipleExperimentPlotter(f"thesis_total-energy/h2_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_qneat.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_qneat.add_experiment(
+                    f"thesis_gs_h2_errorless_saveh_qneat_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_qneat.add_experiment(
+                f"thesis_gs_h2_errorless_saveh_qneat_ROT-CNOT_2-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+            if _print:
+                for _plotter in [plotter_R, plotter_ROT, plotter_qneat]:
+                    _plotter.print_n_runs()
+                    # _plotter.print_final_data("best_lengths")
+                    # _plotter.print_final_data("best_n_parameters")
+            else:
+                plt.hlines(y=[18], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[16], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT")
+                plotter.finalise_plot(
+                    title="Number of gates with shot noise",
+                    xlabel="#shots",
+                    ylabel="#gates",
+                    legend=True,
+                    savename="shotplot_best_lengths",
+                    save=save, show=show,
+                )
+
+                plt.hlines(y=[14], xmin=[0], xmax=[100], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                plt.hlines(y=[12], xmin=[0], xmax=[100], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
+                plotter.finalise_plot(
+                    title="Number of parameters with shot noise",
+                    xlabel="#shots",
+                    ylabel="#parameters",
+                    legend=True,
+                    savename="shotplot_best_n_parameters",
+                    save=save, show=show,
+                )
+
+                plotter_R._plot_shots(label="QASNEAT R")
+                plotter_ROT._plot_shots(label="QASNEAT ROT")
+                plotter_qneat._plot_shots(label="QNEAT")
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="Energy difference (Hartree)",
+                    legend=True,
+                    savename="shotplot",
+                    save=save, show=show,
+                )
+
+                plotter_R._plot_shots(label="QASNEAT R", absolute=True)
+                plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
+                plotter_qneat._plot_shots(label="QNEAT", absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="|Energy difference| (Hartree)",
+                    legend=True,
+                    savename="shotplot_abs",
+                    save=save, show=show,
+                )
+
+                plt.yscale("log")
+                plotter_R._plot_shots(label="QASNEAT R", absolute=True)
+                plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
+                plotter_qneat._plot_shots(label="QNEAT", absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="|Energy difference| (Hartree)",
+                    legend=True,
+                    savename="shotplot_log",
+                    save=save, show=show,
+                )
+
+                # eb = ("pi", 90)
+                # plt.yscale("log")
+                # plotter_R._plot_shots(label="QASNEAT R", absolute=True, errorbar=eb)
+                # plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True, errorbar=eb)
+                # plotter_qneat._plot_shots(label="QNEAT", absolute=True, errorbar=eb)
+                # gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True, errorbar=eb)
+                # gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, errorbar=eb)
+                # plotter.finalise_plot(
+                #     title="Energy with shot noise",
+                #     xlabel="#shots",
+                #     ylabel="|Energy difference| (Hartree)",
+                #     legend=True,
+                #     savename="shotplot_log_new",
+                #     save=save, show=show,
+                # )
+
+                plotter_R.plot_box("n_shots", f"QASNEAT R", show=show, save=save, savename="_R")
+                plotter_R.plot_box_log("n_shots", f"QASNEAT R", show=show, save=save, savename="_R")
+                plotter_ROT.plot_box("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
+                plotter_ROT.plot_box_log("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
+                plotter_qneat.plot_box("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
+                plotter_qneat.plot_box_log("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
+
+        if h6:
+            plotter = MultipleExperimentPlotter(f"thesis_total-energy/h6_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "h6")
+
+            plotter_R = MultipleExperimentPlotter(f"thesis_total-energy/h6_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_R.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_R.add_experiment(
+                    f"thesis_gs_h6_errorless_saveh_linear_growth_R-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_R.add_experiment(
+                f"thesis_gs_h6_errorless_saveh_linear_growth_R-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+            
+            plotter_ROT = MultipleExperimentPlotter(f"thesis_total-energy/h6_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_ROT.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_ROT.add_experiment(
+                    f"thesis_gs_h6_errorless_saveh_linear_growth_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_ROT.add_experiment(
+                f"thesis_gs_h6_errorless_saveh_linear_growth_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+
+            plotter_qneat = MultipleExperimentPlotter(f"thesis_total-energy/h6_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_qneat.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_qneat.add_experiment(
+                    f"thesis_gs_h6_errorless_saveh_qneat_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_qneat.add_experiment(
+                f"thesis_gs_h6_errorless_saveh_qneat_ROT-CNOT_6-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+            
+            if _print:
+                for _plotter in [plotter_R, plotter_ROT, plotter_qneat]:
+                    _plotter.print_n_runs()
+                    # _plotter.print_final_data("best_lengths")
+                    # _plotter.print_final_data("best_n_parameters")
+            else:
+                from matplotlib.axes import Axes
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 9])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(4260, 4265)
+                ax2.set_ylim(0, 45)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[4262], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[4262], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[44], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R", ax=ax2)
+                plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT", ax=ax2)
+                plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT", ax=ax2)            
+                ax1.set_title("Number of gates with shot noise")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("#shots")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="shotplot_best_lengths_broken", save=save, show=show)
+
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 7])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(2760, 2765)
+                ax2.set_ylim(0, 35)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[2764], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[2764], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[32], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
+                # plt.yscale("log")
+                ax1.set_title("Number of parameters with shot noise")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("#shots")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="shotplot_best_n_parameters_broken", save=save, show=show)
+
+                plt.hlines(y=[44], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT")
+                plotter.finalise_plot(
+                    title="Number of gates with shot noise",
+                    xlabel="#shots",
+                    ylabel="#gates",
+                    legend=True,
+                    savename="shotplot_best_lengths",
+                    save=save, show=show,
+                )
+
+                plt.hlines(y=[32], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
+                plotter.finalise_plot(
+                    title="Number of parameters with shot noise",
+                    xlabel="#shots",
+                    ylabel="#parameters",
+                    legend=True,
+                    savename="shotplot_best_n_parameters",
+                    save=save, show=show,
+                )
+                
+                plotter_R._plot_shots(label="QASNEAT R")
+                plotter_ROT._plot_shots(label="QASNEAT ROT")
+                plotter_qneat._plot_shots(label="QNEAT")
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="Energy difference (Hartree)",
+                    legend=True,
+                    savename="shotplot",
+                    save=save, show=show,
+                )
+
+                plotter_R._plot_shots(label="QASNEAT R", absolute=True)
+                plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
+                plotter_qneat._plot_shots(label="QNEAT", absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="|Energy difference| (Hartree)",
+                    legend=True,
+                    savename="shotplot_abs",
+                    save=save, show=show,
+                )
+
+                plt.yscale("log")
+                plotter_R._plot_shots(label="QASNEAT R", absolute=True)
+                plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
+                plotter_qneat._plot_shots(label="QNEAT", absolute=True)
+                gse.plot_HE_shots(2, label="HE", color=HE_COLOR, absolute=True, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="|Energy difference| (Hartree)",
+                    legend=True,
+                    savename="shotplot_log",
+                    save=save, show=show,
+                )
+
+                plotter_R.plot_box("n_shots", f"QASNEAT R", show=show, save=save, savename="_R")
+                plotter_R.plot_box_log("n_shots", f"QASNEAT R", show=show, save=save, savename="_R")
+                plotter_ROT.plot_box("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
+                plotter_ROT.plot_box_log("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
+                plotter_qneat.plot_box("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
+                plotter_qneat.plot_box_log("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
+
+        if lih:
+            plotter = MultipleExperimentPlotter(f"thesis_total-energy/lih_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter.extra_title = ""
+            gse = GroundStateEnergy(None, "lih")
+
+            plotter_R = MultipleExperimentPlotter(f"thesis_total-energy/lih_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_R.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_R.add_experiment(
+                    f"thesis_gs_lih_errorless_saveh_linear_growth_R-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_R.add_experiment(
+                f"thesis_gs_lih_errorless_saveh_linear_growth_R-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+            
+            plotter_ROT = MultipleExperimentPlotter(f"thesis_total-energy/lih_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_ROT.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_ROT.add_experiment(
+                    f"thesis_gs_lih_errorless_saveh_linear_growth_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}"
+                    )
+            plotter_ROT.add_experiment(
+                f"thesis_gs_lih_errorless_saveh_linear_growth_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+
+            plotter_qneat = MultipleExperimentPlotter(f"thesis_total-energy/lih_shot-noise", folder=folder, verbose=verbose, error_verbose=verbose)
+            plotter_qneat.extra_title = ""
+            for n_shots in range(1, 13):
+                plotter_qneat.add_experiment(
+                    f"thesis_gs_lih_errorless_saveh_qneat_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_{cluster_n_shots[n_shots]}-shots",
+                    "*",
+                    f"{cluster_n_shots[n_shots]}", label_n_runs=False
+                    )
+            plotter_qneat.add_experiment(
+                f"thesis_gs_lih_errorless_saveh_qneat_ROT-CNOT_8-qubits_100-population_100-optimizer-steps_total-energy_0-shots",
+                "*",
+                f"\u221e", label_n_runs=False
+                )
+            
+            if _print:
+                for _plotter in [plotter_R, plotter_ROT, plotter_qneat]:
+                    _plotter.print_n_runs()
+                    # _plotter.print_final_data("best_lengths")
+                    # _plotter.print_final_data("best_n_parameters")
+            else:
+                from matplotlib.axes import Axes
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 4.5])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(3810, 3820)
+                ax2.set_ylim(0, 45)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[3815], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[3815], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[40], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                # plt.yscale("log")
+                plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R", ax=ax2)
+                plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT", ax=ax2)
+                plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT", ax=ax2)            
+                ax1.set_title("Number of gates with shot noise")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("#shots")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="shotplot_best_lengths_broken", save=save, show=show)
+
+                fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, height_ratios=[1, 4.5])
+                ax1:Axes; ax2:Axes
+                fig.set_size_inches(8,5)
+                ax1.set_ylim(2295, 2305)
+                ax2.set_ylim(0, 45)
+                ax1.spines.bottom.set_visible(False)
+                ax2.spines.top.set_visible(False)
+                ax1.xaxis.tick_top()
+                ax1.tick_params(labeltop=False, size=0)  # don't put tick labels at the top
+                ax2.xaxis.tick_bottom()
+
+                d = .5  # proportion of vertical to horizontal extent of the slanted line
+                kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                            linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+                ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+                ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
+                ax1.hlines(y=[2300], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[2300], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[UCCSD_COLOR], linestyles="dashed", label="UCCSD")
+                ax2.hlines(y=[32], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
+                # plt.yscale("log")
+                ax1.set_title("Number of parameters with shot noise")
+                ax1.grid()
+                ax2.grid()
+                plt.xlabel("#shots")
+                plt.ylabel("#gates")
+                ax2.legend(loc="upper left", bbox_to_anchor=(1, 0.5))
+                fig.tight_layout(pad=2)
+                fig.subplots_adjust(hspace=0.1)
+                plotter._show_save_close_plot(savename="shotplot_best_n_parameters_broken", save=save, show=show)
+
+                plt.hlines(y=[40], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_lengths", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_lengths", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_lengths", label="QNEAT")
+                plotter.finalise_plot(
+                    title="Number of gates with shot noise",
+                    xlabel="#shots",
+                    ylabel="#gates",
+                    legend=True,
+                    savename="shotplot_best_lengths",
+                    save=save, show=show,
+                )
+
+                plt.hlines(y=[32], xmin=[0], xmax=[len(cluster_n_shots)-1], colors=[HE_COLOR], linestyles="dashed", label="Hardware efficient")
+                plotter_R._plot_shots_generations("best_n_parameters", label="QASNEAT R")
+                plotter_ROT._plot_shots_generations("best_n_parameters", label="QASNEAT ROT")
+                plotter_qneat._plot_shots_generations("best_n_parameters", label="QNEAT")
+                plotter.finalise_plot(
+                    title="Number of parameters with shot noise",
+                    xlabel="#shots",
+                    ylabel="#parameters",
+                    legend=True,
+                    savename="shotplot_best_n_parameters",
+                    save=save, show=show,
+                )
+
+                plotter_R._plot_shots(label="QASNEAT R")
+                plotter_ROT._plot_shots(label="QASNEAT ROT")
+                plotter_qneat._plot_shots(label="QNEAT")
+                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="Energy difference (Hartree)",
+                    legend=True,
+                    savename="shotplot",
+                    save=save, show=show,
+                )
+
+                plotter_R._plot_shots(label="QASNEAT R", absolute=True)
+                plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
+                plotter_qneat._plot_shots(label="QNEAT", absolute=True)
+                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="|Energy difference| (Hartree)",
+                    legend=True,
+                    savename="shotplot_abs",
+                    save=save, show=show,
+                )
+
+                plt.yscale("log")
+                plotter_R._plot_shots(label="QASNEAT R", absolute=True)
+                plotter_ROT._plot_shots(label="QASNEAT ROT", absolute=True)
+                plotter_qneat._plot_shots(label="QNEAT", absolute=True)
+                gse.plot_HE_shots(1, label="HE", color=HE_COLOR, absolute=True, total=True)
+                gse.plot_UCCSD_shots(label="UCCSD", color=UCCSD_COLOR, absolute=True, total=True)
+                plotter.finalise_plot(
+                    title="Energy with shot noise",
+                    xlabel="#shots",
+                    ylabel="|Energy difference| (Hartree)",
+                    legend=True,
+                    savename="shotplot_log",
+                    save=save, show=show,
+                )
+
+                plotter_R.plot_box("n_shots", f"QASNEAT R", show=show, save=save, savename="_R")
+                plotter_R.plot_box_log("n_shots", f"QASNEAT R", show=show, save=save, savename="_R")
+                plotter_ROT.plot_box("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
+                plotter_ROT.plot_box_log("n_shots", f"QASNEAT ROT", show=show, save=save, savename="_ROT")
+                plotter_qneat.plot_box("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
+                plotter_qneat.plot_box_log("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
+
 def UCCSD(folder, verbose, show=False, save=False):
     # from qiskit import transpile
     # from qiskit.circuit import Parameter
@@ -1520,7 +2490,7 @@ def UCCSD(folder, verbose, show=False, save=False):
             plt.grid()
             plt.legend()
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-            plt.ylabel("Delta energy (a.u.)")
+            plt.ylabel("Delta energy (Hartee)")
             if save:
                 os.makedirs(f"{folder}/figures/UCCSD_evaluation{total}", exist_ok=True)
                 plt.savefig(f"{folder}\\figures\\UCCSD_evaluation{total}\\{molecule}_diff.png")
@@ -1539,7 +2509,7 @@ def UCCSD(folder, verbose, show=False, save=False):
             plt.grid()
             plt.legend()
             plt.xlabel("Distance between atoms (Angstrom)") #TODO angstrom symbol
-            plt.ylabel("Delta energy (a.u.)")
+            plt.ylabel("Delta energy (Hartee)")
             if save:
                 os.makedirs(f"{folder}/figures/UCCSD_evaluation{total}", exist_ok=True)
                 plt.savefig(f"{folder}\\figures\\UCCSD_evaluation{total}\\{molecule}_diff_log.png")
@@ -1616,6 +2586,8 @@ if __name__ == "__main__":
         thesis_hf(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "thesis" or args.experiment == "all":
         thesis(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "thesis_total" or args.experiment == "all":
+        thesis_total(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "UCCSD" or args.experiment == "all":
         UCCSD(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":
