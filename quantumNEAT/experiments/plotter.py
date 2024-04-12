@@ -3,10 +3,7 @@ from __future__ import annotations
 import os
 from time import time
 from abc import ABC, abstractmethod
-
-from quantumneat.problems.chemistry import GroundStateEnergy
-from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution
-from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution
+import pickle
 from tqdm import tqdm
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -20,7 +17,13 @@ import matplotlib.colors as mplc
 import matplotlib.pyplot as plt 
 import pandas as pd
 import seaborn as sns
+from qulacs import ParametricQuantumCircuit
 
+from quantumneat.problem import Problem
+from quantumneat.problems.chemistry import GroundStateEnergy
+from quantumneat.problems.hydrogen import plot_solution as plot_h2_solution
+from quantumneat.problems.hydrogen_6 import plot_solution as plot_h6_solution
+from experiments.noisy_circuit import add_depolarizing_noise
 
 if TYPE_CHECKING:
     from quantumneat.configuration import QuantumNEATConfig
@@ -55,6 +58,7 @@ class BasePlotter(ABC):
         self.generation_data = pd.DataFrame()
         self.evaluation_data = dict()
         self.evaluation_data_df = pd.DataFrame()
+        self.revaluation_data_df = pd.DataFrame()
 
     def _plot_vs_generations(self, key:str, label:str=None, **plot_kwargs):
         try:
@@ -140,7 +144,7 @@ class BasePlotter(ABC):
         else:
             print("plot_type ", plot_type, " not implemented")
 
-    def plot_evaluation(self, show=False, save=False, **plot_kwargs):
+    def plot_evaluation(self, show=False, save=False, close=True, **plot_kwargs):
         self._plot_evaluation(**plot_kwargs)
         self.finalise_plot(
             title="Evaluation of best final circuit",
@@ -148,13 +152,35 @@ class BasePlotter(ABC):
             ylabel="Energy (Hartree)",
             legend=True,
             savename=f"{self.runs_name}_evaluation",
+            save=save, show=show, close=close,
+        )
+
+    def _plot_revaluation(self, plot_type = "scatter", **plot_kwargs):
+        # print(self.evaluation_data_df.head())
+        if len(self.revaluation_data_df) == 0:
+            return
+        if plot_type == "scatter":
+            sns.scatterplot(self.revaluation_data_df, x="distances", y="energies", legend=False, **plot_kwargs)
+        elif plot_type == "line":
+            sns.lineplot(self.revaluation_data_df, x="distances", y="energies", legend=False, **plot_kwargs)
+        else:
+            print("plot_type ", plot_type, " not implemented")
+
+    def plot_revaluation(self, show=False, save=False, **plot_kwargs):
+        self._plot_revaluation(**plot_kwargs)
+        self.finalise_plot(
+            title="Evaluation of best final circuit",
+            xlabel="Distance (Angstrom)",
+            ylabel="Energy (Hartree)",
+            legend=True,
+            savename=f"{self.runs_name}_revaluation",
             save=save, show=show,
         )
 
     def _plot_delta_evaluation(self, absolute=False, **plot_kwargs):
         pass
 
-    def plot_delta_evaluation(self, show = False, save = False, logarithmic=False, absolute = False, savename="", **plot_kwargs):
+    def plot_delta_evaluation(self, show = False, save = False, close=True, logarithmic=False, absolute = False, savename="", **plot_kwargs):
         logname, absname, abssym = "", "", ""
         if logarithmic:
             plt.yscale("log")
@@ -170,7 +196,29 @@ class BasePlotter(ABC):
             ylabel=abssym+"Delta energy"+abssym+" (Hartee)",
             savename=f"{self.runs_name}_delta_evaluation{logname}{absname}{savename}",
             legend=True,
-            save=save, show=show,
+            save=save, show=show, close=close,
+        )
+
+    def _plot_delta_revaluation(self, absolute=False, **plot_kwargs):
+        pass
+
+    def plot_delta_revaluation(self, show = False, save = False, close=True, logarithmic=False, absolute = False, savename="", **plot_kwargs):
+        logname, absname, abssym = "", "", ""
+        if logarithmic:
+            plt.yscale("log")
+            logname = "_log"
+            absolute = True
+        self._plot_delta_revaluation(absolute=absolute, **plot_kwargs)
+        if absolute:
+            abssym = "|"
+            absname = "_abs"
+        self.finalise_plot(
+            title="Evaluation of best final circuit"+self.extra_title,
+            xlabel="Distance (Angstrom)",
+            ylabel=abssym+"Delta energy"+abssym+" (Hartee)",
+            savename=f"{self.runs_name}_delta_revaluation{logname}{absname}{savename}",
+            legend=True,
+            save=save, show=show, close=close,
         )
 
     def plot_all_generations(self, show = False, save = False, **plot_kwargs):
@@ -502,6 +550,39 @@ class MultipleRunPlotter(BasePlotter):
             sns.lineplot(data=diff_data, x=diff_data.index, y="solution", legend=False, **plot_kwargs)
         else:
             print("plot_type ", plot_type, " not implemented")
+
+    def _plot_delta_revaluation(self, absolute = False, plot_type = "scatter", **plot_kwargs):
+        if "gs" in self.name:
+            if "h2" in self.name:
+                molecule = "h2"
+            elif "h6" in self.name:
+                molecule = "h6"
+            elif "lih" in self.name:
+                molecule = "lih"
+            else:
+                molecule = None
+        if not molecule:
+            return
+        gse = GroundStateEnergy(self.config, molecule)
+        diff_data = pd.DataFrame()
+        # for i in range(len(self.revaluation_data_df)):
+        #     print(i)
+        #     difference = self.revaluation_data_df["energies"][i]-gse.data["solution"][self.revaluation_data_df["distances"][i]]
+        for data in self.revaluation_data:
+            difference:pd.Series = data-gse.data["solution"]
+            if absolute:
+                difference = abs(difference)
+            else:
+                difference = np.real(difference)
+            diff_data = pd.concat((diff_data, difference))
+        if len(diff_data) == 0:
+            return
+        if plot_type == "scatter":
+            sns.scatterplot(data=diff_data, x=diff_data.index, y="solution", legend=False, **plot_kwargs)
+        elif plot_type == "line":
+            sns.lineplot(data=diff_data, x=diff_data.index, y="solution", legend=False, **plot_kwargs)
+        else:
+            print("plot_type ", plot_type, " not implemented")
     
     def get_energies(self) -> pd.DataFrame:
         energies = pd.DataFrame()
@@ -532,7 +613,7 @@ class MultipleRunPlotter(BasePlotter):
             energies = pd.concat((energies, pd.DataFrame(difference, index=data["distances"])))
         return energies
     
-    def load_circuit_data(self):
+    def load_circuit_data(self, config:QuantumNEATConfig) -> list[ParametricQuantumCircuit]:
         if self.runs == "*":
             files = Path(f"{self.folder}\\results\\").glob(f"{self.name}_run{self.runs}_circuit.pickle")
         else:
@@ -545,15 +626,34 @@ class MultipleRunPlotter(BasePlotter):
             if self.verbose >= 1:
                 print(file)
             try:
-                data = dict(np.load(file, allow_pickle=True))
+                # data = dict(np.load(file, allow_pickle=True))
+                with open(file, "rb") as f:
+                    circuit:ParametricQuantumCircuit = pickle.load(f)
+                if config.phys_noise:
+                    circuit = add_depolarizing_noise(circuit, config.depolarizing_noise_prob)
             except FileNotFoundError as exc_info:
                 if self.error_verbose < 2:
                     print(f"{file} not found.")
                 else:
                     print(exc_info)
                 continue
-            config:QuantumNEATConfig = data.pop("config")
-            data_multiple.append(data)
+            # config:QuantumNEATConfig = data.pop("config")
+            data_multiple.append(circuit)
+        return data_multiple
+
+    def revaluate(self, problem:Problem):
+        circuits = self.load_circuit_data(problem.config)
+        revaluation_data_df = pd.DataFrame()
+        revaluation_data = []
+        for circuit in circuits:
+            parameters = [circuit.get_parameter(i) for i in range(circuit.get_parameter_count())]
+            distances, energies = problem.evaluate(circuit, parameters)
+            new_data = pd.DataFrame({"distances":distances, "energies":energies})
+            revaluation_data_df = pd.concat((revaluation_data_df, new_data))
+            revaluation_data.append(energies)
+        # print(np.shape(revaluation_data))
+        self.revaluation_data = revaluation_data
+        self.revaluation_data_df = revaluation_data_df
 
 class MultipleExperimentPlotter(BasePlotter):
     def __init__(self, name: str, runs="*", folder: str = ".", verbose=0, error_verbose=1) -> None:
@@ -621,15 +721,35 @@ class MultipleExperimentPlotter(BasePlotter):
         for i, (experiment, label) in enumerate(self.experiments):
             experiment._plot_evaluation(label = label+experiment.extra_label, **plot_kwargs)
 
-    def _plot_delta_evaluation(self, absolute = False, colormap = None, **plot_kwargs):
+    def _plot_revaluation(self, colormap = None, **plot_kwargs):
         if colormap:
             n_experiments = len(self.experiments)
             colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
             for i, (experiment, label) in enumerate(self.experiments):
-                experiment._plot_delta_evaluation(label = label+experiment.extra_label, absolute=absolute, color=colormap(i/n_experiments), **plot_kwargs)    
+                experiment._plot_revaluation(label = label+experiment.extra_label, color=colormap(i/n_experiments), **plot_kwargs)    
             return
         for i, (experiment, label) in enumerate(self.experiments):
-            experiment._plot_delta_evaluation(label = label+experiment.extra_label, absolute=absolute, **plot_kwargs)
+            experiment._plot_revaluation(label = label+experiment.extra_label, **plot_kwargs)
+
+    def _plot_delta_evaluation(self, absolute = False, colormap = None, extra_label="", **plot_kwargs):
+        if colormap:
+            n_experiments = len(self.experiments)
+            colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_delta_evaluation(label = label+experiment.extra_label+extra_label, absolute=absolute, color=colormap(i/n_experiments), **plot_kwargs)    
+            return
+        for i, (experiment, label) in enumerate(self.experiments):
+            experiment._plot_delta_evaluation(label = label+experiment.extra_label+extra_label, absolute=absolute, **plot_kwargs)
+        
+    def _plot_delta_revaluation(self, absolute = False, colormap = None, extra_label="_revaluated", **plot_kwargs):
+        if colormap:
+            n_experiments = len(self.experiments)
+            colormap = mpl.colormaps.get_cmap(colormap).resampled(n_experiments)
+            for i, (experiment, label) in enumerate(self.experiments):
+                experiment._plot_delta_revaluation(label = label+experiment.extra_label+extra_label, absolute=absolute, color=colormap(i/n_experiments), **plot_kwargs)    
+            return
+        for i, (experiment, label) in enumerate(self.experiments):
+            experiment._plot_delta_revaluation(label = label+experiment.extra_label+extra_label, absolute=absolute, **plot_kwargs)
     
     def get_energies(self):
         energies = pd.DataFrame()
@@ -643,8 +763,8 @@ class MultipleExperimentPlotter(BasePlotter):
             energy = experiment.get_delta_energies()
             if len(energy) == 0:
                 continue
-            print(len(energy))
-            print(energy)
+            # print(len(energy))
+            # print(energy)
             energies[name] = energy
         return energies
     
@@ -732,6 +852,10 @@ class MultipleExperimentPlotter(BasePlotter):
         for experiment, label in self.experiments:
             if experiment.n_runs != 10:
                 print(f"{experiment.name}: {experiment.n_runs}")
+
+    def revaluate(self, problem:Problem):
+        for experiment, label in self.experiments:
+            experiment.revaluate(problem)
 
 if __name__ == "__main__":
     from argparse import ArgumentParser

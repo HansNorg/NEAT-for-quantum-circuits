@@ -139,7 +139,8 @@ def new_results(folder, verbose, show = False, save = False):
         # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker=".")
         # gse.plot_adaptVQE_diff(color="red", marker=".")
         # gse.plot_HE_diff(1, color="green", marker=".")
-        plotter.plot_delta_evaluation(show, save, logarithmic=True)
+        plotter.plot_delta_evaluation(show, save, plot_type="line", logarithmic=True, savename="_line")
+        plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True)
 
 def noise(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -547,7 +548,7 @@ def thesis(folder, verbose, show=False, save=False):
         print("thesis")
     noiseless, phys_noise, shot_noise = True, True, True
     h2, h6, lih = True, True, True
-    _print = True
+    _print = False
     
     if noiseless:
         if h2: 
@@ -2464,6 +2465,52 @@ def thesis_random(folder, verbose, show=False, save=False):
             plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
             plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
+def thesis_noise(folder, verbose, show=False, save=False):
+    for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
+        plotter = MultipleExperimentPlotter(f"thesis-noise/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
+        plotter.extra_title = ""
+        from quantumneat.configuration import QuantumNEATConfig
+        config = QuantumNEATConfig(n_qubits, 1, phys_noise=True)
+        gse = GroundStateEnergy(config, molecule.lower())
+        plotter.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots",
+                            "*",
+                            "", label_n_runs=False)
+        # plotter.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots",
+        #                     "*",
+        #                     "QASNEAT R", label_n_runs=False)
+        # plotter.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots",
+        #                     "*",
+        #                     "QASNEAT ROT", label_n_runs=False)
+        # plotter.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots",
+        #                     "*",
+        #                     "QNEAT", label_n_runs=False)
+        plotter_noise = MultipleExperimentPlotter(f"thesis-noise/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
+        plotter_noise.extra_title = ""
+        from quantumneat.configuration import QuantumNEATConfig
+        config = QuantumNEATConfig(2, 1, phys_noise=True)
+        gse = GroundStateEnergy(config, "h2")
+        plotter_noise.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots_phys-noise",
+                            "*",
+                            "noisy training", label_n_runs=False)
+        # plotter_noise.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots_phys-noise",
+        #                     "*",
+        #                     "QASNEAT R noisy training", label_n_runs=False)
+        # plotter_noise.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots_phys-noise",
+        #                     "*",
+        #                     "QASNEAT ROT noisy training", label_n_runs=False)
+        # plotter_noise.add_experiment(f"thesis_gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots_phys-noise",
+        #                     "*",
+        #                     "QNEAT noisy training", label_n_runs=False)
+        
+        plotter.revaluate(gse)
+        # gse.plot_solution(color="red")
+        # plotter.plot_evaluation(plot_type="line", close=False)
+        # plotter_noise.plot_evaluation(plot_type="line", close=False)
+        # plotter.plot_revaluation(show, save, plot_type="line",)
+        plotter.plot_delta_evaluation(logarithmic=True, plot_type = "line", close=False, extra_label="noiseless training")
+        plotter.plot_delta_revaluation(logarithmic=True, plot_type = "line", close = False, extra_label="noisy evaluation")
+        plotter_noise.plot_delta_evaluation(show, save, logarithmic=True, plot_type = "line")
+
 def UCCSD(folder, verbose, show=False, save=False):
     # from qiskit import transpile
     # from qiskit.circuit import Parameter
@@ -2585,6 +2632,7 @@ def test(folder, verbose, show=False, save=False):
             exit()
     
 if __name__ == "__main__": 
+    mpl.rcParams.update({'font.size': 14})
     from argparse import ArgumentParser
     argparser = ArgumentParser()
     argparser.add_argument("experiment", type=str, help = "Which experiment to plot.")
@@ -2628,6 +2676,8 @@ if __name__ == "__main__":
         thesis_total(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "thesis_random" or args.experiment == "all":
         thesis_random(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "thesis_noise" or args.experiment == "all":
+        thesis_noise(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "UCCSD" or args.experiment == "all":
         UCCSD(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":
