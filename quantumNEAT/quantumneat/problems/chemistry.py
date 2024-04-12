@@ -122,6 +122,12 @@ class GroundStateEnergy(Problem):
         energy = genome.get_energy()
         return 1/(1+circuit_error)-energy+gradient
     
+    def no_fitness(self, genome:Genome) -> float:
+        return np.float64(1.0)
+    
+    def random_fitness(self, genome:Genome) -> float:
+        return np.float64(np.random.random())
+    
     def gradient(self, circuit, parameters, n_parameters) -> float:
         if n_parameters == 0:
             return 0 # Prevent division by 0

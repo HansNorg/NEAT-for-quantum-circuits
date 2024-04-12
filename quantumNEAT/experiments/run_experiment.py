@@ -71,6 +71,10 @@ def main(args:Namespace, unknown:list[str] = []):
             problem.add_encoding_layer = problem.add_hartree_fock_encoding
         elif "0" in problem_arg:
             problem.add_encoding_layer = problem.no_encoding_layer
+        if "no-fitness" in problem_arg:
+            problem.fitness = problem.no_fitness
+        elif "random" in problem_arg:
+            problem.fitness = problem.random_fitness
     elif "h2" in problem_arg or "hydrogen" in problem_arg:
         error_in_fitness = True
         if "errorless" in problem_arg:

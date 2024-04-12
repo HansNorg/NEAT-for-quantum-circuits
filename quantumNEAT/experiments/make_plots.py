@@ -504,6 +504,7 @@ def thesis_separate(folder, verbose, show=False, save=False):
 def thesis_hf(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis hf")
+    _print = True
     for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
         plotter = MultipleExperimentPlotter(f"thesis-hf/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
         for method, method_name in [("", "|+>"), ("_hf", "fock"), ("_0", "|0>")]:
@@ -512,23 +513,28 @@ def thesis_hf(folder, verbose, show=False, save=False):
                 "*", 
                 method_name
                 )
-        plotter.plot_all_generations(show, save)
-        gse = GroundStateEnergy(None, molecule.lower())
-        gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
-        # gse.plot_UCCSD_result(color=UCCSD_COLOR, marker="x")
-        plotter.plot_evaluation(show, save, marker = "x")
-        # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker="x")
-        plotter.plot_delta_evaluation(show, save, marker="x")
-        # plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
-        # gse.plot_UCCSD_diff(absolute=True, color=UCCSD_COLOR, marker="x")
-        # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
-        plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line")
-        # # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker="x")
-        # gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="+")
-        # gse.plot_UCCSD_diff(n_shots=cluster_n_shots[-1], color=UCCSD_COLOR, marker=".")
-        # gse.plot_UCCSD_diff(n_shots=0, phys_noise=True, color=UCCSD_COLOR, marker="*")
-        plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
-        plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+        if _print:
+            plotter.print_n_runs()
+            plotter.print_final_data("best_lengths")
+            plotter.print_final_data("best_n_parameters")
+        else:
+            plotter.plot_all_generations(show, save)
+            gse = GroundStateEnergy(None, molecule.lower())
+            gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+            # gse.plot_UCCSD_result(color=UCCSD_COLOR, marker="x")
+            plotter.plot_evaluation(show, save, marker = "x")
+            # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker="x")
+            plotter.plot_delta_evaluation(show, save, marker="x")
+            # plotter.plot_delta_evaluation(show, save, plot_type = "line", colormap=colormap)
+            # gse.plot_UCCSD_diff(absolute=True, color=UCCSD_COLOR, marker="x")
+            # plotter.plot_delta_evaluation(show, save, marker="x", colormap=colormap)
+            plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line")
+            # # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker="x")
+            # gse.plot_UCCSD_diff(n_shots=0, color=UCCSD_COLOR, marker="+")
+            # gse.plot_UCCSD_diff(n_shots=cluster_n_shots[-1], color=UCCSD_COLOR, marker=".")
+            # gse.plot_UCCSD_diff(n_shots=0, phys_noise=True, color=UCCSD_COLOR, marker="*")
+            plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+            plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
 
 def thesis(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -2426,6 +2432,32 @@ def thesis_total(folder, verbose, show=False, save=False):
                 plotter_qneat.plot_box("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
                 plotter_qneat.plot_box_log("n_shots", f"QNEAT", show=show, save=save, savename="_qneat")
 
+def thesis_random(folder, verbose, show=False, save=False):
+    if verbose >= 1:
+        print("thesis_random")
+    _print = False
+    for molecule, n_qubits in [("H2", 2)]:#, ("H6", 6), ("LiH", 8)]:
+        plotter = MultipleExperimentPlotter(f"thesis-random/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
+        for method, method_name in [("", "QASNEAT"), ("_no-fitness", "Constant"), ("_random",  "Random")]:
+            plotter.add_experiment(
+                f"thesis_gs_{molecule.lower()}_errorless_saveh{method}_linear_growth_R-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps_0-shots", 
+                "*", 
+                method_name
+                )
+        if _print:
+            plotter.print_n_runs()
+            plotter.print_final_data("best_lengths")
+            plotter.print_final_data("best_n_parameters")
+        else:
+            plotter.plot_all_generations(show, save)
+            gse = GroundStateEnergy(None, molecule.lower())
+            gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
+            plotter.plot_evaluation(show, save, marker = "x")
+            plotter.plot_delta_evaluation(show, save, marker="x")
+            plotter.plot_delta_evaluation(show, save, absolute=True, plot_type = "line")
+            plotter.plot_delta_evaluation(show, save, marker="x", logarithmic=True, savename="_scatter")
+            plotter.plot_delta_evaluation(show, save, plot_type = "line", logarithmic=True, savename="_line")
+
 def UCCSD(folder, verbose, show=False, save=False):
     # from qiskit import transpile
     # from qiskit.circuit import Parameter
@@ -2588,6 +2620,8 @@ if __name__ == "__main__":
         thesis(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "thesis_total" or args.experiment == "all":
         thesis_total(args.folder, args.verbose, args.show, args.save)
+    if args.experiment == "thesis_random" or args.experiment == "all":
+        thesis_random(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "UCCSD" or args.experiment == "all":
         UCCSD(args.folder, args.verbose, args.show, args.save)
     if args.experiment == "test":

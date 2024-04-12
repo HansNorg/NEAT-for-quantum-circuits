@@ -24,9 +24,11 @@ EXPERIMENTS = (
     (["gs_h2_errorless_saveh_0"], ["linear_growth"], [2], [10], ["R-CNOT"], [False], [0], [False]),
     (["gs_h6_errorless_saveh_0"], ["linear_growth"], [6], [10], ["R-CNOT"], [False], [0], [False]),
     (["gs_lih_errorless_saveh_0"], ["linear_growth"], [8], [10], ["R-CNOT"], [False], [0], [False]),
+    (["gs_h2_errorless_saveh_no-fitness"], ["linear_growth"], [2], [10], ["R-CNOT"], [False], [0], [False]),
+    (["gs_h2_errorless_saveh_random"], ["linear_growth"], [2], [10], ["R-CNOT"], [False], [0], [False]),
 )
 
-def setup_experiment(problem_ids:list[int], experiment_id:int):
+def setup_experiment(problem_ids:list[int], experiment_id:int, do_print:bool = False):
     args = Namespace()
     args.population_size = 100
     args.generations = 100
@@ -41,10 +43,10 @@ def setup_experiment(problem_ids:list[int], experiment_id:int):
     experiments = []
     for problem_id in problem_ids:
         problem = EXPERIMENTS[problem_id]
-        if experiment_id == -1:
+        if do_print:
             print(problem)
         experiments.extend(list(itertools.product(*problem)))
-    if experiment_id == -1:
+    if do_print:
         print(len(experiments))
         return
     experiment = experiments[experiment_id]
@@ -55,6 +57,7 @@ def setup_experiment(problem_ids:list[int], experiment_id:int):
 if __name__ == "__main__":
     argparser = ArgumentParser()
     argparser.add_argument("problem", nargs="+", type=int, help="Which problem in the batch to run.")
-    argparser.add_argument("experiment", type=int, help="Which experiment in the problem to run. (-1 prints amount of experiments)")
+    argparser.add_argument("experiment", type=int, help="Which experiment in the problem to run.")
+    argparser.add_argument("--print", action="store_true", help="Print experiment(s) instead of running them.")
     args = argparser.parse_args()
-    setup_experiment(args.problem, args.experiment)
+    setup_experiment(args.problem, args.experiment, args.print)
