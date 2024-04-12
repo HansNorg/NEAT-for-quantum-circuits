@@ -111,29 +111,35 @@ def new_results(folder, verbose, show = False, save = False):
     if verbose >= 1:
         print("New results")
     for molecule, n_qubits in [("H2", 2), ("H6",6), ("LiH",8)]:
-        plotter = MultipleExperimentPlotter(f"{molecule}_comparisons", folder=folder, verbose=verbose, error_verbose=verbose)
+        # plotter = MultipleExperimentPlotter(f"{molecule}_comparisons", folder=folder, verbose=verbose, error_verbose=verbose)
+        plotter = MultipleExperimentPlotter(f"optimizer/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
+        plotter.extra_title = ""
         experiments = [
             # (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Linear growth, no optimization"),
-            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Linear growth, 100 steps"),
+            # (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Linear growth, 100 steps"),
             # (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Linear growth, 200 steps"),
+            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "No optimization"),
+            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Max 100 steps"),
+            (f"gs_{molecule.lower()}_errorless_saveh_linear_growth_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Max 200 steps"),
             # (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population", "[0]", "Qneat, no optimization"),
             # (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_100-optimizer-steps", "[0]", "Qneat, 100 steps"),
             # (f"gs_{molecule.lower()}_errorless_saveh_qneat_ROT-CNOT_{n_qubits}-qubits_100-population_200-optimizer-steps", "[0]", "Qneat, 200 steps"),
         ]
         plotter.add_experiments(experiments)
-        plotter.plot_all_generations(show, save)
+        # plotter.plot_all_generations(show, save)
         gse = GroundStateEnergy(None, molecule.lower())
         gse.plot_solution(color="r", linewidth=1, label="Solution (ED)")
-        gse.plot_UCCSD_result(color=UCCSD_COLOR, marker=".")
-        gse.plot_adaptVQE_result(color="red", marker=".")
-        gse.plot_HE_result(1, color="green", marker=".")
+        # gse.plot_UCCSD_result(color=UCCSD_COLOR, marker=".")
+        # gse.plot_adaptVQE_result(color="red", marker=".")
+        # gse.plot_HE_result(1, color="green", marker=".")
         plotter.plot_evaluation(show, save, marker = "x")
-        gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker=".")
-        gse.plot_adaptVQE_diff(color="red", marker=".")
-        gse.plot_HE_diff(1, color="green", marker=".")
-        gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker=".")
-        gse.plot_adaptVQE_diff(color="red", marker=".")
-        gse.plot_HE_diff(1, color="green", marker=".")
+        # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker=".")
+        # gse.plot_adaptVQE_diff(color="red", marker=".")
+        # gse.plot_HE_diff(1, color="green", marker=".")
+        # gse.plot_UCCSD_diff(color=UCCSD_COLOR, marker=".")
+        # gse.plot_adaptVQE_diff(color="red", marker=".")
+        # gse.plot_HE_diff(1, color="green", marker=".")
+        plotter.plot_delta_evaluation(show, save, logarithmic=True)
 
 def noise(folder, verbose, show=False, save=False):
     if verbose >= 1:
@@ -504,7 +510,7 @@ def thesis_separate(folder, verbose, show=False, save=False):
 def thesis_hf(folder, verbose, show=False, save=False):
     if verbose >= 1:
         print("thesis hf")
-    _print = True
+    _print = False
     for molecule, n_qubits in [("H2", 2), ("H6", 6), ("LiH", 8)]:
         plotter = MultipleExperimentPlotter(f"thesis-hf/{molecule.lower()}", folder=folder, verbose=verbose, error_verbose=verbose)
         for method, method_name in [("", "|+>"), ("_hf", "fock"), ("_0", "|0>")]:
